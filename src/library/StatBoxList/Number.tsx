@@ -1,41 +1,39 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import NumberEasing from 'che-react-number-easing';
-import { OpenHelpIcon } from 'library/OpenHelpIcon';
+import { ButtonHelp, Odometer } from '@polkadot-cloud/react';
+import { useHelp } from 'contexts/Help';
+import BigNumber from 'bignumber.js';
 import { StatBox } from './Item';
-import { NumberProps } from './types';
+import type { NumberProps } from './types';
 
-export const Number = (props: NumberProps) => {
-  const { label, value, unit, helpKey } = props;
+export const Number = ({
+  label,
+  value,
+  unit,
+  helpKey,
+  decimals,
+}: NumberProps) => {
   const help = helpKey !== undefined;
-
-  const currency = props.currency ?? '';
+  const { openHelp } = useHelp();
 
   return (
     <StatBox>
       <div className="content chart">
         <div className="labels">
-          <h3 className="text">
-            <NumberEasing
-              ease="quintInOut"
-              precision={2}
-              speed={250}
-              trail={false}
-              value={value}
-              useLocaleString
-              currency={currency}
+          <h3>
+            <Odometer
+              value={new BigNumber(value)
+                .decimalPlaces(decimals || 0)
+                .toFormat()}
             />
-            {unit && (
-              <>
-                &nbsp;
-                {unit}
-              </>
-            )}
+            {unit ? <>{unit}</> : null}
           </h3>
           <h4>
             {label}
-            {help && <OpenHelpIcon helpKey={helpKey} />}
+            {help ? (
+              <ButtonHelp marginLeft onClick={() => openHelp(helpKey)} />
+            ) : null}
           </h4>
         </div>
       </div>

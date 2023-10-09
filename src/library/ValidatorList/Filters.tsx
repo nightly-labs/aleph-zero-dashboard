@@ -1,5 +1,5 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import {
   faArrowDownWideShort,
@@ -7,28 +7,26 @@ import {
   faCheck,
   faFilterCircleXmark,
 } from '@fortawesome/free-solid-svg-icons';
-import {
-  ButtonInvertRounded,
-  ButtonSecondary,
-} from '@rossbulat/polkadot-dashboard-ui';
+import { ButtonPrimaryInvert, ButtonSecondary } from '@polkadot-cloud/react';
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useFilters } from 'contexts/Filters';
-import { FilterType } from 'contexts/Filters/types';
-import { useOverlay } from 'contexts/Overlay';
+import { usePrompt } from 'contexts/Prompt';
 import { Container } from 'library/Filter/Container';
 import { Item } from 'library/Filter/Item';
-import { useEffect } from 'react';
 import { useValidatorFilters } from '../Hooks/useValidatorFilters';
 import { FilterValidators } from './FilterValidators';
 import { OrderValidators } from './OrderValidators';
 
 export const Filters = () => {
-  const { openOverlayWith } = useOverlay();
+  const { t } = useTranslation('library');
+  const { openPromptWith } = usePrompt();
   const { resetFilters, getFilters, getOrder, toggleFilter } = useFilters();
   const { includesToLabels, excludesToLabels, ordersToLabels } =
     useValidatorFilters();
 
-  const includes = getFilters(FilterType.Include, 'validators');
-  const excludes = getFilters(FilterType.Exclude, 'validators');
+  const includes = getFilters('include', 'validators');
+  const excludes = getFilters('exclude', 'validators');
   const hasFilters = includes?.length || excludes?.length;
   const order = getOrder('validators');
 
@@ -40,27 +38,27 @@ export const Filters = () => {
   return (
     <>
       <div style={{ marginBottom: '1.1rem' }}>
-        <ButtonInvertRounded
-          text="Order"
+        <ButtonPrimaryInvert
+          text={t('order')}
           marginRight
           iconLeft={faArrowDownWideShort}
           onClick={() => {
-            openOverlayWith(<OrderValidators />);
+            openPromptWith(<OrderValidators />);
           }}
         />
-        <ButtonInvertRounded
-          text="Filter"
+        <ButtonPrimaryInvert
+          text={t('filter')}
           marginRight
           iconLeft={faFilterCircleXmark}
           onClick={() => {
-            openOverlayWith(<FilterValidators />);
+            openPromptWith(<FilterValidators />);
           }}
         />
         <ButtonSecondary
-          text="Clear"
+          text={t('clear')}
           onClick={() => {
-            resetFilters(FilterType.Include, 'validators');
-            resetFilters(FilterType.Exclude, 'validators');
+            resetFilters('include', 'validators');
+            resetFilters('exclude', 'validators');
           }}
           disabled={!hasFilters}
         />
@@ -70,31 +68,30 @@ export const Filters = () => {
           <Item
             label={
               order === 'default'
-                ? 'Unordered'
-                : `Order: ${ordersToLabels[order]}`
+                ? `${t('unordered')}`
+                : `${t('order')}: ${ordersToLabels[order]}`
             }
             disabled
           />
-          {!hasFilters && <Item label="No filters" disabled />}
-          {includes?.map((e: string, i: number) => (
+          {!hasFilters && <Item label={t('noFilters')} disabled />}
+          {includes?.map((e, i) => (
             <Item
               key={`validator_include_${i}`}
               label={includesToLabels[e]}
               icon={faCheck}
-              transform="grow-2"
               onClick={() => {
-                toggleFilter(FilterType.Include, 'validators', e);
+                toggleFilter('include', 'validators', e);
               }}
             />
           ))}
-          {excludes?.map((e: string, i: number) => (
+          {excludes?.map((e, i) => (
             <Item
               key={`validator_exclude_${i}`}
               label={excludesToLabels[e]}
               icon={faBan}
-              transform="grow-0"
+              transform="shrink-2"
               onClick={() => {
-                toggleFilter(FilterType.Exclude, 'validators', e);
+                toggleFilter('exclude', 'validators', e);
               }}
             />
           ))}

@@ -1,34 +1,25 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { faUsers } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useTranslation } from 'react-i18next';
 import { useTooltip } from 'contexts/Tooltip';
-import { TooltipPosition, TooltipTrigger } from 'library/ListItem/Wrappers';
-import { useRef } from 'react';
+import { TooltipTrigger } from 'library/ListItem/Wrappers';
 
-export const Members = (props: { members: string }) => {
-  const { members } = props;
+export const Members = ({ members }: { members: string }) => {
+  const { t } = useTranslation('library');
+  const { setTooltipTextAndOpen } = useTooltip();
 
-  const { setTooltipPosition, setTooltipMeta, open } = useTooltip();
-  const posRef = useRef<HTMLDivElement>(null);
-  const tooltipText = 'Pool Members';
-
-  const toggleTooltip = () => {
-    if (!open) {
-      setTooltipMeta(tooltipText);
-      setTooltipPosition(posRef);
-    }
-  };
+  const tooltipText = t('poolMembers');
 
   return (
     <div className="label pool">
       <TooltipTrigger
         className="tooltip-trigger-element"
         data-tooltip-text={tooltipText}
-        onMouseMove={() => toggleTooltip()}
+        onMouseMove={() => setTooltipTextAndOpen(tooltipText)}
       />
-      <TooltipPosition ref={posRef} />
       <FontAwesomeIcon icon={faUsers} />
       &nbsp;{members}
     </div>

@@ -1,22 +1,25 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useUi } from 'contexts/UI';
-import { useState } from 'react';
-import Lottie from 'react-lottie';
 import { Link } from 'react-router-dom';
-import { PrimaryProps } from '../types';
-import { MinimisedWrapper, Wrapper } from './Wrappers';
+import { useUi } from 'contexts/UI';
+import { useDotLottieButton } from 'library/Hooks/useDotLottieButton';
+import type { PrimaryProps } from '../types';
+import { Wrapper } from './Wrappers';
 
-export const Primary = (props: PrimaryProps) => {
+export const Primary = ({
+  name,
+  active,
+  to,
+  action,
+  minimised,
+  lottie,
+}: PrimaryProps) => {
   const { setSideMenu } = useUi();
 
-  const { name, active, to, icon, action, minimised } = props;
-
-  const StyledWrapper = minimised ? MinimisedWrapper : Wrapper;
+  const { icon, play } = useDotLottieButton(lottie);
 
   let Action = null;
   const actionStatus = action?.status ?? null;
@@ -25,14 +28,16 @@ export const Primary = (props: PrimaryProps) => {
     case 'text':
       Action = (
         <div className="action text">
-          <span className={`${actionStatus}`}>{action?.text ?? ''}</span>
+          <span className={actionStatus || undefined}>
+            {action?.text ?? ''}
+          </span>
         </div>
       );
       break;
     case 'bullet':
       Action = (
         <div className={`action ${actionStatus}`}>
-          <FontAwesomeIcon icon={faCircle as IconProp} transform="shrink-4" />
+          <FontAwesomeIcon icon={faCircle} transform="shrink-4" />
         </div>
       );
       break;
@@ -40,67 +45,35 @@ export const Primary = (props: PrimaryProps) => {
       Action = null;
   }
 
-  // animate icon config
-
-  const { animate } = props;
-  const [isStopped, setIsStopped] = useState(true);
-
-  const animateOptions = {
-    loop: true,
-    autoplay: false,
-    animationData: animate,
-    rendererSettings: {
-      preserveAspectRatio: 'xMidYMid slice',
-    },
-  };
-
   return (
     <Link
       to={to}
       onClick={() => {
         if (!active) {
-          setSideMenu(0);
-          setIsStopped(false);
+          play();
+          setSideMenu(false);
         }
       }}
     >
-      <StyledWrapper
+      <Wrapper
         className={`${active ? `active` : `inactive`}${
-          action ? ` action-${actionStatus}` : ``
-        }`}
+          minimised ? ` minimised` : ``
+        }${action ? ` ${actionStatus}` : ``}`}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         transition={{
           duration: 0.1,
         }}
       >
-        <div className="icon">
-          {animate === undefined ? (
-            icon
-          ) : (
-            <Lottie
-              options={animateOptions}
-              width={minimised ? '1.5rem' : '1.35rem'}
-              height={minimised ? '1.5rem' : '1.35rem'}
-              isStopped={isStopped}
-              isPaused={isStopped}
-              eventListeners={[
-                {
-                  eventName: 'loopComplete',
-                  callback: () => setIsStopped(true),
-                },
-              ]}
-            />
-          )}
+        <div className={`dotlottie${minimised ? ` minimised` : ``}`}>
+          {icon}
         </div>
         {!minimised && (
           <>
             <h4 className="name">{name}</h4> {Action}
           </>
         )}
-      </StyledWrapper>
+      </Wrapper>
     </Link>
   );
 };
-
-export default Primary;

@@ -1,12 +1,17 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useTranslation } from 'react-i18next';
+import { useUnstaking } from 'library/Hooks/useUnstaking';
 import { SelectableWrapper } from '.';
 import { useList } from './context';
 
 export const Selectable = ({ actionsAll, actionsSelected, canSelect }: any) => {
+  const { t } = useTranslation('library');
   const provider = useList();
+  const { isFastUnstaking } = useUnstaking();
+
   // get list provider props
   const { selectActive, setSelectActive, selected, selectToggleable } =
     provider;
@@ -16,12 +21,12 @@ export const Selectable = ({ actionsAll, actionsSelected, canSelect }: any) => {
       {selectToggleable === true ? (
         <button
           type="button"
-          disabled={!canSelect}
+          disabled={!canSelect || isFastUnstaking}
           onClick={() => {
             setSelectActive(!selectActive);
           }}
         >
-          {selectActive ? 'Cancel' : 'Select'}
+          {selectActive ? t('cancel') : t('select')}
         </button>
       ) : null}
       {selected.length > 0 ? (
@@ -29,7 +34,9 @@ export const Selectable = ({ actionsAll, actionsSelected, canSelect }: any) => {
           {actionsSelected.map((a: any, i: number) => (
             <button
               key={`a_selected_${i}`}
-              disabled={a?.isDisabled ? a.isDisabled() : false}
+              disabled={
+                isFastUnstaking || (a?.isDisabled ? a.isDisabled() : false)
+              }
               type="button"
               onClick={() => a.onClick(provider)}
             >
@@ -41,7 +48,7 @@ export const Selectable = ({ actionsAll, actionsSelected, canSelect }: any) => {
       {actionsAll.map((a: any, i: number) => (
         <button
           key={`a_all_${i}`}
-          disabled={a?.isDisabled ? a.isDisabled() : false}
+          disabled={isFastUnstaking || (a?.isDisabled ? a.isDisabled() : false)}
           type="button"
           onClick={() => a.onClick(provider)}
         >

@@ -1,17 +1,11 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { HeadingProps } from '../types';
+import type { HeadingProps } from '../types';
 import { Wrapper } from './Wrapper';
 
-export const Heading = (props: HeadingProps) => {
-  const { title, minimised } = props;
-
-  return (
-    <Wrapper minimised={minimised}>
-      {minimised ? <h5>&bull;</h5> : <h5>{title}</h5>}
-    </Wrapper>
-  );
-};
-
-export default Heading;
+export const Heading = ({ title, minimised }: HeadingProps) => (
+  <Wrapper $minimised={minimised}>
+    {minimised ? <h5>&bull;</h5> : <h5>{title}</h5>}
+  </Wrapper>
+);

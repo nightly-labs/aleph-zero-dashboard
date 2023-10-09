@@ -1,12 +1,15 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import Keyring from '@polkadot/keyring';
-import { Network } from 'types';
-import { localStorageOrDefault } from 'Utils';
-import { ExtensionAccount, ExternalAccount, ImportedAccount } from './types';
+import { localStorageOrDefault } from '@polkadot-cloud/utils';
+import type { ExtensionAccount } from 'contexts/Extensions/types';
+import type { Network, NetworkName } from 'types';
+import type { ExternalAccount } from './types';
 
 // extension utils
+
+export const manualSigners = ['ledger', 'vault'];
 
 // adds an extension to local `active_extensions`
 export const addToLocalExtensions = (id: string) => {
@@ -49,8 +52,7 @@ export const extensionIsLocal = (id: string) => {
   );
   let foundExtensionLocally = false;
   if (Array.isArray(localExtensions)) {
-    foundExtensionLocally =
-      localExtensions.find((l: string) => l === id) !== undefined;
+    foundExtensionLocally = localExtensions.find((l) => l === id) !== undefined;
   }
   return foundExtensionLocally;
 };
@@ -61,47 +63,37 @@ export const extensionIsLocal = (id: string) => {
 export const getActiveAccountLocal = (network: Network) => {
   const keyring = new Keyring();
   keyring.setSS58Format(network.ss58);
-  let _activeAccount = localStorageOrDefault(
-    `${network.name.toLowerCase()}_active_account`,
-    null
-  );
-  if (_activeAccount !== null) {
-    _activeAccount = keyring.addFromAddress(_activeAccount).address;
+  let account = localStorageOrDefault(`${network.name}_active_account`, null);
+  if (account !== null) {
+    account = keyring.addFromAddress(account).address;
   }
-  return _activeAccount;
+  return account;
 };
 
 // gets local external accounts, formatting their addresses
 // using active network ss58 format.
-export const getLocalExternalAccounts = (
-  network: Network,
-  activeNetworkOnly = false
-) => {
-  let localExternalAccounts = localStorageOrDefault<Array<ExternalAccount>>(
+export const getLocalExternalAccounts = (network?: NetworkName) => {
+  let localAccounts = localStorageOrDefault<ExternalAccount[]>(
     'external_accounts',
     [],
     true
-  ) as Array<ExternalAccount>;
-  if (activeNetworkOnly) {
-    localExternalAccounts = localExternalAccounts.filter(
-      (l: ExternalAccount) => l.network === network.name
-    );
+  ) as ExternalAccount[];
+  if (network) {
+    localAccounts = localAccounts.filter((l) => l.network === network);
   }
-  return localExternalAccounts;
+  return localAccounts;
 };
 
 // gets accounts that exist in local `external_accounts`
 export const getInExternalAccounts = (
-  accounts: Array<ExtensionAccount>,
-  network: Network
+  accounts: ExtensionAccount[],
+  network: NetworkName
 ) => {
-  const localExternalAccounts = getLocalExternalAccounts(network, true);
+  const localExternalAccounts = getLocalExternalAccounts(network);
+
   return (
     localExternalAccounts.filter(
-      (l: ExternalAccount) =>
-        (accounts || []).find(
-          (a: ExtensionAccount) => a.address === l.address
-        ) !== undefined && l.addedBy === 'system'
+      (a) => (accounts || []).find((b) => b.address === a.address) !== undefined
     ) || []
   );
 };
@@ -109,14 +101,13 @@ export const getInExternalAccounts = (
 // removes supplied accounts from local `external_accounts`.
 export const removeLocalExternalAccounts = (
   network: Network,
-  accounts: Array<ExternalAccount>
+  accounts: ExternalAccount[]
 ) => {
-  let localExternalAccounts = getLocalExternalAccounts(network, true);
+  let localExternalAccounts = getLocalExternalAccounts(network.name);
   localExternalAccounts = localExternalAccounts.filter(
-    (l: ExternalAccount) =>
+    (a) =>
       accounts.find(
-        (a: ImportedAccount) =>
-          a.address === l.address && l.network === network.name
+        (b) => b.address === a.address && a.network === network.name
       ) === undefined
   );
   localStorage.setItem(

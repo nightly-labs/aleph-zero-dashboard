@@ -1,15 +1,10 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
+import { setStateWithRef } from '@polkadot-cloud/utils';
 import React, { useRef, useState } from 'react';
-import { setStateWithRef } from 'Utils';
 import { defaultExtrinsicsContext } from './defaults';
-import { ExtrinsicsContextInterface } from './types';
-
-export const ExtrinsicsContext =
-  React.createContext<ExtrinsicsContextInterface>(defaultExtrinsicsContext);
-
-export const useExtrinsics = () => React.useContext(ExtrinsicsContext);
+import type { ExtrinsicsContextInterface } from './types';
 
 export const ExtrinsicsProvider = ({
   children,
@@ -20,14 +15,19 @@ export const ExtrinsicsProvider = ({
   const pendingRef = useRef(pending);
 
   const addPending = (nonce: string) => {
-    const _pending: string[] = [...pendingRef.current];
-    _pending.push(nonce);
-    setStateWithRef(_pending, setPending, pendingRef);
+    setStateWithRef(
+      [...pendingRef.current].concat(nonce),
+      setPending,
+      pendingRef
+    );
   };
 
   const removePending = (nonce: string) => {
-    const _pending = pendingRef.current.filter((n: string) => n !== nonce);
-    setStateWithRef(_pending, setPending, pendingRef);
+    setStateWithRef(
+      pendingRef.current.filter((n: string) => n !== nonce),
+      setPending,
+      pendingRef
+    );
   };
 
   return (
@@ -42,3 +42,8 @@ export const ExtrinsicsProvider = ({
     </ExtrinsicsContext.Provider>
   );
 };
+
+export const ExtrinsicsContext =
+  React.createContext<ExtrinsicsContextInterface>(defaultExtrinsicsContext);
+
+export const useExtrinsics = () => React.useContext(ExtrinsicsContext);

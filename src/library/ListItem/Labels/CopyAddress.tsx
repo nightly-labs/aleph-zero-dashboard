@@ -1,24 +1,23 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faCopy } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useTranslation } from 'react-i18next';
 import { useNotifications } from 'contexts/Notifications';
-import { NotificationText } from 'contexts/Notifications/types';
-import { CopyAddressProps } from '../types';
+import type { NotificationText } from 'contexts/Notifications/types';
+import type { CopyAddressProps } from '../types';
 
-export const CopyAddress = (props: CopyAddressProps) => {
+export const CopyAddress = ({ address }: CopyAddressProps) => {
+  const { t } = useTranslation('library');
   const { addNotification } = useNotifications();
-  const { validator } = props;
-  const { address } = validator;
 
   // copy address notification
   const notificationCopyAddress: NotificationText | null =
     address == null
       ? null
       : {
-          title: 'Address Copied to Clipboard',
+          title: t('addressCopiedToClipboard'),
           subtitle: address,
         };
 
@@ -33,10 +32,8 @@ export const CopyAddress = (props: CopyAddressProps) => {
           navigator.clipboard.writeText(address || '');
         }}
       >
-        <FontAwesomeIcon icon={faCopy as IconProp} />
+        <FontAwesomeIcon icon={faCopy} transform="shrink-1" />
       </button>
     </div>
   );
 };
-
-export default CopyAddress;

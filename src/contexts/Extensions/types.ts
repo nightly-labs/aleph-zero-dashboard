@@ -1,31 +1,63 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { FunctionComponent, SVGProps } from 'react';
-import { AnyApi } from 'types';
+import type { FunctionComponent, SVGProps } from 'react';
+import type { AnyApi } from 'types';
 
-export interface ExtensionsContextInterface {
-  extensions: Array<Extension>;
-  extensionsStatus: { [key: string]: string };
-  extensionsFetched: boolean;
-  setExtensionStatus: (id: string, s: string) => void;
-  setExtensionsFetched: (s: boolean) => void;
-  setExtensions: (s: Array<Extension>) => void;
+// top level required properties the extension must expose via their
+// `injectedWeb3` entry.
+export interface ExtensionInjected extends ExtensionConfig {
+  id: string;
+  enable: (n: string) => Promise<ExtensionInterface>;
 }
 
-export interface ExtensionInteface {
-  accounts: AnyApi;
-  metadata: AnyApi;
+// the required properties `enable` must provide after resolution.
+export interface ExtensionInterface {
+  accounts: {
+    subscribe: {
+      (a: { (b: ExtensionAccount[]): void }): void;
+    };
+  };
   provider: AnyApi;
+  metadata: AnyApi;
   signer: AnyApi;
 }
 
-export interface Extension {
+// the required properties returned after subscribing to accounts.
+export interface ExtensionAccount extends ExtensionMetadata {
+  address: string;
+  meta?: AnyApi;
+  name: string;
+  signer?: AnyApi;
+}
+
+// dashboard specific: configuration item of an extension.
+// configured in src/config/extensions/index.tsx.
+export interface ExtensionConfig {
   id: string;
   title: string;
   icon: FunctionComponent<
     SVGProps<SVGSVGElement> & { title?: string | undefined }
   >;
-  enable: (n: string) => Promise<ExtensionInteface>;
-  version: string;
+  url: string;
 }
+
+// dashboard specific: miscellaneous metadata added to an extension by the
+// dashboard.
+export interface ExtensionMetadata {
+  addedBy?: string;
+  source: string;
+}
+
+// dashboard specific: extensions context interface.
+export interface ExtensionsContextInterface {
+  extensions: ExtensionInjected[];
+  extensionsStatus: ExtensionsStatus;
+  extensionsFetched: boolean;
+  checkingInjectedWeb3: boolean;
+  setExtensionStatus: (id: string, s: string) => void;
+  setExtensionsFetched: (s: boolean) => void;
+  setExtensions: (s: ExtensionInjected[]) => void;
+}
+
+export type ExtensionsStatus = Record<string, string>;

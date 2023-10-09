@@ -1,53 +1,29 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
-import BN from 'bn.js';
-import {
-  Balance,
-  BalanceLedger,
-  BalancesContextInterface,
-  Nominations,
-} from 'contexts/Balances/types';
+import BigNumber from 'bignumber.js';
+import type { Balance, BalancesContextInterface, Ledger } from './types';
 
-export const balance: Balance = {
-  free: new BN(0),
-  reserved: new BN(0),
-  miscFrozen: new BN(0),
-  feeFrozen: new BN(0),
-  freeAfterReserve: new BN(0),
+export const defaultBalancesContext: BalancesContextInterface = {
+  ledgers: [],
+  balances: [],
+  getStashLedger: (address) => defaultLedger,
+  getBalance: (address) => defaultBalance,
+  getLocks: (address) => [],
+  getNonce: (address) => 0,
 };
 
-export const ledger: BalanceLedger = {
+export const defaultLedger: Ledger = {
   address: null,
   stash: null,
-  active: new BN(0),
-  total: new BN(0),
+  active: new BigNumber(0),
+  total: new BigNumber(0),
   unlocking: [],
 };
 
-export const nominations: Nominations = {
-  targets: [],
-  submittedIn: 0,
-};
-
-export const defaultBalancesContext: BalancesContextInterface = {
-  // eslint-disable-next-line
-  getAccount: (address) => null,
-  // eslint-disable-next-line
-  getAccountBalance: (address) => balance,
-  // eslint-disable-next-line
-  getLedgerForStash: (address) => ledger,
-  // eslint-disable-next-line
-  getLedgerForController: (address) => null,
-  // eslint-disable-next-line
-  getAccountLocks: (address) => [],
-  // eslint-disable-next-line
-  getBondedAccount: (address) => null,
-  // eslint-disable-next-line
-  getAccountNominations: (address) => [],
-  // eslint-disable-next-line
-  isController: (address) => false,
-  accounts: [],
-  existentialAmount: new BN(0),
-  ledgers: [],
+export const defaultBalance: Balance = {
+  free: new BigNumber(0),
+  reserved: new BigNumber(0),
+  frozen: new BigNumber(0),
 };

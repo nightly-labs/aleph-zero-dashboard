@@ -1,17 +1,14 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { AnyFunction, AnyJson } from 'types';
+import type { AnyFunction, AnyJson } from 'types';
 
-export enum FilterType {
-  Exclude,
-  Include,
-}
+export type FilterType = 'exclude' | 'include';
 
 export interface FiltersContextInterface {
-  getFilters: (t: FilterType, g: string) => Array<string> | null;
+  getFilters: (t: FilterType, g: string) => string[] | null;
   toggleFilter: (t: FilterType, g: string, f: string) => void;
-  setMultiFilters: (t: FilterType, g: string, fs: Array<string>) => void;
+  setMultiFilters: (t: FilterType, g: string, fs: string[], r: boolean) => void;
   getOrder: (g: string) => string;
   setOrder: (g: string, o: string) => void;
   getSearchTerm: (g: string) => string | null;
@@ -28,11 +25,11 @@ export interface FiltersContextInterface {
   applyOrder: (g: string, list: AnyJson, fn: AnyFunction) => void;
 }
 
-export type FilterItems = Array<FilterItem>;
-export type FilterItem = { key: string; filters: Array<string> };
+export type FilterItems = FilterItem[];
+export type FilterItem = { key: string; filters: string[] };
 
-export type FilterOrders = Array<FilterOrder>;
+export type FilterOrders = FilterOrder[];
 export type FilterOrder = { key: string; order: string };
 
-export type FilterSearches = Array<FilterSearch>;
+export type FilterSearches = FilterSearch[];
 export type FilterSearch = { key: string; searchTerm: string };

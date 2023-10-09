@@ -1,7 +1,6 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faTwitter } from '@fortawesome/free-brands-svg-icons';
 import {
   faEnvelope,
@@ -9,20 +8,19 @@ import {
   faServer,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useApi } from 'contexts/Api';
-import { useModal } from 'contexts/Modal';
-import { lazy, Suspense, useMemo } from 'react';
+import { Suspense, lazy, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useCommunitySections } from './context';
-import { ItemProps } from './types';
+import { useApi } from 'contexts/Api';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 import { ItemWrapper } from './Wrappers';
+import { useCommunitySections } from './context';
+import type { ItemProps } from './types';
 
-export const Item = (props: ItemProps) => {
-  const { openModalWith } = useModal();
-  const { network } = useApi();
+export const Item = ({ item, actionable }: ItemProps) => {
   const { t } = useTranslation('pages');
+  const { openModal } = useOverlay().modal;
+  const { network } = useApi();
 
-  const { item, actionable } = props;
   const {
     bio,
     name,
@@ -32,8 +30,7 @@ export const Item = (props: ItemProps) => {
     thumbnail,
     validators: entityAllValidators,
   } = item;
-  const validatorCount =
-    entityAllValidators[network.name.toLowerCase()]?.length ?? 0;
+  const validatorCount = entityAllValidators[network.name]?.length ?? 0;
 
   const { setActiveSection, setActiveItem, setScrollPos } =
     useCommunitySections();
@@ -57,13 +54,15 @@ export const Item = (props: ItemProps) => {
     },
   };
 
-  const Thumbnail = useMemo(() => {
-    return lazy(() => import(`config/validators/thumbnails/${thumbnail}`));
-  }, []);
+  const Thumbnail = useMemo(
+    () => lazy(() => import(`../../config/validators/${thumbnail}.tsx`)),
+    []
+  );
 
   return (
     <ItemWrapper
-      whileHover={{ scale: actionable ? 1.005 : 1 }}
+      whileHover={{ scale: 1.005 }}
+      transition={{ duration: 0.15 }}
       variants={listItem}
     >
       <div className="inner">
@@ -77,7 +76,7 @@ export const Item = (props: ItemProps) => {
             {name}
             <button
               type="button"
-              onClick={() => openModalWith('Bio', { name, bio }, 'large')}
+              onClick={() => openModal({ key: 'Bio', options: { name, bio } })}
               className="active"
             >
               <span>{t('community.bio')}</span>
@@ -137,10 +136,7 @@ export const Item = (props: ItemProps) => {
                   window.open(`https://twitter.com/${twitter}`, '_blank');
                 }}
               >
-                <FontAwesomeIcon
-                  icon={faTwitter as IconProp}
-                  className="icon-left"
-                />
+                <FontAwesomeIcon icon={faTwitter} className="icon-left" />
                 <h4>{twitter}</h4>
                 <FontAwesomeIcon
                   icon={faExternalLink}
@@ -171,5 +167,3 @@ export const Item = (props: ItemProps) => {
     </ItemWrapper>
   );
 };
-
-export default Item;

@@ -1,58 +1,37 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { MinBondPrecision } from 'consts';
 import { useApi } from 'contexts/Api';
 import { useTooltip } from 'contexts/Tooltip';
-import { useValidators } from 'contexts/Validators';
-import { motion } from 'framer-motion';
 import {
   OverSubscribedWrapper,
-  TooltipPosition,
   TooltipTrigger,
 } from 'library/ListItem/Wrappers';
-import { useRef } from 'react';
-import { OversubscribedProps } from '../types';
+import { useStaking } from 'contexts/Staking';
+import type { OversubscribedProps } from '../types';
 
-export const Oversubscribed = (props: OversubscribedProps) => {
-  const { consts, network } = useApi();
-  const { meta } = useValidators();
-  const { setTooltipPosition, setTooltipMeta, open } = useTooltip();
+export const Oversubscribed = ({ address }: OversubscribedProps) => {
+  const { t } = useTranslation('library');
+  const { network } = useApi();
+  const { setTooltipTextAndOpen } = useTooltip();
+  const { erasStakersSyncing, getLowestRewardFromStaker } = useStaking();
 
-  const { batchIndex, batchKey } = props;
+  const { lowest, oversubscribed } = getLowestRewardFromStaker(address);
 
-  const identities = meta[batchKey]?.identities ?? [];
-  const supers = meta[batchKey]?.supers ?? [];
-  const stake = meta[batchKey]?.stake ?? [];
+  const displayOversubscribed = !erasStakersSyncing && oversubscribed;
 
-  // aggregate synced status
-  const identitiesSynced = identities.length > 0 ?? false;
-  const supersSynced = supers.length > 0 ?? false;
+  const lowestRewardFormatted = lowest
+    .decimalPlaces(MinBondPrecision)
+    .toFormat();
 
-  const synced = {
-    identities: identitiesSynced && supersSynced,
-    stake: stake.length > 0 ?? false,
-  };
-
-  const eraStakers = stake[batchIndex];
-
-  const totalNominations = eraStakers?.total_nominations ?? 0;
-  const lowestReward = eraStakers?.lowestReward ?? 0;
-
-  const displayOversubscribed =
-    synced.stake && totalNominations >= consts.maxNominatorRewardedPerValidator;
-
-  const posRef = useRef(null);
-
-  const tooltipText = `Over subscribed: Minimum reward bond is ${lowestReward} ${network.unit}`;
-
-  const toggleTooltip = () => {
-    if (!open) {
-      setTooltipMeta(tooltipText);
-      setTooltipPosition(posRef);
-    }
-  };
+  const tooltipText = `${t(
+    'overSubscribedMinReward'
+  )} ${lowestRewardFormatted} ${network.unit}`;
 
   return (
     <>
@@ -66,9 +45,8 @@ export const Oversubscribed = (props: OversubscribedProps) => {
             <TooltipTrigger
               className="tooltip-trigger-element"
               data-tooltip-text={tooltipText}
-              onMouseMove={() => toggleTooltip()}
+              onMouseMove={() => setTooltipTextAndOpen(tooltipText)}
             />
-            <TooltipPosition ref={posRef} />
             <OverSubscribedWrapper>
               <span className="warning">
                 <FontAwesomeIcon
@@ -77,7 +55,7 @@ export const Oversubscribed = (props: OversubscribedProps) => {
                   className="warning"
                 />
               </span>
-              {lowestReward} {network.unit}
+              {lowestRewardFormatted} {network.unit}
             </OverSubscribedWrapper>
           </div>
         </motion.div>
@@ -85,5 +63,3 @@ export const Oversubscribed = (props: OversubscribedProps) => {
     </>
   );
 };
-
-export default Oversubscribed;

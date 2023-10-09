@@ -1,28 +1,35 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { ConnectContextInterface } from 'contexts/Connect/types';
+import type { ConnectContextInterface } from 'contexts/Connect/types';
 
 export const defaultConnectContext: ConnectContextInterface = {
-  // eslint-disable-next-line
   formatAccountSs58: (a: string) => null,
-  // eslint-disable-next-line
-  connectExtensionAccounts: (e) => {},
-  // eslint-disable-next-line
+  connectExtensionAccounts: async (e) =>
+    new Promise((resolve) => resolve(false)),
   getAccount: (a) => null,
-  // eslint-disable-next-line
   connectToAccount: (a) => {},
   disconnectFromAccount: () => {},
-  // eslint-disable-next-line
   addExternalAccount: (a, b) => {},
   getActiveAccount: () => null,
-  // eslint-disable-next-line
   accountHasSigner: (a) => false,
-  // eslint-disable-next-line
+  requiresManualSign: (a) => false,
   isReadOnlyAccount: (a) => false,
-  // eslint-disable-next-line
+  addToAccounts: (a) => {},
   forgetAccounts: (a) => {},
+  setActiveProxy: (p, l) => {},
+  renameImportedAccount: (a, n) => {},
   accounts: [],
   activeAccount: null,
-  activeAccountMeta: null,
+  activeProxy: null,
+  activeProxyType: null,
+  accountsInitialised: false,
+};
+
+export const defaultHandleImportExtension = {
+  newAccounts: [],
+  meta: {
+    removedActiveAccount: null,
+  },
 };

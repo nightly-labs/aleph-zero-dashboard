@@ -1,61 +1,62 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { faArrowAltCircleUp, faMinus } from '@fortawesome/free-solid-svg-icons';
-import { ButtonSubmit } from '@rossbulat/polkadot-dashboard-ui';
-import BN from 'bn.js';
+import { ActionItem, ModalPadding, ModalWarnings } from '@polkadot-cloud/react';
+import { isNotZero, planckToUnit, rmCommas } from '@polkadot-cloud/utils';
+import BigNumber from 'bignumber.js';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
 import { useConnect } from 'contexts/Connect';
-import { useModal } from 'contexts/Modal';
 import { useNetworkMetrics } from 'contexts/Network';
 import { usePoolMembers } from 'contexts/Pools/PoolMembers';
-import { useTxFees } from 'contexts/TxFees';
-import { EstimatedTxFee } from 'library/EstimatedTxFee';
 import { Warning } from 'library/Form/Warning';
+import { useSignerWarnings } from 'library/Hooks/useSignerWarnings';
 import { useSubmitExtrinsic } from 'library/Hooks/useSubmitExtrinsic';
-import { Title } from 'library/Modal/Title';
-import { ContentWrapper } from 'modals/UpdateBond/Wrappers';
-import {
-  FooterWrapper,
-  NotesWrapper,
-  PaddingWrapper,
-  Separator,
-} from 'modals/Wrappers';
-import { useState } from 'react';
-import { planckBnToUnit, rmCommas } from 'Utils';
+import { Close } from 'library/Modal/Close';
+import { SubmitTx } from 'library/SubmitTx';
+import { useTxMeta } from 'contexts/TxMeta';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 
 export const WithdrawPoolMember = () => {
+  const { t } = useTranslation('modals');
   const { api, network, consts } = useApi();
-  const { activeAccount, accountHasSigner } = useConnect();
-  const { setStatus: setModalStatus, config } = useModal();
-  const { metrics } = useNetworkMetrics();
+  const { activeAccount } = useConnect();
+  const {
+    setModalStatus,
+    config: { options },
+    setModalResize,
+  } = useOverlay().modal;
+  const { activeEra } = useNetworkMetrics();
   const { removePoolMember } = usePoolMembers();
-  const { txFeesValid } = useTxFees();
+  const { getSignerWarnings } = useSignerWarnings();
+  const { notEnoughFunds } = useTxMeta();
 
-  const { activeEra } = metrics;
-  const { member, who } = config;
+  const { member, who } = options;
   const { historyDepth } = consts;
   const { unbondingEras, points } = member;
 
   // calculate total for withdraw
-  let totalWithdrawBase: BN = new BN(0);
+  let totalWithdrawUnit = new BigNumber(0);
 
   Object.entries(unbondingEras).forEach((entry: any) => {
     const [era, amount] = entry;
     if (activeEra.index > era) {
-      totalWithdrawBase = totalWithdrawBase.add(new BN(rmCommas(amount)));
+      totalWithdrawUnit = totalWithdrawUnit.plus(
+        new BigNumber(rmCommas(amount))
+      );
     }
   });
 
-  const bonded = planckBnToUnit(new BN(rmCommas(points)), network.units);
+  const bonded = planckToUnit(new BigNumber(rmCommas(points)), network.units);
 
-  const totalWithdraw = planckBnToUnit(
-    new BN(totalWithdrawBase),
+  const totalWithdraw = planckToUnit(
+    new BigNumber(totalWithdrawUnit),
     network.units
   );
 
   // valid to submit transaction
-  const [valid] = useState<boolean>(totalWithdraw > 0 ?? false);
+  const [valid] = useState<boolean>(isNotZero(totalWithdraw) ?? false);
 
   // tx to submit
   const getTx = () => {
@@ -63,61 +64,49 @@ export const WithdrawPoolMember = () => {
     if (!valid || !api) {
       return tx;
     }
-    tx = api.tx.nominationPools.withdrawUnbonded(who, historyDepth);
+    tx = api.tx.nominationPools.withdrawUnbonded(who, historyDepth.toString());
     return tx;
   };
-  const { submitTx, submitting } = useSubmitExtrinsic({
+  const submitExtrinsic = useSubmitExtrinsic({
     tx: getTx(),
     from: activeAccount,
     shouldSubmit: valid,
     callbackSubmit: () => {
-      setModalStatus(2);
+      setModalStatus('closing');
     },
     callbackInBlock: () => {
       // remove the pool member from context if no more funds bonded
-      if (bonded === 0) {
+      if (bonded.isZero()) {
         removePoolMember(who);
       }
     },
   });
 
+  useEffect(() => setModalResize(), [notEnoughFunds]);
+
+  const warnings = getSignerWarnings(
+    activeAccount,
+    false,
+    submitExtrinsic.proxySupported
+  );
+
   return (
     <>
-      <Title title="Withdraw Member Funds" icon={faMinus} />
-      <PaddingWrapper verticalOnly />
-      <ContentWrapper>
-        <div>
-          <div>
-            {!accountHasSigner(activeAccount) && (
-              <Warning text="Your account is read only, and cannot sign transactions." />
-            )}
-            <h2>
-              Withdraw {totalWithdraw} {network.unit}
-            </h2>
-
-            <Separator />
-            <NotesWrapper>
-              <EstimatedTxFee />
-            </NotesWrapper>
-          </div>
-          <FooterWrapper>
-            <div>
-              <ButtonSubmit
-                text={`Submit${submitting ? 'ting' : ''}`}
-                iconLeft={faArrowAltCircleUp}
-                iconTransform="grow-2"
-                onClick={() => submitTx()}
-                disabled={
-                  !valid ||
-                  submitting ||
-                  !accountHasSigner(activeAccount) ||
-                  !txFeesValid
-                }
-              />
-            </div>
-          </FooterWrapper>
-        </div>
-      </ContentWrapper>
+      <Close />
+      <ModalPadding>
+        <h2 className="title">{t('withdrawMemberFunds')}</h2>
+        <ActionItem
+          text={`${t('withdraw')} ${totalWithdraw} ${network.unit}`}
+        />
+        {warnings.length > 0 ? (
+          <ModalWarnings withMargin>
+            {warnings.map((text, i) => (
+              <Warning key={`warning${i}`} text={text} />
+            ))}
+          </ModalWarnings>
+        ) : null}
+      </ModalPadding>
+      <SubmitTx valid={valid} {...submitExtrinsic} />
     </>
   );
 };

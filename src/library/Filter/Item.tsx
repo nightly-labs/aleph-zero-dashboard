@@ -1,10 +1,10 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { motion } from 'framer-motion';
-import { ItemProps } from './types';
 import { ItemWrapper } from './Wrappers';
+import type { ItemProps } from './types';
 
 export const Item = ({
   disabled = false,
@@ -34,5 +34,3 @@ export const Item = ({
     </ItemWrapper>
   </motion.button>
 );
-
-export default Item;

@@ -1,35 +1,54 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { faWallet } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlug, faWallet } from '@fortawesome/free-solid-svg-icons';
+import { ButtonText } from '@polkadot-cloud/react';
+import { useTranslation } from 'react-i18next';
 import { useConnect } from 'contexts/Connect';
-import { useModal } from 'contexts/Modal';
-import { HeadingWrapper, Item } from './Wrappers';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
+import { ConnectedAccount, HeadingWrapper } from './Wrappers';
 
 export const Connect = () => {
-  const { openModalWith } = useModal();
-  const { activeAccount, accounts } = useConnect();
+  const { t } = useTranslation('library');
+  const { accounts } = useConnect();
+  const { openModal } = useOverlay().modal;
+
   return (
     <HeadingWrapper>
-      <Item
-        className="connect"
-        onClick={() => {
-          openModalWith(
-            'ConnectAccounts',
-            { section: accounts.length ? 1 : 0 },
-            'large'
-          );
-        }}
-        whileHover={{ scale: 1.02 }}
-      >
-        <FontAwesomeIcon
-          icon={faWallet}
-          className="icon"
-          transform="shrink-2"
-        />
-        <span>{activeAccount ? 'Accounts' : 'Connect'}</span>
-      </Item>
+      <ConnectedAccount>
+        {accounts.length ? (
+          <>
+            <ButtonText
+              text={t('accounts')}
+              iconLeft={faWallet}
+              onClick={() => {
+                openModal({ key: 'Accounts' });
+              }}
+              style={{ color: 'white', fontSize: '1.05rem' }}
+            />
+            <span />
+            <ButtonText
+              text=""
+              iconRight={faPlug}
+              iconTransform="grow-1"
+              onClick={() => {
+                openModal({ key: 'Connect' });
+              }}
+              style={{ color: 'white', fontSize: '1.05rem' }}
+            />
+          </>
+        ) : (
+          <ButtonText
+            text={t('connect')}
+            iconRight={faPlug}
+            iconTransform="grow-1"
+            onClick={() => {
+              openModal({ key: accounts.length ? 'Accounts' : 'Connect' });
+            }}
+            style={{ color: 'white', fontSize: '1.05rem' }}
+          />
+        )}
+      </ConnectedAccount>
     </HeadingWrapper>
   );
 };

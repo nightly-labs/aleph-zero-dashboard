@@ -1,21 +1,14 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
+import { setStateWithRef } from '@polkadot-cloud/utils';
 import React, { useRef, useState } from 'react';
-import { setStateWithRef } from 'Utils';
 import { defaultNotificationsContext } from './defaults';
-import {
+import type {
   NotificationInterface,
   NotificationItem,
   NotificationsContextInterface,
 } from './types';
-
-export const NotificationsContext =
-  React.createContext<NotificationsContextInterface>(
-    defaultNotificationsContext
-  );
-
-export const useNotifications = () => React.useContext(NotificationsContext);
 
 export const NotificationsProvider = ({
   children,
@@ -35,23 +28,23 @@ export const NotificationsProvider = ({
     _setIndex(_index);
   };
 
-  const addNotification = (_n: NotificationItem) => {
-    const _notifications: NotificationInterface[] = [
+  const addNotification = (n: NotificationItem) => {
+    const newNotifications: NotificationInterface[] = [
       ...notificationsRef.current,
     ];
 
     const newIndex: number = indexRef.current + 1;
 
-    _notifications.push({
+    newNotifications.push({
       index: newIndex,
       item: {
-        ..._n,
+        ...n,
         index: newIndex,
       },
     });
 
     setIndex(newIndex);
-    setStateWithRef(_notifications, setNotifications, notificationsRef);
+    setStateWithRef(newNotifications, setNotifications, notificationsRef);
     setTimeout(() => {
       removeNotification(newIndex);
     }, 6000);
@@ -60,10 +53,10 @@ export const NotificationsProvider = ({
   };
 
   const removeNotification = (_index: number) => {
-    const _notifications = notificationsRef.current.filter(
+    const newNotifications = notificationsRef.current.filter(
       (item: NotificationInterface) => item.index !== _index
     );
-    setStateWithRef(_notifications, setNotifications, notificationsRef);
+    setStateWithRef(newNotifications, setNotifications, notificationsRef);
   };
 
   return (
@@ -78,3 +71,10 @@ export const NotificationsProvider = ({
     </NotificationsContext.Provider>
   );
 };
+
+export const NotificationsContext =
+  React.createContext<NotificationsContextInterface>(
+    defaultNotificationsContext
+  );
+
+export const useNotifications = () => React.useContext(NotificationsContext);

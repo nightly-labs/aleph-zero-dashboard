@@ -1,30 +1,7 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { motion } from 'framer-motion';
 import styled from 'styled-components';
-import { backgroundToggle, buttonPrimaryBackground, textPrimary } from 'theme';
-
-export const Wrapper = styled.div`
-  display: flex;
-  flex-flow: column wrap;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding: 0;
-`;
-
-export const FixedContentWrapper = styled.div`
-  padding-top: 1rem;
-  width: 100%;
-`;
-
-export const CardsWrapper = styled(motion.div)`
-  width: 200%;
-  display: flex;
-  flex-flow: row nowrap;
-  overflow: hidden;
-  position: relative;
-`;
 
 export const ContentWrapper = styled.div`
   border-radius: 0.2rem;
@@ -33,12 +10,24 @@ export const ContentWrapper = styled.div`
   flex-basis: 50%;
   min-width: 50%;
   height: auto;
-  padding: 0 1rem 1rem 1rem;
   flex-grow: 1;
+
+  .padding {
+    padding: 0 1rem 1rem 1rem;
+
+    h2 {
+      margin-bottom: 0.5rem;
+    }
+
+    input {
+      font-family: InterBold, sans-serif;
+      margin-top: 0.5rem;
+    }
+  }
 
   .items {
     position: relative;
-    padding: 0.5rem 0 1.5rem 0;
+    padding: 0.5rem 0 0rem 0;
     border-bottom: none;
     width: auto;
     border-radius: 0.75rem;
@@ -50,56 +39,98 @@ export const ContentWrapper = styled.div`
     h4 {
       margin: 0.2rem 0;
     }
+
+    .arrow {
+      color: var(--text-color-primary);
+    }
+  }
+`;
+
+export const SliderWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding: 0 0.5rem 0 0.5rem;
+
+  h5 {
+    font-family: InterSemiBold, sans-serif;
+    margin: 0;
+    margin-left: 0.75rem;
+
+    > span {
+      margin-left: 0.75rem;
+    }
+    &.neutral,
+    .neutral {
+      color: var(--accent-color-primary);
+      opacity: 0.8;
+    }
+    &.danger,
+    .danger {
+      color: var(--status-danger-color);
+    }
+    &.success,
+    .success {
+      color: var(--status-success-color);
+    }
+  }
+
+  > div:first-child {
+    display: flex;
+    align-items: center;
+    margin: 1.25rem 0 0.5rem 0;
+
     h2 {
-      margin: 0.75rem 0;
+      margin: 0;
+      font-family: InterBold, sans-serif;
     }
+  }
 
-    .action-button {
-      background: ${buttonPrimaryBackground};
-      padding: 1rem;
-      cursor: pointer;
-      margin-bottom: 1rem;
-      border-radius: 0.75rem;
-      display: flex;
-      flex-flow: row wrap;
-      justify-content: flex-start;
-      align-items: center;
-      transition: all 0.15s;
-      width: 100%;
+  .changeRate {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0.25rem 0;
+  }
 
-      &:last-child {
-        margin-bottom: 0;
-      }
+  > div {
+    display: flex;
+    align-items: center;
 
-      h3,
-      p {
-        text-align: left;
-        margin: 0;
-      }
-      h3 {
-        margin-bottom: 0.5rem;
-      }
-      > *:last-child {
-        flex: 1;
-        display: flex;
-        flex-flow: row wrap;
-        justify-content: flex-end;
-      }
-      &:hover {
-        background: ${backgroundToggle};
-      }
-      .icon {
-        margin-right: 0.5rem;
-      }
-      p {
-        color: ${textPrimary};
-        font-size: 1rem;
+    > .slider {
+      flex-grow: 1;
+
+      &.no-value {
+        padding-left: 0;
       }
 
-      &:disabled {
-        opacity: 0.5;
-        cursor: default;
+      .rc-slider-handle-dragging {
+        box-shadow: 0 0 0 5px var(--accent-color-transparent) !important;
       }
     }
+  }
+
+  .stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 1rem;
+    h2 {
+      border-bottom: 1px solid var(--border-primary-color);
+      font-family: InterBold, sans-serif;
+      margin-top: 0rem;
+      padding-bottom: 1rem;
+    }
+  }
+
+  .done {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+  }
+
+  .confirm {
+    display: flex;
+    flex-flow: column wrap;
+    align-items: flex-end;
+    margin-top: 2.5rem;
   }
 `;

@@ -1,7 +1,7 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { AnyApi, MaybeAccount } from 'types';
+import type { AnyApi, MaybeAccount } from 'types';
 
 export interface UseSubmitExtrinsicProps {
   tx: AnyApi;
@@ -12,6 +12,9 @@ export interface UseSubmitExtrinsicProps {
 }
 
 export interface UseSubmitExtrinsic {
-  submitTx: { (): void };
+  uid: number;
+  onSubmit: { (): void };
   submitting: boolean;
+  proxySupported: boolean;
+  submitAddress: MaybeAccount;
 }

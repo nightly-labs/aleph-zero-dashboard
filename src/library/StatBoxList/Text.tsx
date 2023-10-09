@@ -1,23 +1,34 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { OpenHelpIcon } from 'library/OpenHelpIcon';
+import { ButtonHelp } from '@polkadot-cloud/react';
+import { useHelp } from 'contexts/Help';
 import { StatBox } from './Item';
-import { TextProps } from './types';
+import { TextTitleWrapper } from './Wrapper';
+import type { TextProps } from './types';
 
-export const Text = (props: TextProps) => {
-  const { label, value, helpKey } = props;
-
+export const Text = ({
+  label,
+  value,
+  secondaryValue,
+  helpKey,
+  primary,
+}: TextProps) => {
   const help = helpKey !== undefined;
-
+  const { openHelp } = useHelp();
   return (
     <StatBox>
       <div className="content chart">
         <div className="labels">
-          <h3 className="text">{value}</h3>
+          <TextTitleWrapper $primary={primary === true}>
+            {value}
+            {secondaryValue ? <span>{secondaryValue}</span> : null}
+          </TextTitleWrapper>
           <h4>
             {label}
-            {help && <OpenHelpIcon helpKey={helpKey} />}
+            {help ? (
+              <ButtonHelp marginLeft onClick={() => openHelp(helpKey)} />
+            ) : null}
           </h4>
         </div>
       </div>

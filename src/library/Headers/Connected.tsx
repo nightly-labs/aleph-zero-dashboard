@@ -1,23 +1,21 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { useBalances } from 'contexts/Balances';
+import { useTranslation } from 'react-i18next';
 import { useConnect } from 'contexts/Connect';
 import { useActivePools } from 'contexts/Pools/ActivePools';
 import { useStaking } from 'contexts/Staking';
 import { useUi } from 'contexts/UI';
-import { PoolAccount } from 'library/PoolAccount';
-import { clipAddress } from 'Utils';
-import { Account } from '../Account';
+import { Account } from '../Account/Default';
+import { Account as PoolAccount } from '../Account/Pool';
 import { HeadingWrapper } from './Wrappers';
 
 export const Connected = () => {
-  const { activeAccount, accountHasSigner } = useConnect();
-  const { hasController, getControllerNotImported } = useStaking();
-  const { getBondedAccount } = useBalances();
-  const controller = getBondedAccount(activeAccount);
+  const { t } = useTranslation('library');
+  const { isNetworkSyncing } = useUi();
+  const { isNominating } = useStaking();
   const { selectedActivePool } = useActivePools();
-  const { networkSyncing } = useUi();
+  const { activeAccount, activeProxy, accountHasSigner } = useConnect();
 
   let poolAddress = '';
   if (selectedActivePool) {
@@ -25,15 +23,9 @@ export const Connected = () => {
     poolAddress = addresses.stash;
   }
 
-  const activeAccountLabel = networkSyncing
-    ? undefined
-    : hasController()
-    ? 'Stash'
-    : undefined;
-
   return (
     <>
-      {activeAccount ? (
+      {activeAccount && (
         <>
           {/* default account display / stash label if actively nominating */}
           <HeadingWrapper>
@@ -41,48 +33,45 @@ export const Connected = () => {
               canClick={false}
               value={activeAccount}
               readOnly={!accountHasSigner(activeAccount)}
-              label={activeAccountLabel}
+              label={
+                isNetworkSyncing
+                  ? undefined
+                  : isNominating()
+                  ? 'Nominator'
+                  : undefined
+              }
               format="name"
-              filled
             />
           </HeadingWrapper>
 
-          {/* controller account display / hide if no controller present */}
-          {hasController() && !networkSyncing && (
+          {/* pool account display / hide if not in pool */}
+          {selectedActivePool !== null && !isNetworkSyncing && (
             <HeadingWrapper>
-              <Account
-                value={controller ?? ''}
-                readOnly={!accountHasSigner(controller)}
-                title={
-                  getControllerNotImported(controller)
-                    ? controller
-                      ? clipAddress(controller)
-                      : 'Not Imported'
-                    : undefined
-                }
+              <PoolAccount
                 format="name"
-                label="Controller"
+                value={poolAddress}
+                pool={selectedActivePool}
+                label={t('pool')}
                 canClick={false}
-                filled
+                onClick={() => {}}
               />
             </HeadingWrapper>
           )}
 
-          {/* pool account display / hide if not in pool */}
-          {selectedActivePool !== null && !networkSyncing && (
+          {/* proxy account display / hide if no proxy */}
+          {activeProxy && (
             <HeadingWrapper>
-              <PoolAccount
-                value={poolAddress}
-                pool={selectedActivePool}
-                label="Pool"
+              <Account
                 canClick={false}
-                onClick={() => {}}
-                filled
+                value={activeProxy}
+                readOnly={!accountHasSigner(activeProxy)}
+                label={t('proxy')}
+                format="name"
               />
             </HeadingWrapper>
           )}
         </>
-      ) : null}
+      )}
     </>
   );
 };

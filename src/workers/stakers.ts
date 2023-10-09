@@ -1,89 +1,206 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import BN from 'bn.js';
-import { planckBnToUnit, rmCommas } from 'Utils';
+import { planckToUnit, rmCommas } from '@polkadot-cloud/utils';
+import BigNumber from 'bignumber.js';
+import type {
+  ActiveAccountStaker,
+  ExposureOther,
+  Staker,
+} from 'contexts/Staking/types';
+import type { AnyJson } from 'types';
+import type { LocalValidatorExposure } from 'contexts/Payouts/types';
+import type { DataInitialiseExposures } from './types';
 
 // eslint-disable-next-line no-restricted-globals
 export const ctx: Worker = self as any;
 
-ctx.addEventListener('message', (event: any) => {
+// handle incoming message and route to correct handler.
+ctx.addEventListener('message', (event: AnyJson) => {
   const { data } = event;
+  const { task } = data;
+  let message: AnyJson = {};
+  switch (task) {
+    case 'processExposures':
+      message = processExposures(data as DataInitialiseExposures);
+      break;
+    case 'processEraForExposure':
+      message = processEraForExposure(data);
+      break;
+    default:
+  }
+  postMessage({ task, ...message });
+});
 
-  const { units, exposures, activeAccount } = data;
+// Process era exposures and return if an account was exposed, along with the validator they backed.
+const processEraForExposure = (data: AnyJson) => {
+  const { era, exposures, exitOnExposed, task, networkName, who } = data;
+  let exposed = false;
 
-  const stakers: any = [];
+  // If exposed, the validator that was backed.
+  const exposedValidators: Record<string, LocalValidatorExposure> = {};
+
+  // Check exposed as validator or nominator.
+  exposures.every(({ keys, val }: any) => {
+    const validator = keys[1];
+    const others = val?.others ?? [];
+    const own = val?.own || 0;
+    const total = val?.total || 0;
+    const isValidator = validator === who;
+
+    if (isValidator) {
+      const share = new BigNumber(own).isZero()
+        ? '0'
+        : new BigNumber(own).dividedBy(total).toString();
+
+      exposedValidators[validator] = {
+        staked: own,
+        total,
+        share,
+        isValidator,
+      };
+
+      exposed = true;
+      if (exitOnExposed) return false;
+    }
+
+    const inOthers = others.find((o: AnyJson) => o.who === who);
+
+    if (inOthers) {
+      const share = new BigNumber(inOthers.value).isZero()
+        ? '0'
+        : new BigNumber(inOthers.value).dividedBy(total).toString();
+
+      exposedValidators[validator] = {
+        staked: inOthers.value,
+        total,
+        share,
+        isValidator,
+      };
+      exposed = true;
+      if (exitOnExposed) return false;
+    }
+
+    return true;
+  });
+
+  return {
+    networkName,
+    era,
+    exposed,
+    exposedValidators: Object.keys(exposedValidators).length
+      ? exposedValidators
+      : null,
+    task,
+    who,
+  };
+};
+
+// process exposures.
+//
+// abstracts active nominators erasStakers.
+const processExposures = (data: DataInitialiseExposures) => {
+  const {
+    task,
+    networkName,
+    era,
+    units,
+    exposures,
+    activeAccount,
+    maxNominatorRewardedPerValidator,
+  } = data;
+
+  const stakers: Staker[] = [];
   let activeValidators = 0;
-  const ownStake: Array<any> = [];
-  const nominators: any = [];
+  const activeAccountOwnStake: ActiveAccountStaker[] = [];
+  const nominators: ExposureOther[] = [];
 
-  exposures.forEach(({ keys, val }: any) => {
-    const address = keys[1];
+  exposures.forEach(({ keys, val }) => {
     activeValidators++;
 
-    stakers.push({
-      address,
-      ...val,
-    });
+    const address = keys[1];
+    let others =
+      val?.others.map((o) => ({
+        ...o,
+        value: rmCommas(o.value),
+      })) ?? [];
 
-    // sort `others` by value bonded, largest first
-    let others = val?.others ?? [];
-    others = others.sort((a: any, b: any) => {
-      const x = new BN(rmCommas(a.value));
-      const y = new BN(rmCommas(b.value));
-      return y.sub(x);
-    });
-
-    // accumulate active nominators and min active bond threshold.
+    // Accumulate active nominators and min active stake threshold.
     if (others.length) {
-      // accumulate active bond for all nominators
+      // Sort `others` by value bonded, largest first.
+      others = others.sort((a, b) => {
+        const r = new BigNumber(rmCommas(b.value)).minus(rmCommas(a.value));
+        return r.isZero() ? 0 : r.isLessThan(0) ? -1 : 1;
+      });
+
+      const lowestRewardIndex = Math.min(
+        maxNominatorRewardedPerValidator - 1,
+        others.length
+      );
+
+      const lowestReward =
+        others.length > 0
+          ? planckToUnit(
+              new BigNumber(others[lowestRewardIndex]?.value || 0),
+              units
+            ).toString()
+          : '0';
+
+      const oversubscribed = others.length > maxNominatorRewardedPerValidator;
+
+      stakers.push({
+        address,
+        lowestReward,
+        oversubscribed,
+        others,
+        own: rmCommas(val.own),
+        total: rmCommas(val.total),
+      });
+
+      // Accumulate active stake for all nominators.
       for (const o of others) {
-        const _value = new BN(rmCommas(o.value));
+        const value = new BigNumber(rmCommas(o.value));
 
-        // check nominator already exists
-        const index = nominators.findIndex((_o: any) => _o.who === o.who);
+        // Check nominator already exists.
+        const index = nominators.findIndex(({ who }) => who === o.who);
 
-        // add value to nominator, otherwise add new entry
+        // Add value to nominator, otherwise add new entry.
         if (index === -1) {
           nominators.push({
             who: o.who,
-            value: _value,
+            value: value.toString(),
           });
         } else {
-          nominators[index].value = nominators[index].value.add(_value);
+          nominators[index].value = new BigNumber(nominators[index].value)
+            .plus(value)
+            .toString();
         }
       }
 
       // get own stake if present
-      const own = others.find((_o: any) => _o.who === activeAccount);
+      const own = others.find(({ who }) => who === activeAccount);
       if (own !== undefined) {
-        ownStake.push({
+        activeAccountOwnStake.push({
           address,
-          value: planckBnToUnit(new BN(rmCommas(own.value)), units),
+          value: planckToUnit(
+            new BigNumber(rmCommas(own.value)),
+            units
+          ).toString(),
         });
       }
     }
   });
 
-  // order nominators by bond size, smallest first
-  const _getMinBonds = nominators.sort((a: any, b: any) => {
-    return a.value.sub(b.value);
-  });
-
-  // get the smallest actve nominator bond
-  let minActiveBond = _getMinBonds[0]?.value ?? new BN(0);
-
-  // convert minActiveBond to base value
-  minActiveBond = planckBnToUnit(minActiveBond, units);
-
-  postMessage({
+  return {
+    networkName,
+    era,
     stakers,
-    ownStake,
     totalActiveNominators: nominators.length,
+    activeAccountOwnStake,
     activeValidators,
-    minActiveBond,
-    _activeAccount: activeAccount,
-  });
-});
+    task,
+    who: activeAccount,
+  };
+};
 
 export default null as any;

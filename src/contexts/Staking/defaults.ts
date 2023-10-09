@@ -1,8 +1,9 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
-import BN from 'bn.js';
-import {
+import BigNumber from 'bignumber.js';
+import type {
   EraStakers,
   NominationStatuses,
   StakingContextInterface,
@@ -10,49 +11,52 @@ import {
   StakingTargets,
 } from 'contexts/Staking/types';
 
-export const stakingMetrics: StakingMetrics = {
-  totalNominators: new BN(0),
-  totalValidators: new BN(0),
-  lastReward: new BN(0),
-  lastTotalStake: new BN(0),
-  validatorCount: new BN(0),
-  maxNominatorsCount: new BN(0),
-  maxValidatorsCount: new BN(0),
-  minNominatorBond: new BN(0),
-  payee: null,
-  unsub: null,
+export const defaultStakingMetrics: StakingMetrics = {
+  totalNominators: new BigNumber(0),
+  totalValidators: new BigNumber(0),
+  lastReward: new BigNumber(0),
+  lastTotalStake: new BigNumber(0),
+  validatorCount: new BigNumber(0),
+  maxValidatorsCount: new BigNumber(0),
+  minNominatorBond: new BigNumber(0),
+  payee: {
+    destination: null,
+    account: null,
+  },
+  totalStaked: new BigNumber(0),
 };
 
-export const eraStakers: EraStakers = {
-  stakers: [],
-  nominators: undefined,
-  totalActiveNominators: 0,
+export const defaultEraStakers: EraStakers = {
+  activeAccountOwnStake: [],
   activeValidators: 0,
-  minActiveBond: 0,
-  minStakingActiveBond: 0,
-  ownStake: 0,
+  stakers: [],
+  totalActiveNominators: 0,
 };
 
-export const targets: StakingTargets = {
+export const defaultTargets: StakingTargets = {
   nominations: [],
 };
 
-export const nominationStatus: NominationStatuses = {};
+const defaultLowestReward = {
+  lowest: new BigNumber(0),
+  oversubscribed: false,
+};
+
+export const defaultNominationStatus: NominationStatuses = {};
 
 export const defaultStakingContext: StakingContextInterface = {
-  getNominationsStatus: () => nominationStatus,
-  // eslint-disable-next-line
-  getNominationsStatusFromTargets: (w, t) => nominationStatus,
-  // eslint-disable-next-line
+  fetchEraStakers: async (e) => new Promise((resolve) => resolve([])),
+  getNominationsStatusFromTargets: (w, t) => defaultNominationStatus,
   setTargets: (t) => {},
   hasController: () => false,
-  // eslint-disable-next-line
   getControllerNotImported: (a) => null,
+  addressDifferentToStash: (a) => false,
   isBonding: () => false,
   isNominating: () => false,
   inSetup: () => true,
-  staking: stakingMetrics,
-  eraStakers,
-  targets,
+  getLowestRewardFromStaker: (address) => defaultLowestReward,
+  staking: defaultStakingMetrics,
+  eraStakers: defaultEraStakers,
+  targets: defaultTargets,
   erasStakersSyncing: true,
 };

@@ -1,33 +1,34 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { faCheckCircle, faCircle } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useTranslation } from 'react-i18next';
+import { Title } from 'library/Prompt/Title';
+import { FilterListButton, FilterListWrapper } from 'library/Prompt/Wrappers';
 import { useFilters } from 'contexts/Filters';
-import { FilterType } from 'contexts/Filters/types';
-import { Title } from 'library/Overlay/Title';
-import { FilterListButton, FilterListWrapper } from 'library/Overlay/Wrappers';
 import { useValidatorFilters } from '../Hooks/useValidatorFilters';
 
 export const FilterValidators = () => {
+  const { t } = useTranslation('library');
   const { getFilters, toggleFilter } = useFilters();
   const { excludesToLabels, includesToLabels } = useValidatorFilters();
 
-  const includes = getFilters(FilterType.Include, 'validators');
-  const excludes = getFilters(FilterType.Exclude, 'validators');
+  const includes = getFilters('include', 'validators');
+  const excludes = getFilters('exclude', 'validators');
 
   return (
     <FilterListWrapper>
-      <Title title="Filter Validators" />
+      <Title title={t('filterValidators')} />
       <div className="body">
-        <h4>Include:</h4>
-        {Object.entries(includesToLabels).map(([f, l]: any, i: number) => (
+        <h4>{t('include')}:</h4>
+        {Object.entries(includesToLabels).map(([f, l]: any, i) => (
           <FilterListButton
-            active={includes?.includes(f) ?? false}
+            $active={includes?.includes(f) ?? false}
             key={`validator_include_${i}`}
             type="button"
             onClick={() => {
-              toggleFilter(FilterType.Include, 'validators', f);
+              toggleFilter('include', 'validators', f);
             }}
           >
             <FontAwesomeIcon
@@ -38,14 +39,14 @@ export const FilterValidators = () => {
           </FilterListButton>
         ))}
 
-        <h4>Exclude:</h4>
-        {Object.entries(excludesToLabels).map(([f, l]: any, i: number) => (
+        <h4>{t('exclude')}:</h4>
+        {Object.entries(excludesToLabels).map(([f, l]: any, i) => (
           <FilterListButton
-            active={excludes?.includes(f) ?? false}
+            $active={excludes?.includes(f) ?? false}
             key={`validator_exclude_${i}`}
             type="button"
             onClick={() => {
-              toggleFilter(FilterType.Exclude, 'validators', f);
+              toggleFilter('exclude', 'validators', f);
             }}
           >
             <FontAwesomeIcon

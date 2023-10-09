@@ -1,10 +1,10 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { ThemeContextInterface } from './types';
+import type { ThemeContextInterface } from './types';
 
 export const defaultThemeContext: ThemeContextInterface = {
-  // eslint-disable-next-line
   toggleTheme: (str) => {},
   mode: 'dark',
 };

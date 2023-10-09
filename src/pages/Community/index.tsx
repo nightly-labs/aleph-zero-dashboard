@@ -1,36 +1,31 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { PageTitle } from 'library/PageTitle';
+import { PageTitle } from '@polkadot-cloud/react';
 import { useTranslation } from 'react-i18next';
-import { PageProps } from '../types';
-import { CommunitySectionsProvider, useCommunitySections } from './context';
+import type { PageProps } from 'types';
 import { Entity } from './Entity';
 import { List } from './List';
 import { Wrapper } from './Wrappers';
+import { CommunitySectionsProvider, useCommunitySections } from './context';
 
-export const CommunityInner = (props: PageProps) => {
-  const { page } = props;
-  const { key } = page;
-
-  const { activeSection } = useCommunitySections();
+export const CommunityInner = ({ page }: PageProps) => {
   const { t } = useTranslation('base');
+  const { activeSection } = useCommunitySections();
+
+  const { key } = page;
 
   return (
     <Wrapper>
-      <PageTitle title={`${t(key)}`} />
+      <PageTitle title={t(key)} />
       {activeSection === 0 && <List />}
       {activeSection === 1 && <Entity />}
     </Wrapper>
   );
 };
 
-export const Community = (props: PageProps) => {
-  return (
-    <CommunitySectionsProvider>
-      <CommunityInner {...props} />
-    </CommunitySectionsProvider>
-  );
-};
-
-export default Community;
+export const Community = (props: PageProps) => (
+  <CommunitySectionsProvider>
+    <CommunityInner {...props} />
+  </CommunitySectionsProvider>
+);

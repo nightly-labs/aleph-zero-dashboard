@@ -1,57 +1,47 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { SectionFullWidthThreshold, SideMenuStickyThreshold } from 'consts';
-import { useConnect } from 'contexts/Connect';
-import { useModal } from 'contexts/Modal';
-import { useActivePools } from 'contexts/Pools/ActivePools';
-import { useBondedPools } from 'contexts/Pools/BondedPools';
-import { CardWrapper } from 'library/Graphs/Wrappers';
-import { PageTitle } from 'library/PageTitle';
-import { PoolList } from 'library/PoolList';
-import { StatBoxList } from 'library/StatBoxList';
+import { PageRow, PageTitle, RowSection } from '@polkadot-cloud/react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  PageRowWrapper,
-  RowPrimaryWrapper,
-  RowSecondaryWrapper,
-} from 'Wrappers';
+import type { PageTitleTabProps } from '@polkadot-cloud/react/base/types';
+import { useConnect } from 'contexts/Connect';
+import { useActivePools } from 'contexts/Pools/ActivePools';
+import { useBondedPools } from 'contexts/Pools/BondedPools';
+import { CardWrapper } from 'library/Card/Wrappers';
+import { PoolList } from 'library/PoolList/Default';
+import { StatBoxList } from 'library/StatBoxList';
+import { usePoolsConfig } from 'contexts/Pools/PoolsConfig';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 import { Roles } from '../Roles';
 import { ClosurePrompts } from './ClosurePrompts';
-import { PoolsTabsProvider, usePoolsTabs } from './context';
-import { Favorites } from './Favorites';
+import { PoolFavorites } from './Favorites';
 import { ManageBond } from './ManageBond';
 import { ManagePool } from './ManagePool';
 import { Members } from './Members';
 import { PoolStats } from './PoolStats';
-import ActivePoolsStatBox from './Stats/ActivePools';
-import MinCreateBondStatBox from './Stats/MinCreateBond';
-import MinJoinBondStatBox from './Stats/MinJoinBond';
-import PoolMembershipBox from './Stats/PoolMembership';
+import { ActivePoolsStat } from './Stats/ActivePools';
+import { MinCreateBondStat } from './Stats/MinCreateBond';
+import { MinJoinBondStat } from './Stats/MinJoinBond';
 import { Status } from './Status';
+import { PoolsTabsProvider, usePoolsTabs } from './context';
 
 export const HomeInner = () => {
-  const { activeAccount } = useConnect();
-  const { bondedPools, getAccountPools } = useBondedPools();
-  const { getPoolRoles, selectedActivePool } = useActivePools();
-  const { activeTab, setActiveTab } = usePoolsTabs();
-  const { openModalWith } = useModal();
   const { t } = useTranslation('pages');
-
+  const { openModal } = useOverlay().modal;
+  const { activeAccount } = useConnect();
+  const {
+    favorites,
+    stats: { counterForBondedPools },
+  } = usePoolsConfig();
+  const { activeTab, setActiveTab } = usePoolsTabs();
+  const { bondedPools, getAccountPools } = useBondedPools();
+  const { getPoolRoles, selectedActivePool, selectedPoolMemberCount } =
+    useActivePools();
   const accountPools = getAccountPools(activeAccount);
   const totalAccountPools = Object.entries(accountPools).length;
 
-  // back to tab 0 if not in a pool & on members tab
-  useEffect(() => {
-    if (!selectedActivePool && [1].includes(activeTab)) {
-      setActiveTab(0);
-    }
-  }, [selectedActivePool]);
-
-  const ROW_HEIGHT = 275;
-
-  let tabs = [
+  let tabs: PageTitleTabProps[] = [
     {
       title: t('pools.overview'),
       active: activeTab === 0,
@@ -64,21 +54,33 @@ export const HomeInner = () => {
       title: t('pools.members'),
       active: activeTab === 1,
       onClick: () => setActiveTab(1),
+      badge: String(selectedPoolMemberCount),
     });
   }
 
   tabs = tabs.concat(
     {
-      title: t('pools.all_pools'),
+      title: t('pools.allPools'),
       active: activeTab === 2,
       onClick: () => setActiveTab(2),
+      badge: String(counterForBondedPools.toString()),
     },
     {
       title: t('pools.favorites'),
       active: activeTab === 3,
       onClick: () => setActiveTab(3),
+      badge: String(favorites.length),
     }
   );
+
+  // Back to tab 0 if not in a pool & on members tab.
+  useEffect(() => {
+    if (!selectedActivePool && [1].includes(activeTab)) {
+      setActiveTab(0);
+    }
+  }, [selectedActivePool]);
+
+  const ROW_HEIGHT = 220;
 
   return (
     <>
@@ -88,9 +90,12 @@ export const HomeInner = () => {
         button={
           totalAccountPools
             ? {
-                title: t('pools.all_roles'),
+                title: t('pools.allRoles'),
                 onClick: () =>
-                  openModalWith('AccountPoolRoles', { who: activeAccount }),
+                  openModal({
+                    key: 'AccountPoolRoles',
+                    options: { who: activeAccount },
+                  }),
               }
             : undefined
         }
@@ -98,47 +103,37 @@ export const HomeInner = () => {
       {activeTab === 0 && (
         <>
           <StatBoxList>
-            <ActivePoolsStatBox />
-            <MinJoinBondStatBox />
-            <MinCreateBondStatBox />
+            <ActivePoolsStat />
+            <MinJoinBondStat />
+            <MinCreateBondStat />
           </StatBoxList>
 
           <ClosurePrompts />
 
-          <PageRowWrapper className="page-padding" noVerticalSpacer>
-            <RowPrimaryWrapper
-              hOrder={1}
-              vOrder={0}
-              thresholdStickyMenu={SideMenuStickyThreshold}
-              thresholdFullWidth={SectionFullWidthThreshold}
-            >
+          <PageRow>
+            <RowSection hLast>
               <Status height={ROW_HEIGHT} />
-            </RowPrimaryWrapper>
-            <RowSecondaryWrapper
-              hOrder={0}
-              vOrder={1}
-              thresholdStickyMenu={SideMenuStickyThreshold}
-              thresholdFullWidth={SectionFullWidthThreshold}
-            >
+            </RowSection>
+            <RowSection secondary>
               <CardWrapper height={ROW_HEIGHT}>
                 <ManageBond />
               </CardWrapper>
-            </RowSecondaryWrapper>
-          </PageRowWrapper>
+            </RowSection>
+          </PageRow>
           {selectedActivePool !== null && (
             <>
               <ManagePool />
-              <PageRowWrapper className="page-padding" noVerticalSpacer>
+              <PageRow>
                 <CardWrapper>
                   <Roles
                     batchKey="pool_roles_manage"
                     defaultRoles={getPoolRoles()}
                   />
                 </CardWrapper>
-              </PageRowWrapper>
-              <PageRowWrapper className="page-padding" noVerticalSpacer>
+              </PageRow>
+              <PageRow>
                 <PoolStats />
-              </PageRowWrapper>
+              </PageRow>
             </>
           )}
         </>
@@ -146,17 +141,12 @@ export const HomeInner = () => {
       {activeTab === 1 && <Members />}
       {activeTab === 2 && (
         <>
-          <StatBoxList>
-            <PoolMembershipBox />
-            <ActivePoolsStatBox />
-            <MinJoinBondStatBox />
-          </StatBoxList>
-          <PageRowWrapper className="page-padding" noVerticalSpacer>
+          <PageRow>
             <CardWrapper>
               <PoolList
                 batchKey="bonded_pools"
                 pools={bondedPools}
-                title={t('pools.active_pools')}
+                title={t('pools.activePools')}
                 defaultFilters={{
                   includes: ['active'],
                   excludes: ['locked', 'destroying'],
@@ -166,24 +156,20 @@ export const HomeInner = () => {
                 pagination
               />
             </CardWrapper>
-          </PageRowWrapper>
+          </PageRow>
         </>
       )}
       {activeTab === 3 && (
         <>
-          <Favorites />
+          <PoolFavorites />
         </>
       )}
     </>
   );
 };
 
-export const Home = () => {
-  return (
-    <PoolsTabsProvider>
-      <HomeInner />
-    </PoolsTabsProvider>
-  );
-};
-
-export default Home;
+export const Home = () => (
+  <PoolsTabsProvider>
+    <HomeInner />
+  </PoolsTabsProvider>
+);

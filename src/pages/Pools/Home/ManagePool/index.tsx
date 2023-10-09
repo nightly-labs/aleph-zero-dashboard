@@ -1,23 +1,22 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { faChevronCircleRight } from '@fortawesome/free-solid-svg-icons';
-import { ButtonPrimary } from '@rossbulat/polkadot-dashboard-ui';
-import { useConnect } from 'contexts/Connect';
-import { useModal } from 'contexts/Modal';
-import { useActivePools } from 'contexts/Pools/ActivePools';
-import { PoolState } from 'contexts/Pools/types';
-import { useUi } from 'contexts/UI';
-import { GenerateNominations } from 'library/GenerateNominations';
-import { CardHeaderWrapper, CardWrapper } from 'library/Graphs/Wrappers';
-import { OpenHelpIcon } from 'library/OpenHelpIcon';
-import Nominations from 'pages/Nominate/Active/Nominations';
+import { ButtonHelp, ButtonPrimary, PageRow } from '@polkadot-cloud/react';
 import { useTranslation } from 'react-i18next';
-import { PageRowWrapper } from 'Wrappers';
+import { useConnect } from 'contexts/Connect';
+import { useHelp } from 'contexts/Help';
+import { useActivePools } from 'contexts/Pools/ActivePools';
+import { useUi } from 'contexts/UI';
+import { CardHeaderWrapper, CardWrapper } from 'library/Card/Wrappers';
+import { GenerateNominations } from 'library/GenerateNominations';
+import { Nominations } from 'pages/Nominate/Active/Nominations';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 
 export const ManagePool = () => {
+  const { t } = useTranslation('pages');
   const { isSyncing } = useUi();
-  const { openModalWith } = useModal();
+  const { openModal } = useOverlay().modal;
   const { activeAccount } = useConnect();
   const {
     isOwner,
@@ -27,25 +26,28 @@ export const ManagePool = () => {
     poolNominations,
     selectedActivePool,
   } = useActivePools();
-  const { t } = useTranslation('pages');
 
   const isNominating = !!poolNominations?.targets?.length;
   const nominator = selectedActivePool?.addresses?.stash ?? null;
   const { state } = selectedActivePool?.bondedPool || {};
+  const { openHelp } = useHelp();
 
   const canNominate = isOwner() || isNominator();
 
   return (
-    <PageRowWrapper className="page-padding" noVerticalSpacer>
+    <PageRow>
       <CardWrapper>
         {isSyncing ? (
-          <Nominations bondType="pool" nominator={activeAccount} />
-        ) : canNominate && !isNominating && state !== PoolState.Destroy ? (
+          <Nominations bondFor="pool" nominator={activeAccount} />
+        ) : canNominate && !isNominating && state !== 'Destroying' ? (
           <>
-            <CardHeaderWrapper withAction>
+            <CardHeaderWrapper $withAction>
               <h3>
-                {t('pools.generate_nominations')}
-                <OpenHelpIcon helpKey="Nominations" />
+                {t('pools.generateNominations')}
+                <ButtonHelp
+                  marginLeft
+                  onClick={() => openHelp('Nominations')}
+                />
               </h3>
               <div>
                 <ButtonPrimary
@@ -53,7 +55,7 @@ export const ManagePool = () => {
                   iconTransform="grow-1"
                   text={t('pools.nominate')}
                   disabled={!canNominate}
-                  onClick={() => openModalWith('NominatePool', {}, 'small')}
+                  onClick={() => openModal({ key: 'NominatePool', size: 'sm' })}
                 />
               </div>
             </CardHeaderWrapper>
@@ -69,11 +71,9 @@ export const ManagePool = () => {
             />
           </>
         ) : (
-          <Nominations bondType="pool" nominator={nominator} />
+          <Nominations bondFor="pool" nominator={nominator} />
         )}
       </CardWrapper>
-    </PageRowWrapper>
+    </PageRow>
   );
 };
-
-export default ManagePool;

@@ -1,57 +1,55 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { ButtonInvert } from '@rossbulat/polkadot-dashboard-ui';
+import { ButtonSubmitInvert } from '@polkadot-cloud/react';
+import BigNumber from 'bignumber.js';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
 import { useConnect } from 'contexts/Connect';
-import { useEffect, useState } from 'react';
-import { humanNumber, isNumeric } from 'Utils';
-import { BondInputProps } from '../types';
 import { InputWrapper } from '../Wrappers';
+import type { BondInputProps } from '../types';
 
 export const BondInput = ({
-  setters,
+  setters = [],
   disabled,
   defaultValue,
   freeBalance,
-  disableTxFeeUpdate,
-  value,
+  disableTxFeeUpdate = false,
+  value = '0',
   syncing = false,
 }: BondInputProps) => {
-  const sets = setters ?? [];
-  const _value = value ?? 0;
-  const disableTxFeeUpd = disableTxFeeUpdate ?? false;
-
+  const { t } = useTranslation('library');
   const { network } = useApi();
   const { activeAccount } = useConnect();
 
   // the current local bond value
-  const [localBond, setLocalBond] = useState(_value);
+  const [localBond, setLocalBond] = useState<string>(value);
 
-  // reset value to default when changing account
+  // reset value to default when changing account.
   useEffect(() => {
-    setLocalBond(defaultValue ?? 0);
+    setLocalBond(defaultValue ?? '0');
   }, [activeAccount]);
 
   useEffect(() => {
-    if (!disableTxFeeUpd) {
-      setLocalBond(_value.toString());
+    if (!disableTxFeeUpdate) {
+      setLocalBond(value.toString());
     }
-  }, [_value]);
+  }, [value]);
 
-  // handle change for bonding
-  const handleChangeBond = (e: any) => {
+  // handle change for bonding.
+  const handleChangeBond = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (!isNumeric(val) && val !== '') {
+    if (new BigNumber(val).isNaN() && val !== '') {
       return;
     }
     setLocalBond(val);
     updateParentState(val);
   };
 
-  // apply bond to parent setters
-  const updateParentState = (val: any) => {
-    for (const s of sets) {
+  // apply bond to parent setters.
+  const updateParentState = (val: string) => {
+    for (const s of setters) {
       s.set({
         ...s.current,
         bond: val,
@@ -59,9 +57,17 @@ export const BondInput = ({
     }
   };
 
+  // available funds as jsx.
+  const availableFundsJsx = (
+    <p>
+      {syncing
+        ? '...'
+        : `${freeBalance.toFormat()} ${network.unit} ${t('available')}`}
+    </p>
+  );
+
   return (
     <InputWrapper>
-      <h3>Bond {network.unit}:</h3>
       <div className="inner">
         <section style={{ opacity: disabled ? 0.5 : 1 }}>
           <div className="input">
@@ -76,28 +82,21 @@ export const BondInput = ({
                 disabled={disabled}
               />
             </div>
-            <div>
-              <p>
-                {syncing
-                  ? '...'
-                  : `${humanNumber(freeBalance)} ${network.unit} available`}
-              </p>
-            </div>
+            <div>{availableFundsJsx}</div>
           </div>
         </section>
         <section>
-          <ButtonInvert
-            text="Max"
-            disabled={disabled || syncing || freeBalance === 0}
+          <ButtonSubmitInvert
+            text={t('max')}
+            disabled={disabled || syncing || freeBalance.isZero()}
             onClick={() => {
-              setLocalBond(freeBalance);
-              updateParentState(freeBalance);
+              setLocalBond(freeBalance.toString());
+              updateParentState(freeBalance.toString());
             }}
           />
         </section>
       </div>
+      <div className="availableOuter">{availableFundsJsx}</div>
     </InputWrapper>
   );
 };
-
-export default BondInput;

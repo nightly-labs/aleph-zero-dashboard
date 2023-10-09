@@ -1,22 +1,21 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { ButtonSubmit } from '@rossbulat/polkadot-dashboard-ui';
-import { useModal } from 'contexts/Modal';
-import { useUi } from 'contexts/UI';
-import { Title } from 'library/Modal/Title';
-import { PaddingWrapper } from 'modals/Wrappers';
+import { ButtonSubmit, ModalPadding } from '@polkadot-cloud/react';
 import { useTranslation } from 'react-i18next';
+import { usePlugins } from 'contexts/Plugins';
+import { Title } from 'library/Modal/Title';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 
 export const DismissTips = () => {
-  const { toggleService } = useUi();
-  const { setStatus } = useModal();
   const { t } = useTranslation('tips');
+  const { togglePlugin } = usePlugins();
+  const { setModalStatus } = useOverlay().modal;
 
   return (
     <>
-      <Title title={t('module.dismiss_tips')} />
-      <PaddingWrapper horizontalOnly>
+      <Title title={t('module.dismissTips')} />
+      <ModalPadding horizontalOnly>
         <div
           style={{
             padding: '0 0.5rem 1.25rem 0.5rem',
@@ -24,21 +23,21 @@ export const DismissTips = () => {
           }}
         >
           <div>
-            <h4>{t('module.dismiss_result')}</h4>
-            <h4>{t('module.re-enable')}</h4>
+            <h4>{t('module.dismissResult')}</h4>
+            <h4>{t('module.reEnable')}</h4>
           </div>
           <div className="buttons">
             <ButtonSubmit
               marginRight
-              text={t('module.disable_dashboard_tips')}
+              text={t('module.disableTips')}
               onClick={() => {
-                toggleService('tips');
-                setStatus(2);
+                togglePlugin('tips');
+                setModalStatus('closing');
               }}
             />
           </div>
         </div>
-      </PaddingWrapper>
+      </ModalPadding>
     </>
   );
 };

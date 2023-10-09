@@ -1,102 +1,124 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { faLockOpen } from '@fortawesome/free-solid-svg-icons';
-import { ButtonPrimary } from '@rossbulat/polkadot-dashboard-ui';
-import BN from 'bn.js';
+import {
+  ButtonHelp,
+  ButtonPrimary,
+  ButtonRow,
+  Odometer,
+} from '@polkadot-cloud/react';
+import { minDecimalPlaces, planckToUnit } from '@polkadot-cloud/utils';
+import type BigNumber from 'bignumber.js';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
 import { useBalances } from 'contexts/Balances';
 import { useConnect } from 'contexts/Connect';
-import { useModal } from 'contexts/Modal';
+import { useHelp } from 'contexts/Help';
 import { useStaking } from 'contexts/Staking';
 import { useTransferOptions } from 'contexts/TransferOptions';
 import { useUi } from 'contexts/UI';
-import BondedGraph from 'library/Graphs/Bonded';
-import { CardHeaderWrapper } from 'library/Graphs/Wrappers';
-import { OpenHelpIcon } from 'library/OpenHelpIcon';
-import { useTranslation } from 'react-i18next';
-import { humanNumber, planckBnToUnit } from 'Utils';
-import { ButtonRowWrapper } from 'Wrappers';
+import { CardHeaderWrapper } from 'library/Card/Wrappers';
+import { useUnstaking } from 'library/Hooks/useUnstaking';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
+import { BondedChart } from 'library/BarChart/BondedChart';
 
 export const ManageBond = () => {
+  const { t } = useTranslation('pages');
   const { network } = useApi();
-  const { units } = network;
-  const { openModalWith } = useModal();
+  const { openModal } = useOverlay().modal;
   const { activeAccount, isReadOnlyAccount } = useConnect();
-  const { getLedgerForStash } = useBalances();
+  const { getStashLedger } = useBalances();
   const { getTransferOptions } = useTransferOptions();
   const { inSetup } = useStaking();
   const { isSyncing } = useUi();
-  const ledger = getLedgerForStash(activeAccount);
-  const { active }: { active: BN } = ledger;
-
+  const { isFastUnstaking } = useUnstaking();
+  const { openHelp } = useHelp();
+  const {
+    units,
+    brand: { token: Token },
+  } = network;
+  const ledger = getStashLedger(activeAccount);
+  const { active }: { active: BigNumber } = ledger;
   const allTransferOptions = getTransferOptions(activeAccount);
 
   const { freeBalance } = allTransferOptions;
   const { totalUnlocking, totalUnlocked, totalUnlockChuncks } =
     allTransferOptions.nominate;
-  const { t } = useTranslation('pages');
 
   return (
     <>
       <CardHeaderWrapper>
         <h4>
-          {t('nominate.bonded_funds')}
-          <OpenHelpIcon helpKey="Bonding" />
+          {t('nominate.bondedFunds')}
+          <ButtonHelp marginLeft onClick={() => openHelp('Bonding')} />
         </h4>
         <h2>
-          {humanNumber(planckBnToUnit(active, units))}&nbsp;{network.unit}
+          <Token className="networkIcon" />
+          <Odometer
+            value={minDecimalPlaces(planckToUnit(active, units).toFormat(), 2)}
+            zeroDecimals={2}
+          />
         </h2>
-        <ButtonRowWrapper>
+        <ButtonRow>
           <ButtonPrimary
             disabled={
-              inSetup() || isSyncing || isReadOnlyAccount(activeAccount)
+              inSetup() ||
+              isSyncing ||
+              isReadOnlyAccount(activeAccount) ||
+              isFastUnstaking
             }
             marginRight
             onClick={() =>
-              openModalWith(
-                'UpdateBond',
-                { fn: 'add', bondType: 'stake' },
-                'small'
-              )
+              openModal({
+                key: 'Bond',
+                options: { bondFor: 'nominator' },
+                size: 'sm',
+              })
             }
             text="+"
           />
           <ButtonPrimary
             disabled={
-              inSetup() || isSyncing || isReadOnlyAccount(activeAccount)
+              inSetup() ||
+              isSyncing ||
+              isReadOnlyAccount(activeAccount) ||
+              isFastUnstaking
             }
             marginRight
             onClick={() =>
-              openModalWith(
-                'UpdateBond',
-                { fn: 'remove', bondType: 'stake' },
-                'small'
-              )
+              openModal({
+                key: 'Unbond',
+                options: { bondFor: 'nominator' },
+                size: 'sm',
+              })
             }
             text="-"
           />
           <ButtonPrimary
             disabled={
-              inSetup() || isSyncing || isReadOnlyAccount(activeAccount)
+              isSyncing || inSetup() || isReadOnlyAccount(activeAccount)
             }
             iconLeft={faLockOpen}
+            marginRight
             onClick={() =>
-              openModalWith('UnlockChunks', { bondType: 'stake' }, 'small')
+              openModal({
+                key: 'UnlockChunks',
+                options: { bondFor: 'nominator', disableWindowResize: true },
+                size: 'sm',
+              })
             }
             text={String(totalUnlockChuncks ?? 0)}
           />
-        </ButtonRowWrapper>
+        </ButtonRow>
       </CardHeaderWrapper>
-      <BondedGraph
-        active={planckBnToUnit(active, units)}
-        unlocking={planckBnToUnit(totalUnlocking, units)}
-        unlocked={planckBnToUnit(totalUnlocked, units)}
-        free={planckBnToUnit(freeBalance, units)}
-        inactive={inSetup()}
+      <BondedChart
+        active={planckToUnit(active, units)}
+        unlocking={planckToUnit(totalUnlocking, units)}
+        unlocked={planckToUnit(totalUnlocked, units)}
+        free={planckToUnit(freeBalance, units)}
+        inactive={active.isZero()}
       />
     </>
   );
 };
-
-export default ManageBond;

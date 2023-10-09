@@ -1,38 +1,37 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { AnyJson } from '@polkadot/types-codec/types';
-import React, { FunctionComponent, SVGProps } from 'react';
+import type React from 'react';
+import type { FunctionComponent, SVGProps } from 'react';
+import type { AnyJson } from 'types';
 
 export interface MinimisedProps {
-  minimised: number;
+  $minimised?: boolean;
 }
 
 export interface HeadingProps {
   title: string;
-  minimised: number;
+  minimised: boolean;
 }
 
 export interface PrimaryProps {
   name: string;
   active: boolean;
   to: string;
-  icon?: React.ReactNode;
-  animate?: AnyJson;
+  lottie: AnyJson;
   action: undefined | { type: string; status: string; text?: string };
-  minimised: number;
+  minimised: boolean;
 }
 
 export interface SecondaryProps {
   name: string;
-  borderColor?: string;
+  classes?: string[];
   onClick: () => void;
   active?: boolean;
   to?: string;
-  icon?: IconProps;
+  icon: IconProps;
   action?: React.ReactNode;
-  minimised: number;
-  animate?: AnyJson;
+  minimised: boolean;
 }
 
 export interface IconProps {

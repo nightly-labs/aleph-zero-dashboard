@@ -1,51 +1,148 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
+import { faCopy } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ButtonPrimary } from '@rossbulat/polkadot-dashboard-ui';
-import { OpenHelpIcon } from 'library/OpenHelpIcon';
-import React from 'react';
-import { StatProps } from './types';
+import {
+  ButtonHelp,
+  ButtonPrimary,
+  ButtonSecondary,
+  PolkadotIcon,
+  Odometer,
+} from '@polkadot-cloud/react';
+import { applyWidthAsPadding, minDecimalPlaces } from '@polkadot-cloud/utils';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import { useHelp } from 'contexts/Help';
+import { useNotifications } from 'contexts/Notifications';
+import { useTheme } from 'contexts/Themes';
+import { useApi } from 'contexts/Api';
 import { Wrapper } from './Wrapper';
+import type { StatAddress, StatProps } from './types';
 
-export const Stat = (props: StatProps) => {
-  const { label, stat, buttons, helpKey, icon } = props;
+export const Stat = ({
+  label,
+  stat,
+  buttons,
+  helpKey,
+  icon,
+  copy,
+  type = 'string',
+  buttonType = 'primary',
+}: StatProps) => {
+  const {
+    brand: { token: Token },
+  } = useApi().network;
+  const { addNotification } = useNotifications();
+  const { openHelp } = useHelp();
+  const { mode } = useTheme();
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const subjectRef = useRef<HTMLDivElement>(null);
+
+  const handleAdjustLayout = () => {
+    applyWidthAsPadding(subjectRef, containerRef);
+  };
+
+  useLayoutEffect(() => {
+    handleAdjustLayout();
+  });
+
+  useEffect(() => {
+    window.addEventListener('resize', handleAdjustLayout);
+    return () => {
+      window.removeEventListener('resize', handleAdjustLayout);
+    };
+  }, []);
+
+  const Button = buttonType === 'primary' ? ButtonPrimary : ButtonSecondary;
+
+  let display;
+  switch (type) {
+    case 'address':
+      display = stat.display;
+      break;
+    case 'odometer':
+      display = (
+        <h2>
+          <Token
+            style={{
+              width: '1.9rem',
+              height: '1.9rem',
+              marginRight: '0.55rem',
+            }}
+          />
+          <Odometer
+            value={minDecimalPlaces(stat.value, 2)}
+            spaceAfter="0.4rem"
+            zeroDecimals={2}
+          />
+          {stat?.unit ? stat.unit : null}
+        </h2>
+      );
+      break;
+    default:
+      display = stat;
+  }
 
   return (
-    <Wrapper>
+    <Wrapper $isAddress={type === 'address'}>
       <h4>
-        {label} {helpKey !== undefined && <OpenHelpIcon helpKey={helpKey} />}
+        {label}
+        {helpKey !== undefined ? (
+          <ButtonHelp marginLeft onClick={() => openHelp(helpKey)} />
+        ) : null}
+        {copy !== undefined ? (
+          <button
+            type="button"
+            className="btn"
+            onClick={() => {
+              addNotification(copy.notification);
+              navigator.clipboard.writeText(copy.content);
+            }}
+          >
+            <FontAwesomeIcon icon={faCopy} transform="shrink-4" />
+          </button>
+        ) : null}
       </h4>
-      <h2 className="stat">
-        {icon && (
-          <>
-            <FontAwesomeIcon icon={icon} transform="shrink-4" />
-            &nbsp;
-          </>
-        )}
-        {stat}
-        {buttons && (
-          <span>
-            &nbsp;&nbsp;&nbsp;
-            {buttons.map((btn: any, index: number) => (
-              <React.Fragment key={`stat_${index}`}>
-                <ButtonPrimary
-                  key={`btn_${index}_${Math.random()}`}
-                  text={btn.title}
-                  lg={btn.large ?? undefined}
-                  iconLeft={btn.icon ?? undefined}
-                  iconTransform={btn.transform ?? undefined}
-                  disabled={btn.disabled ?? false}
-                  onClick={() => btn.onClick()}
-                />
-                &nbsp;&nbsp;
-              </React.Fragment>
-            ))}
-          </span>
-        )}
-      </h2>
+      <div className="content">
+        <div className="text" ref={containerRef}>
+          {icon ? (
+            <>
+              <FontAwesomeIcon icon={icon} transform="shrink-4" />
+              &nbsp;
+            </>
+          ) : null}
+          {type === 'address' ? (
+            <div className="identicon">
+              <PolkadotIcon
+                dark={mode === 'dark'}
+                nocopy
+                address={(stat as StatAddress)?.address || ''}
+                size={26}
+              />
+            </div>
+          ) : null}
+          {display}
+          {buttons ? (
+            <span ref={subjectRef}>
+              {buttons.map((btn: any, index: number) => (
+                <React.Fragment key={`stat_${index}`}>
+                  <Button
+                    key={`btn_${index}_${Math.random()}`}
+                    text={btn.title}
+                    lg={btn.large ?? undefined}
+                    iconLeft={btn.icon ?? undefined}
+                    iconTransform={btn.transform ?? undefined}
+                    disabled={btn.disabled ?? false}
+                    onClick={() => btn.onClick()}
+                  />
+                  &nbsp;&nbsp;
+                </React.Fragment>
+              ))}
+            </span>
+          ) : null}
+        </div>
+      </div>
     </Wrapper>
   );
 };
-
-export default Stat;

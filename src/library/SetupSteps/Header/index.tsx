@@ -1,26 +1,35 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { ButtonSecondary } from '@rossbulat/polkadot-dashboard-ui';
+import { ButtonHelp, ButtonSecondary } from '@polkadot-cloud/react';
+import { useTranslation } from 'react-i18next';
 import { useConnect } from 'contexts/Connect';
-import { useUi } from 'contexts/UI';
-import { OpenHelpIcon } from 'library/OpenHelpIcon';
-import { HeaderProps } from '../types';
+import { useHelp } from 'contexts/Help';
+import { useSetup } from 'contexts/Setup';
+import type { HeaderProps } from '../types';
 import { Wrapper } from './Wrapper';
 
-export const Header = (props: HeaderProps) => {
-  const { title, helpKey, complete, thisSection, setupType } = props;
-
+export const Header = ({
+  title,
+  helpKey,
+  complete,
+  thisSection,
+  bondFor,
+}: HeaderProps) => {
+  const { t } = useTranslation('library');
   const { activeAccount } = useConnect();
-  const { getSetupProgress, setActiveAccountSetupSection } = useUi();
-  const setup = getSetupProgress(setupType, activeAccount);
+  const { getSetupProgress, setActiveAccountSetupSection } = useSetup();
+  const setup = getSetupProgress(bondFor, activeAccount);
+  const { openHelp } = useHelp();
 
   return (
     <Wrapper>
       <section>
         <h2>
           {title}
-          {helpKey !== undefined && <OpenHelpIcon helpKey={helpKey} />}
+          {helpKey !== undefined ? (
+            <ButtonHelp marginLeft onClick={() => openHelp(helpKey)} />
+          ) : null}
         </h2>
       </section>
       <section>
@@ -29,19 +38,17 @@ export const Header = (props: HeaderProps) => {
             {setup.section !== thisSection && thisSection < setup.section && (
               <span>
                 <ButtonSecondary
-                  text="Update"
+                  text={t('update')}
                   onClick={() => {
-                    setActiveAccountSetupSection(setupType, thisSection);
+                    setActiveAccountSetupSection(bondFor, thisSection);
                   }}
                 />
               </span>
             )}
-            <h4 className="complete">Complete</h4>
+            <h4 className="complete">{t('complete')}</h4>
           </>
         )}
       </section>
     </Wrapper>
   );
 };
-
-export default Header;
