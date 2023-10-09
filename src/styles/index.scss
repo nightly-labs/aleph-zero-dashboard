@@ -7,3 +7,77 @@ html {
     font-size: 11px;
   }
 }
+
+/* Aleph custom styles */
+
+.light-relay {
+  --radio-background: #fff;
+
+}
+
+.dark-relay {
+  --radio-background: #0f171f;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Karla&display=swap');
+
+@font-face {
+  font-family: 'Gilroy';
+  font-style: normal;
+  src: url('../public/fonts/gilroy-regular.otf');
+}
+
+@font-face {
+  font-family: 'Gilroy';
+  font-style: 600;
+  src: url('../public/fonts/Gilroy-Medium.otf');
+}
+
+.btn-layout,
+button {
+  font-family: 'Gilroy', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.04rem;
+}
+
+.theme-aleph-zero,
+.theme-aleph-zero-testnet {
+  --color-primary-light: #00ccab;
+  --color-primary-dark: #00ccab;
+  --color-secondary-light: #00ccab;
+  --color-secondary-dark: #00ccab;
+  --color-transparent-light: rgb(0, 204, 171, 0.05);
+  --color-transparent-dark: rgb(0, 204, 171, 0.05);
+  --color-stroke-light: #00ccab;
+  --color-stroke-dark: #00ccab;
+  --color-button-secondary: #1b2b38;
+  --color-button-secondary-hover: #182733;
+}
+.theme-aleph-zero,
+.theme-aleph-zero-testnet.theme-light #logotype_brandmark {
+  fill: #111b24;
+}
+
+.theme-aleph-zero.theme-dark #logotype_brandmark,
+.theme-aleph-zero-testnet.theme-dark #logotype_brandmark {
+  fill: white;
+}
+
+.theme-aleph-zero .btn-primary,
+.theme-aleph-zero-testnet .btn-primary {
+  color: #111b24;
+}
+
+.theme-aleph-zero .connect > svg path,
+.theme-aleph-zero-testnet .connect > svg path {
+  fill: #111b24 !important;
+}
+
+.theme-aleph-zero .connect > span,
+.theme-aleph-zero-testnet .connect > span {
+  color: #111b24;
+}
+
+button.btn-submit {
+  color: inherit;
+}

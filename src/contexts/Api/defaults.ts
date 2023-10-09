@@ -1,15 +1,13 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { stringToU8a } from '@polkadot/util';
-import BN from 'bn.js';
-import { NETWORKS } from 'config/networks';
-import {
-  APIConstants,
-  APIContextInterface,
-  ConnectionStatus,
-} from 'contexts/Api/types';
-import { NetworkName } from 'types';
+
+import type { NetworkName } from 'types';
+import BigNumber from 'bignumber.js';
+import { NetworkList } from 'config/networks';
+import type { APIConstants, APIContextInterface } from 'contexts/Api/types';
 
 /**
  * Checking values of "NETWORKS" instead of "NetworkName", because they're not
@@ -18,49 +16,51 @@ import { NetworkName } from 'types';
  * a wrong types problem, but fixing these types requires a bigger refactor.
  */
 const isValidConfiguredNetworkName = (value: unknown): value is NetworkName =>
-  Object.keys(NETWORKS).includes(value as string);
+  Object.keys(NetworkList).includes(value as string);
 
-const defaultNetworkName =
+const isNetworkNameValidConfig = (value: NetworkName) =>
+  Object.keys(NetworkList).includes(value);
+
+export const defaultNetworkName: NetworkName =
   process.env.NODE_ENV === 'production' &&
-  isValidConfiguredNetworkName(NetworkName.AlephZero)
-    ? NetworkName.AlephZero
-    : NetworkName.AlephZeroTestnet;
+  isNetworkNameValidConfig('Aleph Zero')
+    ? 'Aleph Zero'
+    : isNetworkNameValidConfig('Aleph Zero Testnet')
+    ? 'Aleph Zero Testnet'
+    : isNetworkNameValidConfig('Aleph Zero Devnet')
+    ? 'Aleph Zero Devnet'
+    : 'Aleph Zero Local';
 
 const cachedNetworkName = localStorage.getItem('network');
 
-export const initialNetworkName = isValidConfiguredNetworkName(
-  cachedNetworkName
-)
-  ? cachedNetworkName
-  : defaultNetworkName;
-
-if (cachedNetworkName !== initialNetworkName) {
-  localStorage.setItem('network', initialNetworkName);
+if (!isValidConfiguredNetworkName(cachedNetworkName)) {
+  localStorage.setItem('network', defaultNetworkName);
 }
 
 export const consts: APIConstants = {
-  bondDuration: 0,
-  maxNominations: 0,
-  sessionsPerEra: 0,
-  maxNominatorRewardedPerValidator: 0,
-  historyDepth: new BN(0),
-  maxElectingVoters: 0,
-  expectedBlockTime: 0,
-  expectedEraTime: 0,
-  existentialDeposit: new BN(0),
+  bondDuration: new BigNumber(0),
+  maxNominations: new BigNumber(0),
+  sessionsPerEra: new BigNumber(0),
+  maxNominatorRewardedPerValidator: new BigNumber(0),
+  historyDepth: new BigNumber(0),
+  maxElectingVoters: new BigNumber(0),
+  expectedBlockTime: new BigNumber(0),
+  expectedEraTime: new BigNumber(0),
+  epochDuration: new BigNumber(0),
+  existentialDeposit: new BigNumber(0),
+  fastUnstakeDeposit: new BigNumber(0),
   poolsPalletId: stringToU8a('0'),
 };
 
 export const defaultApiContext: APIContextInterface = {
-  fetchDotPrice: () => {},
-  // eslint-disable-next-line
-  switchNetwork: async (_network, _isLightClient) => {
+  switchNetwork: async (n, lc) => {
     await new Promise((resolve) => resolve(null));
   },
   api: null,
   consts,
+  chainState: undefined,
   isLightClient: false,
   isReady: false,
-  status: ConnectionStatus.Disconnected,
-  network: NETWORKS[initialNetworkName],
+  apiStatus: 'disconnected',
+  network: NetworkList[defaultNetworkName],
 };

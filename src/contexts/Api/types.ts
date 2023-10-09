@@ -1,44 +1,47 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { ApiPromise } from '@polkadot/api';
-import { U8aLike } from '@polkadot/util/types';
-import BN from 'bn.js';
-import { Network, NetworkName } from '../../types';
+import type { ApiPromise } from '@polkadot/api';
+import type { U8aLike } from '@polkadot/util/types';
+import type BigNumber from 'bignumber.js';
+import type { Network, NetworkName } from '../../types';
 
-export enum ConnectionStatus {
-  Connecting = 'connecting',
-  Connected = 'connected',
-  Disconnected = 'disconnected',
-}
+export type ApiStatus = 'connecting' | 'connected' | 'disconnected';
 
 export interface NetworkState {
   name: NetworkName;
   meta: Network;
 }
 export interface APIConstants {
-  bondDuration: number;
-  maxNominations: number;
-  sessionsPerEra: number;
-  maxNominatorRewardedPerValidator: number;
-  historyDepth: BN;
-  maxElectingVoters: number;
-  expectedBlockTime: number;
-  expectedEraTime: number;
-  existentialDeposit: BN;
+  bondDuration: BigNumber;
+  maxNominations: BigNumber;
+  sessionsPerEra: BigNumber;
+  maxNominatorRewardedPerValidator: BigNumber;
+  historyDepth: BigNumber;
+  maxElectingVoters: BigNumber;
+  expectedBlockTime: BigNumber;
+  expectedEraTime: BigNumber;
+  epochDuration: BigNumber;
+  existentialDeposit: BigNumber;
+  fastUnstakeDeposit: BigNumber;
   poolsPalletId: U8aLike;
 }
 
+export type APIChainState =
+  | {
+      chain: string;
+      version: string;
+      ss58Prefix: number;
+    }
+  | undefined;
+
 export interface APIContextInterface {
-  fetchDotPrice: () => void;
-  switchNetwork: (
-    _network: NetworkName,
-    _isLightClient: boolean
-  ) => Promise<void>;
+  switchNetwork: (n: NetworkName, l: boolean) => Promise<void>;
   api: ApiPromise | null;
   consts: APIConstants;
+  chainState: APIChainState;
   isReady: boolean;
   isLightClient: boolean;
-  status: ConnectionStatus;
+  apiStatus: ApiStatus;
   network: Network;
 }

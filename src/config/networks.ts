@@ -1,25 +1,23 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { BN, BN_MILLION } from '@polkadot/util';
 import { DefaultParams } from 'consts';
 import { ReactComponent as AzeroIconSVG } from 'img/a0_icon.svg';
 import { ReactComponent as AzeroInlineSVG } from 'img/a0_inline.svg';
 import { ReactComponent as AzeroLogoSVG } from 'img/a0_logo.svg';
-import { Networks } from 'types';
+import type { Networks } from 'types';
 
-/*
- * Network Configuration
- */
-export const NETWORKS: Networks = {};
+export const NetworkList: Networks = {};
 
 if (process.env.REACT_APP_DISABLE_MAINNET !== '1') {
-  NETWORKS.alephzero = {
+  NetworkList.alephzero = {
     name: 'Aleph Zero',
     endpoints: {
       rpc: 'wss://ws.azero.dev',
       lightClient: null,
     },
+    namespace: '',
     colors: {
       primary: {
         light: '#00ccab',
@@ -37,12 +35,17 @@ if (process.env.REACT_APP_DISABLE_MAINNET !== '1') {
         light: 'rgba(0, 204, 171, .5)',
         dark: 'rgba(0, 204, 171, .5)',
       },
+      pending: {
+        light: 'rgb(0, 204, 171, 0.33)',
+        dark: 'rgb(0, 204, 171, 0.33)',
+      },
     },
     unit: 'AZERO',
     units: 12,
     ss58: 42,
     brand: {
       icon: AzeroIconSVG,
+      token: AzeroIconSVG,
       logo: {
         svg: AzeroLogoSVG,
         width: '8.5rem',
@@ -61,16 +64,18 @@ if (process.env.REACT_APP_DISABLE_MAINNET !== '1') {
       stakeTarget: 0.5,
       yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
+    defaultFeeReserve: 0.1,
   };
 }
 
 if (process.env.REACT_APP_DISABLE_TESTNET !== '1') {
-  NETWORKS.alephzerotestnet = {
+  NetworkList.alephzerotestnet = {
     name: 'Aleph Zero Testnet',
     endpoints: {
       rpc: 'wss://ws.test.azero.dev',
       lightClient: null,
     },
+    namespace: '',
     colors: {
       primary: {
         light: '#00ccab',
@@ -88,12 +93,17 @@ if (process.env.REACT_APP_DISABLE_TESTNET !== '1') {
         light: 'rgba(0, 204, 171, .5)',
         dark: 'rgba(0, 204, 171, .5)',
       },
+      pending: {
+        light: 'rgb(0, 204, 171, 0.33)',
+        dark: 'rgb(0, 204, 171, 0.33)',
+      },
     },
     unit: 'TZERO',
     units: 12,
     ss58: 42,
     brand: {
       icon: AzeroIconSVG,
+      token: AzeroIconSVG,
       logo: {
         svg: AzeroLogoSVG,
         width: '8.5rem',
@@ -112,16 +122,18 @@ if (process.env.REACT_APP_DISABLE_TESTNET !== '1') {
       stakeTarget: 0.5,
       yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
+    defaultFeeReserve: 0.1,
   };
 }
 
 if (process.env.REACT_APP_ENABLE_CUSTOM_NETWORK === '1') {
-  NETWORKS.azerocustom = {
+  NetworkList.azerocustom = {
     name: 'Aleph Zero Custom',
     endpoints: {
       rpc: process.env.REACT_APP_CUSTOM_WS_ADDRESS ?? '',
       lightClient: null,
     },
+    namespace: '',
     colors: {
       primary: {
         light: '#00ccab',
@@ -139,12 +151,17 @@ if (process.env.REACT_APP_ENABLE_CUSTOM_NETWORK === '1') {
         light: 'rgba(0, 204, 171, .5)',
         dark: 'rgba(0, 204, 171, .5)',
       },
+      pending: {
+        light: 'rgb(0, 204, 171, 0.33)',
+        dark: 'rgb(0, 204, 171, 0.33)',
+      },
     },
     unit: 'CZERO',
     units: 12,
     ss58: 42,
     brand: {
       icon: AzeroIconSVG,
+      token: AzeroIconSVG,
       logo: {
         svg: AzeroLogoSVG,
         width: '8.5rem',
@@ -163,16 +180,18 @@ if (process.env.REACT_APP_ENABLE_CUSTOM_NETWORK === '1') {
       stakeTarget: 0.5,
       yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
+    defaultFeeReserve: 0.1,
   };
 }
 
 if (process.env.NODE_ENV === 'development') {
-  NETWORKS.azerolocal = {
+  NetworkList.azerolocal = {
     name: 'Aleph Zero Local',
     endpoints: {
       rpc: 'ws://localhost:9944',
       lightClient: null,
     },
+    namespace: '',
     colors: {
       primary: {
         light: '#00ccab',
@@ -190,12 +209,17 @@ if (process.env.NODE_ENV === 'development') {
         light: 'rgba(0, 204, 171, .5)',
         dark: 'rgba(0, 204, 171, .5)',
       },
+      pending: {
+        light: 'rgb(0, 204, 171, 0.33)',
+        dark: 'rgb(0, 204, 171, 0.33)',
+      },
     },
     unit: 'LZERO',
     units: 12,
     ss58: 42,
     brand: {
       icon: AzeroIconSVG,
+      token: AzeroIconSVG,
       logo: {
         svg: AzeroLogoSVG,
         width: '8.5rem',
@@ -214,13 +238,15 @@ if (process.env.NODE_ENV === 'development') {
       stakeTarget: 0.5,
       yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
+    defaultFeeReserve: 0.1,
   };
-  NETWORKS.azerodevnet = {
+  NetworkList.azerodevnet = {
     name: 'Aleph Zero Devnet',
     endpoints: {
       rpc: 'wss://ws.dev.azero.dev',
       lightClient: null,
     },
+    namespace: '',
     colors: {
       primary: {
         light: '#00ccab',
@@ -238,12 +264,17 @@ if (process.env.NODE_ENV === 'development') {
         light: 'rgba(0, 204, 171, .5)',
         dark: 'rgba(0, 204, 171, .5)',
       },
+      pending: {
+        light: 'rgb(0, 204, 171, 0.33)',
+        dark: 'rgb(0, 204, 171, 0.33)',
+      },
     },
     unit: 'DZERO',
     units: 12,
     ss58: 42,
     brand: {
       icon: AzeroIconSVG,
+      token: AzeroIconSVG,
       logo: {
         svg: AzeroLogoSVG,
         width: '8.5rem',
@@ -262,5 +293,6 @@ if (process.env.NODE_ENV === 'development') {
       stakeTarget: 0.5,
       yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
+    defaultFeeReserve: 0.1,
   };
 }

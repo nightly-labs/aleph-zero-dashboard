@@ -81,6 +81,7 @@
         "tsx": "never"
       }
     ],
+    "no-shadow": "off",
     "@typescript-eslint/no-shadow": ["error"],
     "prefer-arrow-functions/prefer-arrow-functions": [
       "warn",
@@ -101,9 +102,7 @@
   },
   "overrides": [
     {
-      "files": ["**/*.test.*"],
-      "plugins": ["jest"],
-      "extends": ["plugin:jest/recommended"]
+      "files": ["**/*.test.*"]
     }
   ]
 }

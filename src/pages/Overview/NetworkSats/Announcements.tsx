@@ -1,61 +1,43 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { faBullhorn as faBack } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import BN from 'bn.js';
+import {
+  capitalizeFirstLetter,
+  planckToUnit,
+  rmCommas,
+  sortWithNull,
+} from '@polkadot-cloud/utils';
+import BigNumber from 'bignumber.js';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
-import { useNetworkMetrics } from 'contexts/Network';
 import { useBondedPools } from 'contexts/Pools/BondedPools';
-import { usePoolMembers } from 'contexts/Pools/PoolMembers';
-import { BondedPool } from 'contexts/Pools/types';
+import { usePoolsConfig } from 'contexts/Pools/PoolsConfig';
+import type { BondedPool } from 'contexts/Pools/types';
 import { useStaking } from 'contexts/Staking';
 import { useUi } from 'contexts/UI';
-import { motion } from 'framer-motion';
-import { Announcement as AnnouncementLoader } from 'library/Loaders/Announcement';
-import { useTranslation } from 'react-i18next';
-import {
-  humanNumber,
-  planckBnToUnit,
-  rmCommas,
-  toFixedIfNecessary,
-} from 'Utils';
+import { Announcement as AnnouncementLoader } from 'library/Loader/Announcement';
 import { Item } from './Wrappers';
 
 export const Announcements = () => {
-  const { networkSyncing, poolsSyncing, isSyncing } = useUi();
-  const { network } = useApi();
-  const { units } = network;
-  const { staking } = useStaking();
-  const { metrics } = useNetworkMetrics();
-  const { poolMembers } = usePoolMembers();
-
-  const {
-    minNominatorBond,
-    totalNominators,
-    maxNominatorsCount,
-    lastTotalStake,
-  } = staking;
-  const { bondedPools } = useBondedPools();
-  const { totalIssuance } = metrics;
   const { t } = useTranslation('pages');
+  const { network } = useApi();
+  const { isSyncing } = useUi();
+  const { staking } = useStaking();
+  const { stats } = usePoolsConfig();
+  const { bondedPools } = useBondedPools();
 
-  let totalPoolPoints = new BN(0);
+  const { units } = network;
+  const { totalStaked } = staking;
+  const { counterForPoolMembers } = stats;
+
+  let totalPoolPoints = new BigNumber(0);
   bondedPools.forEach((b: BondedPool) => {
-    totalPoolPoints = totalPoolPoints.add(new BN(rmCommas(b.points)));
+    totalPoolPoints = totalPoolPoints.plus(rmCommas(b.points));
   });
-  const totalPoolPointsBase = humanNumber(
-    toFixedIfNecessary(planckBnToUnit(totalPoolPoints, units), 0)
-  );
-
-  // total supply as percent
-  // total supply as percent
-  const totalIssuanceBase = planckBnToUnit(totalIssuance, units);
-  const lastTotalStakeBase = planckBnToUnit(lastTotalStake, units);
-  const supplyAsPercent =
-    lastTotalStakeBase === 0
-      ? 0
-      : lastTotalStakeBase / (totalIssuanceBase * 0.01);
+  const totalPoolPointsUnit = planckToUnit(totalPoolPoints, units);
 
   const container = {
     hidden: { opacity: 0 },
@@ -76,97 +58,54 @@ export const Announcements = () => {
     },
   };
 
-  const nominatorCapReached = maxNominatorsCount.eq(totalNominators);
-
-  let nominatorReachedPercentage = new BN(0);
-  if (maxNominatorsCount.gt(new BN(0)) && totalNominators.gt(new BN(0))) {
-    nominatorReachedPercentage = totalNominators.div(
-      maxNominatorsCount.div(new BN(100))
-    );
-  }
-
-  const minNominatorBondBase = planckBnToUnit(minNominatorBond, units);
-
   const announcements = [];
 
-  // maximum nominators have been reached
-  if (nominatorCapReached && !isSyncing) {
-    announcements.push({
-      class: 'danger',
-      title: t('overview.nominator_limit'),
-      subtitle: t('overview.maximum_allowed'),
-    });
-  }
+  const networkUnit = network.unit;
 
-  // 90% plus nominators reached
-  if (nominatorReachedPercentage.toNumber() >= 90) {
+  // total staked on the network
+  if (!isSyncing) {
     announcements.push({
       class: 'neutral',
-      title: `${toFixedIfNecessary(
-        nominatorReachedPercentage.toNumber(),
-        2
-      )}${t('overview.limit_reached')}`,
-      subtitle: `${t('overview.maximum_amount')} ${humanNumber(
-        maxNominatorsCount.toNumber()
-      )}.`,
+      title: t('overview.networkCurrentlyStaked', {
+        total: planckToUnit(totalStaked, units).integerValue().toFormat(),
+        unit: network.unit,
+        network: capitalizeFirstLetter(network.name),
+      }),
+      subtitle: t('overview.networkCurrentlyStakedSubtitle', {
+        unit: network.unit,
+      }),
     });
+  } else {
+    announcements.push(null);
   }
 
-  const networkName = network.name;
-  const networkUnit = network.unit;
-  // bonded pools available
+  // total locked in pools
   if (bondedPools.length) {
-    // total pools active
     announcements.push({
-      class: 'pools',
-      title: `${bondedPools.length} ${t('overview.pools_are_active')}`,
-      subtitle: `${t('overview.available_to_join', { networkName })}`,
+      class: 'neutral',
+      title: `${totalPoolPointsUnit.integerValue().toFormat()} ${
+        network.unit
+      } ${t('overview.inPools')}`,
+      subtitle: `${t('overview.bondedInPools', { networkUnit })}`,
     });
+  } else {
+    announcements.push(null);
+  }
 
+  if (counterForPoolMembers.isGreaterThan(0)) {
     // total locked in pools
     announcements.push({
-      class: 'pools',
-      title: `${totalPoolPointsBase} ${network.unit} ${t('overview.in_pools')}`,
-      subtitle: `${t('overview.bonded_in_pools', { networkUnit })}`,
+      class: 'neutral',
+      title: `${counterForPoolMembers.toFormat()} ${t(
+        'overview.poolMembersBonding'
+      )}`,
+      subtitle: `${t('overview.totalNumAccounts')}`,
     });
-
-    if (poolMembers.length > 0 && !poolsSyncing) {
-      // total locked in pols
-      announcements.push({
-        class: 'pools',
-        title: `${humanNumber(poolMembers.length)} ${t(
-          'overview.pool_members_bonding'
-        )}`,
-        subtitle: `${t('overview.total_num_accounts')}`,
-      });
-    }
+  } else {
+    announcements.push(null);
   }
 
-  // minimum nominator bond
-  announcements.push({
-    class: 'neutral',
-    title: `${t('overview.minimum_nominator_bond')} ${minNominatorBondBase} ${
-      network.unit
-    }.`,
-    subtitle: `${t('overview.minimum_bonding_amount', {
-      networkName,
-    })} ${planckBnToUnit(minNominatorBond, units)} ${network.unit}.`,
-  });
-
-  // supply staked
-  announcements.push({
-    class: 'neutral',
-    title: `${t('overview.currently_staked', {
-      supplyAsPercent: toFixedIfNecessary(supplyAsPercent, 2),
-      networkUnit,
-    })}`,
-    subtitle: `${t('overview.staking_on_the_network', {
-      lastTotalStakeBase: humanNumber(
-        toFixedIfNecessary(lastTotalStakeBase, 0)
-      ),
-      networkUnit,
-    })}`,
-  });
+  announcements.sort(sortWithNull(true));
 
   return (
     <motion.div
@@ -175,10 +114,10 @@ export const Announcements = () => {
       animate="show"
       style={{ width: '100%' }}
     >
-      {networkSyncing ? (
-        <AnnouncementLoader />
-      ) : (
-        announcements.map((item, index) => (
+      {announcements.map((item, index) =>
+        item === null ? (
+          <AnnouncementLoader key={`announcement_${index}`} />
+        ) : (
           <Item key={`announcement_${index}`} variants={listItem}>
             <h4 className={item.class}>
               <FontAwesomeIcon
@@ -189,7 +128,7 @@ export const Announcements = () => {
             </h4>
             <p>{item.subtitle}</p>
           </Item>
-        ))
+        )
       )}
     </motion.div>
   );

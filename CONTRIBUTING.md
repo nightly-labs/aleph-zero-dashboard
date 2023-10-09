@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This section aims to familiarise developers to the Polkadot Staking Dashboard [[GitHub](https://github.com/paritytech/polkadot-staking-dashboard), [Demo](https://paritytech.github.io/polkadot-staking-dashboard/#/overview)] for the purpose of contributing to the project.
+This section aims to familiarize developers to the Polkadot Staking Dashboard [[GitHub](https://github.com/paritytech/polkadot-staking-dashboard), [Demo](https://paritytech.github.io/polkadot-staking-dashboard/#/overview)] for the purpose of contributing to the project.
 
 Reach out to ross@parity.io for clarification of any content within this document.
 
@@ -17,17 +17,26 @@ Reach out to ross@parity.io for clarification of any content within this documen
 
 ## Environment Variables
 
-Optionally apply the following envrionment variables in an environment file such as `.env` or with `yarn build` to customise the build of staking dashboard:
+Optionally apply the following environment variables in an environment file such as `.env` or with `yarn build` to customize the build of staking dashboard:
 
 ```
 # disable all mentioning of fiat values and token prices
 VITE_DISABLE_FIAT=1
 
-# display an organisation label in the network bar
+# display an organization label in the network bar
 VITE_ORGANISATION="© Parity Technologies"
 
 # provide a privacy policy url in the network bar
-VITE_PRIVACY_URL=https://www.parity.io/privacy/
+VITE_PRIVACY_URL=https://...
+
+# disable mainnet / testnet network (for e.g. testnet deployment)
+REACT_APP_DISABLE_MAINNET=1
+REACT_APP_DISABLE_TESTNET=1
+
+# add connection to a custom network (for example a feature net, local and devnet are avaliable by default in a development build)
+REACT_APP_ENABLE_CUSTOM_NETWORK=1
+REACT_APP_CUSTOM_WS_ADDRESS=wss://ws.test.azero.dev
+
 ```
 
 ## Config Files
@@ -84,7 +93,7 @@ We develop in strict mode, so types are always required for objects. Use any ini
 
 **Tests have not yet been developed.**
 
-Testing could be initialised on a per-component basis, such as isolating library components and testing them within a storybook environment.
+Testing could be initialized on a per-component basis, such as isolating library components and testing them within a storybook environment.
 
 Integration tests make sense for the app itself, ensuring the page layout, help module, and modals display the correct content at various app states. These states currently persist of:
 

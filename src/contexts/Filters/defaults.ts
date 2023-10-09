@@ -1,32 +1,20 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { AnyFunction, AnyJson } from 'types';
-import { FilterType } from './types';
+import type { FiltersContextInterface } from './types';
 
-export const defaultFiltersInterface = {
-  // eslint-disable-next-line
-  getFilters: (t: FilterType, g: string) => [],
-  // eslint-disable-next-line
-  toggleFilter: (t: FilterType, g: string, f: string) => {},
-  // eslint-disable-next-line
-  setMultiFilters: (t: FilterType, g: string, fs: Array<string>) => {},
-  // eslint-disable-next-line
-  getOrder: (g: string) => 'default',
-  // eslint-disable-next-line
-  setOrder: (g: string, o: string) => {},
-  // eslint-disable-next-line
-  getSearchTerm: (g: string) => null,
-  // eslint-disable-next-line
-  setSearchTerm: (g: string, t: string) => {},
-  // eslint-disable-next-line
-  resetFilters: (t: FilterType, g: string) => {},
-  // eslint-disable-next-line
-  resetOrder: (g: string) => {},
-  // eslint-disable-next-line
-  clearSearchTerm: (g: string) => {},
-  // eslint-disable-next-line
-  applyFilters: (t: FilterType, g: string, l: AnyJson, f: AnyFunction) => {},
-  // eslint-disable-next-line
-  applyOrder: (g: string, l: AnyJson, f: AnyFunction) => {},
+export const defaultFiltersInterface: FiltersContextInterface = {
+  getFilters: (t, g) => [],
+  toggleFilter: (t, g, f) => {},
+  setMultiFilters: (t, g, fs, r) => {},
+  getOrder: (g) => 'default',
+  setOrder: (g, o) => {},
+  getSearchTerm: (g) => null,
+  setSearchTerm: (g, t) => {},
+  resetFilters: (t, g) => {},
+  resetOrder: (g) => {},
+  clearSearchTerm: (g) => {},
+  applyFilters: (t, g, l, f) => {},
+  applyOrder: (g, l, f) => {},
 };

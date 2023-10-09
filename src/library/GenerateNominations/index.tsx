@@ -1,7 +1,6 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import {
   faChevronCircleRight,
   faHeart,
@@ -9,40 +8,42 @@ import {
   faUserEdit,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { camelize } from '@polkadot-cloud/utils';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
 import { useConnect } from 'contexts/Connect';
-import { useModal } from 'contexts/Modal';
-import { useStaking } from 'contexts/Staking';
-import { useValidators } from 'contexts/Validators';
-import { LargeItem } from 'library/Filter/LargeItem';
+import { useValidators } from 'contexts/Validators/ValidatorEntries';
+import { useUnstaking } from 'library/Hooks/useUnstaking';
 import { SelectableWrapper } from 'library/List';
+import { SelectItems } from 'library/SelectItems';
+import { SelectItem } from 'library/SelectItems/Item';
 import { ValidatorList } from 'library/ValidatorList';
 import { Wrapper } from 'pages/Overview/NetworkSats/Wrappers';
-import { useEffect, useRef, useState } from 'react';
-import {
+import { useStaking } from 'contexts/Staking';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
+import type {
   GenerateNominationsInnerProps,
   Nominations,
 } from '../SetupSteps/types';
 import { useFetchMehods } from './useFetchMethods';
-import { GenerateOptionsWrapper } from './Wrappers';
 
-export const GenerateNominations = (props: GenerateNominationsInnerProps) => {
-  // functional props
-  const setters = props.setters ?? [];
-  const defaultNominations = props.nominations;
-  const { batchKey, stepsSetup } = props;
-
-  const { openModalWith } = useModal();
+export const GenerateNominations = ({
+  setters = [],
+  nominations: defaultNominations,
+  batchKey,
+  stepsSetup,
+}: GenerateNominationsInnerProps) => {
+  const { t } = useTranslation('library');
   const { isReady } = useApi();
+  const { openModal } = useOverlay().modal;
+  const { isFastUnstaking } = useUnstaking();
+  const { stakers } = useStaking().eraStakers;
   const { activeAccount, isReadOnlyAccount } = useConnect();
   const { setTargets } = useStaking();
-  const { removeValidatorMetaBatch, validators, meta } = useValidators();
+  const { validators, validatorIdentities, validatorSupers } = useValidators();
   const { fetch: fetchFromMethod } = useFetchMehods();
 
-  let { favoritesList } = useValidators();
-  if (favoritesList === null) {
-    favoritesList = [];
-  }
   // store the method of fetching validators
   const [method, setMethod] = useState<string | null>(null);
 
@@ -58,12 +59,9 @@ export const GenerateNominations = (props: GenerateNominationsInnerProps) => {
   // ref for the height of the container
   const heightRef = useRef<HTMLDivElement>(null);
 
-  const rawBatchKey = 'validators_browse';
-
   // update nominations on account switch
   useEffect(() => {
     if (nominations !== defaultNominations) {
-      removeValidatorMetaBatch(batchKey);
       setNominations([...defaultNominations]);
     }
   }, [activeAccount]);
@@ -74,12 +72,11 @@ export const GenerateNominations = (props: GenerateNominationsInnerProps) => {
       return;
     }
 
-    // wait for validator meta data to be fetched
-    const batch = meta[rawBatchKey];
-    if (batch === undefined) {
-      return;
-    }
-    if (batch.stake === undefined) {
+    if (
+      !stakers.length ||
+      !Object.values(validatorIdentities).length ||
+      !Object.values(validatorSupers).length
+    ) {
       return;
     }
 
@@ -103,36 +100,26 @@ export const GenerateNominations = (props: GenerateNominationsInnerProps) => {
   // fetch nominations based on method
   const fetchNominationsForMethod = () => {
     if (method) {
-      const _nominations = fetchFromMethod(method);
+      const newNominations = fetchFromMethod(method);
       // update component state
-      setNominations([..._nominations]);
+      setNominations([...newNominations]);
       setFetching(false);
     }
   };
 
-  const updateSetters = (_nominations: Nominations) => {
-    for (const s of setters) {
-      const { current, set } = s;
-      const callable = current?.callable ?? false;
-      let _current;
-
-      if (!callable) {
-        _current = current;
-      } else {
-        _current = current.fn();
-      }
-      const _set = {
-        ..._current,
-        nominations: _nominations,
-      };
-      set(_set);
+  const updateSetters = (newNominations: Nominations) => {
+    for (const { current, set } of setters) {
+      const currentValue = current?.callable ? current.fn() : current;
+      set({
+        ...currentValue,
+        nominations: newNominations,
+      });
     }
   };
 
   // function for clearing nomination list
   const clearNominations = () => {
     setMethod(null);
-    removeValidatorMetaBatch(batchKey);
     setNominations([]);
     updateSetters([]);
   };
@@ -142,10 +129,9 @@ export const GenerateNominations = (props: GenerateNominationsInnerProps) => {
     {
       title: 'Display All',
       subtitle: 'List all validators.',
-      icon: faUserEdit as IconProp,
+      icon: faUserEdit,
       onClick: () => {
         setMethod('Display All');
-        removeValidatorMetaBatch(batchKey);
         setNominations([]);
         setFetching(true);
       },
@@ -153,10 +139,9 @@ export const GenerateNominations = (props: GenerateNominationsInnerProps) => {
     {
       title: 'From Favorites',
       subtitle: 'Choose one of your favorite validators.',
-      icon: faHeart as IconProp,
+      icon: faHeart,
       onClick: () => {
         setMethod('From Favorites');
-        removeValidatorMetaBatch(batchKey);
         setNominations([]);
         setFetching(true);
       },
@@ -170,10 +155,14 @@ export const GenerateNominations = (props: GenerateNominationsInnerProps) => {
 
   const validatorAction = {
     text: 'Nominate',
-    iconLeft: faChevronCircleRight as IconProp,
+    iconLeft: faChevronCircleRight,
     onClick: (validator: any) => {
       setTargets({ nominations: [validator] });
-      openModalWith('Nominate', {}, 'small');
+      openModal({
+        key: 'Nominate',
+        options: {},
+        size: 'sm',
+      });
     },
   };
 
@@ -187,8 +176,8 @@ export const GenerateNominations = (props: GenerateNominationsInnerProps) => {
       {method && (
         <SelectableWrapper>
           <button type="button" onClick={() => clearNominations()}>
-            <FontAwesomeIcon icon={faTimes as IconProp} />
-            {method}
+            <FontAwesomeIcon icon={faTimes} />
+            {t(`${camelize(method)}`)}
           </button>
 
           {['Active Low Commission', 'Optimal Selection'].includes(
@@ -200,11 +189,10 @@ export const GenerateNominations = (props: GenerateNominationsInnerProps) => {
                 // set a temporary height to prevent height snapping on re-renders.
                 setHeight(heightRef?.current?.clientHeight || null);
                 setTimeout(() => setHeight(null), 200);
-                removeValidatorMetaBatch(batchKey);
                 setFetching(true);
               }}
             >
-              Re-Generate
+              {t('reGenerate')}
             </button>
           )}
         </SelectableWrapper>
@@ -218,19 +206,23 @@ export const GenerateNominations = (props: GenerateNominationsInnerProps) => {
         <div>
           {!isReadOnlyAccount(activeAccount) && !method && (
             <>
-              <GenerateOptionsWrapper>
+              <SelectItems layout="three-col">
                 {methods.map((m: any, n: number) => (
-                  <LargeItem
+                  <SelectItem
                     key={`gen_method_${n}`}
                     title={m.title}
                     subtitle={m.subtitle}
                     icon={m.icon}
-                    transform="grow-2"
-                    active={false}
+                    selected={false}
                     onClick={m.onClick}
+                    disabled={isFastUnstaking}
+                    includeToggle={false}
+                    grow={false}
+                    hoverBorder
+                    layout="three-col"
                   />
                 ))}
-              </GenerateOptionsWrapper>
+              </SelectItems>
             </>
           )}
         </div>
@@ -247,7 +239,7 @@ export const GenerateNominations = (props: GenerateNominationsInnerProps) => {
                 }}
               >
                 <ValidatorList
-                  bondType="stake"
+                  bondFor="nominator"
                   validators={nominations}
                   batchKey={batchKey}
                   defaultFilters={defaultFilters}
@@ -270,5 +262,3 @@ export const GenerateNominations = (props: GenerateNominationsInnerProps) => {
     </>
   );
 };
-
-export default GenerateNominations;

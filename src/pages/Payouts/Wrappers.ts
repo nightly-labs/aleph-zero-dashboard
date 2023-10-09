@@ -1,30 +1,20 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { motion } from 'framer-motion';
 import styled from 'styled-components';
-import {
-  backgroundDropdown,
-  borderPrimary,
-  networkColor,
-  networkColorSecondary,
-  shadowColorSecondary,
-  textSecondary,
-} from 'theme';
 
 export const ItemWrapper = styled(motion.div)`
   padding: 0.5rem;
   width: 100%;
 
   > .inner {
+    background: var(--background-list-item);
     padding: 0 0.75rem;
     flex: 1;
-    background: ${backgroundDropdown};
-    box-shadow: 0px 1.75px 0px 1.25px ${shadowColorSecondary};
     border-radius: 0.2rem;
     display: flex;
     flex-flow: column wrap;
-    justify-content: flex-start;
     align-items: center;
     flex: 1;
     max-width: 100%;
@@ -40,8 +30,8 @@ export const ItemWrapper = styled(motion.div)`
       }
 
       &:last-child {
+        border-top: 1px solid var(--border-primary-color);
         padding-top: 0rem;
-        border-top: 1px solid ${borderPrimary};
 
         > div {
           min-height: 3.2rem;
@@ -51,35 +41,32 @@ export const ItemWrapper = styled(motion.div)`
       > div {
         display: flex;
         flex-flow: row wrap;
-        justify-content: flex-start;
         align-items: center;
         flex: 1;
         max-width: 100%;
 
         h4 {
-          margin: 0;
-          color: ${textSecondary};
-          font-variation-settings: 'wght' 575;
+          color: var(--text-color-secondary);
+          font-family: InterSemiBold, sans-serif;
           &.claim {
-            color: ${networkColorSecondary};
+            color: var(--accent-color-secondary);
           }
           &.reward {
-            color: ${networkColor};
+            color: var(--accent-color-primary);
           }
         }
 
         h5 {
-          margin: 0;
-          color: ${textSecondary};
+          color: var(--text-color-secondary);
           &.claim {
-            color: ${networkColorSecondary};
-            border: 1px solid ${networkColorSecondary};
+            color: var(--accent-color-secondary);
+            border: 1px solid var(--accent-color-secondary);
             border-radius: 0.75rem;
             padding: 0.2rem 0.5rem;
           }
           &.reward {
-            color: ${networkColor};
-            border: 1px solid ${networkColor};
+            color: var(--accent-color-primary);
+            border: 1px solid var(--accent-color-primary);
             border-radius: 0.75rem;
             padding: 0.2rem 0.5rem;
           }
@@ -89,7 +76,6 @@ export const ItemWrapper = styled(motion.div)`
           flex-grow: 1;
           display: flex;
           flex-flow: row wrap;
-          justify-content: flex-start;
           align-items: center;
         }
 
@@ -99,7 +85,7 @@ export const ItemWrapper = styled(motion.div)`
           justify-content: flex-end;
 
           > h4 {
-            color: ${textSecondary};
+            color: var(--text-color-secondary);
             opacity: 0.8;
           }
         }

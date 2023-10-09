@@ -1,48 +1,87 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { EXTENSIONS } from 'config/extensions';
-import {
-  Extension,
+import { ExtensionsArray } from 'config/extensions';
+import type {
   ExtensionsContextInterface,
+  ExtensionInjected,
+  ExtensionsStatus,
 } from 'contexts/Extensions/types';
+import { setStateWithRef } from '@polkadot-cloud/utils';
 import React, { useEffect, useRef, useState } from 'react';
-import { setStateWithRef } from 'Utils';
+import type { AnyApi } from 'types';
 import { defaultExtensionsContext } from './defaults';
-
-export const ExtensionsContext =
-  React.createContext<ExtensionsContextInterface>(defaultExtensionsContext);
-
-export const useExtensions = () => React.useContext(ExtensionsContext);
 
 export const ExtensionsProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  // store the installed extensions in state
-  const [extensions, setExtensions] = useState<Array<Extension> | null>(null);
+  // store whether injected interval has been initialised.
+  const intervalInitialisedRef = useRef<boolean>(false);
+
+  // store whether initial injectedWeb3 checking is underway.
+  const [checkingInjectedWeb3, setCheckingInjectedWeb3] =
+    useState<boolean>(true);
+  const checkingInjectedWeb3Ref = useRef(checkingInjectedWeb3);
+
+  // store the installed extensions in state.
+  const [extensions, setExtensionsState] = useState<ExtensionInjected[] | null>(
+    null
+  );
+  const extensionsRef = useRef(extensions);
+
+  const setExtensions = (e: ExtensionInjected[] | null) => {
+    setStateWithRef(e, setExtensionsState, extensionsRef);
+  };
 
   // store whether extensions have been fetched
   const [extensionsFetched, setExtensionsFetched] = useState(false);
 
   // store each extension's status in state.
-  const [extensionsStatus, setExtensionsStatus] = useState<{
-    [key: string]: string;
-  }>({});
+  const [extensionsStatus, setExtensionsStatus] = useState<ExtensionsStatus>(
+    {}
+  );
   const extensionsStatusRef = useRef(extensionsStatus);
 
-  // initialise extensions.
-  useEffect(() => {
-    if (!extensions) {
-      // timeout for initialising injectedWeb3
-      setTimeout(() => setExtensions(getInstalledExtensions()), 200);
+  // listen for window.injectedWeb3.
+  let injectedWeb3Interval: ReturnType<typeof setInterval>;
+  let injectCounter = 0;
+
+  // Handle completed interval check for `injectedWeb3`. If `injectedWeb3` is present, get installed
+  // extensions and add to state.
+  const handleClearInterval = (hasInjectedWeb3: boolean) => {
+    clearInterval(injectedWeb3Interval);
+    if (hasInjectedWeb3) {
+      setExtensions(getInstalledExtensions());
     }
+    setStateWithRef(false, setCheckingInjectedWeb3, checkingInjectedWeb3Ref);
+  };
+
+  // Sets an interval to listen to `window` until the `injectedWeb3` property is present. Cancels
+  // after 500 * 10 milliseconds.
+  useEffect(() => {
+    if (!intervalInitialisedRef.current) {
+      intervalInitialisedRef.current = true;
+
+      injectedWeb3Interval = setInterval(() => {
+        if (++injectCounter === 10) {
+          handleClearInterval(false);
+        } else {
+          // if injected is present
+          const injectedWeb3 = (window as AnyApi)?.injectedWeb3 || null;
+          if (injectedWeb3 !== null) {
+            handleClearInterval(true);
+          }
+        }
+      }, 500);
+    }
+    return () => clearInterval(injectedWeb3Interval);
   });
 
   const setExtensionStatus = (id: string, status: string) => {
     setStateWithRef(
-      Object.assign(extensionsStatusRef.current, {
+      Object.assign(extensionsStatusRef.current || {}, {
         [id]: status,
       }),
       setExtensionsStatus,
@@ -56,7 +95,7 @@ export const ExtensionsProvider = ({
     const { injectedWeb3 } = window;
     if (!isRecord(injectedWeb3)) return [];
 
-    return EXTENSIONS.flatMap((extension) => {
+    return ExtensionsArray.flatMap((extension) => {
       const extensionId = extension.id;
       if (!(extensionId in injectedWeb3)) return [];
 
@@ -75,9 +114,10 @@ export const ExtensionsProvider = ({
   return (
     <ExtensionsContext.Provider
       value={{
-        extensions: extensions ?? [],
+        extensions: extensionsRef.current ?? [],
         setExtensionStatus,
         extensionsStatus: extensionsStatusRef.current,
+        checkingInjectedWeb3: checkingInjectedWeb3Ref.current,
         extensionsFetched,
         setExtensionsFetched,
         setExtensions,
@@ -88,8 +128,15 @@ export const ExtensionsProvider = ({
   );
 };
 
+export const ExtensionsContext =
+  React.createContext<ExtensionsContextInterface>(defaultExtensionsContext);
+
+export const useExtensions = () => React.useContext(ExtensionsContext);
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
-const isInjectedExtensionConfig = (value: unknown): value is Extension =>
+const isInjectedExtensionConfig = (
+  value: unknown
+): value is ExtensionInjected =>
   isRecord(value) && 'enable' in value && 'version' in value;

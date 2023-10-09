@@ -10,11 +10,11 @@ import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
 import { useConnect } from 'contexts/Connect';
 import { useNetworkMetrics } from 'contexts/Network';
-import { Countdown } from 'library/Countdown';
 import { useErasToTimeLeft } from 'library/Hooks/useErasToTimeLeft';
 import { useTimeLeft } from 'library/Hooks/useTimeLeft';
 import { useUnstaking } from 'library/Hooks/useUnstaking';
 import { ChunkWrapper } from './Wrappers';
+import UnlockStatus from './UnlockStatus';
 
 export const Chunk = ({ chunk, bondFor, onRebond }: any) => {
   const { t } = useTranslation('modals');
@@ -25,7 +25,7 @@ export const Chunk = ({ chunk, bondFor, onRebond }: any) => {
   const { units } = network;
   const { isFastUnstaking } = useUnstaking();
   const { erasToSeconds } = useErasToTimeLeft();
-  const { timeleft, setFromNow } = useTimeLeft();
+  const { setFromNow } = useTimeLeft();
   const isStaking = bondFor === 'nominator';
 
   const { era, value } = chunk;
@@ -46,16 +46,10 @@ export const Chunk = ({ chunk, bondFor, onRebond }: any) => {
       <div>
         <section>
           <h2>{`${planckToUnit(value, units)} ${network.unit}`}</h2>
-          <h4>
-            {left.isLessThanOrEqualTo(0) ? (
-              t('unlocked')
-            ) : (
-              <>
-                {t('unlocksInEra')} {era} /&nbsp;
-                <Countdown timeleft={timeleft.formatted} markup={false} />
-              </>
-            )}
-          </h4>
+          <UnlockStatus
+            unbondingEra={era}
+            activeEra={activeEra.index.toNumber()}
+          />
         </section>
         {isStaking ? (
           <section>

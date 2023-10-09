@@ -14,10 +14,11 @@ import { useTheme } from 'contexts/Themes';
 export const ThemedRouter = () => {
   const { mode } = useTheme();
   const { network } = useApi();
+  const networkName = network.name.toLowerCase().replaceAll(' ', '-');
 
   return (
     <ThemeProvider theme={{ mode }}>
-      <Entry mode={mode} theme={`${network.name}-relay`}>
+      <Entry mode={mode} theme={`${networkName}-relay`}>
         <Router />
       </Entry>
     </ThemeProvider>

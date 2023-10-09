@@ -1,60 +1,60 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import type { WellKnownChain } from '@polkadot/rpc-provider/substrate-connect';
-import { PageProps } from 'pages/types';
-import React, { FunctionComponent, SVGProps } from 'react';
+import type React from 'react';
+import type { FunctionComponent, SVGProps } from 'react';
+import type { Theme } from 'contexts/Themes/types';
 
-export type Fn = () => void;
-
-export enum NetworkName {
+export enum NetworkNameEnum {
+  AlephZero = 'Aleph Zero',
+  AlephZeroTestnet = 'Aleph Zero Testnet',
+  AlephZeroDevNet = 'Aleph Zero Devnet',
+  AzeroLocal = 'Aleph Zero Local',
+  AzeroCustom = 'Aleph Zero Custom',
   Polkadot = 'polkadot',
-  AlephZero = 'alephzero',
   Kusama = 'kusama',
   Westend = 'westend',
-  AlephZeroTestnet = 'alephzerotestnet',
-  AlephZeroDevNet = 'azerodevnet',
 }
+
+export type NetworkName =
+  | 'Aleph Zero'
+  | 'Aleph Zero Testnet'
+  | 'Aleph Zero Devnet'
+  | 'Aleph Zero Local'
+  | 'Aleph Zero Custom'
+  | 'polkadot'
+  | 'kusama'
+  | 'westend';
 
 export enum Toggle {
   Open = 'open',
   Closed = 'closed',
 }
 
-export interface Networks {
-  [key: string]: Network;
-}
+export type Networks = Record<string, Network>;
 
+type NetworkColor =
+  | 'primary'
+  | 'secondary'
+  | 'stroke'
+  | 'transparent'
+  | 'pending';
 export interface Network {
-  name: string;
+  name: NetworkName;
   endpoints: {
     rpc: string;
-    lightClient: WellKnownChain | null;
+    lightClient: AnyApi;
   };
-  colors: {
-    primary: {
-      light: string;
-      dark: string;
-    };
-    secondary: {
-      light: string;
-      dark: string;
-    };
-    stroke: {
-      light: string;
-      dark: string;
-    };
-    transparent: {
-      light: string;
-      dark: string;
-    };
-  };
+  namespace: string;
+  colors: Record<NetworkColor, { [key in Theme]: string }>;
   unit: string;
   units: number;
   ss58: number;
   brand: {
     icon: FunctionComponent<
+      SVGProps<SVGSVGElement> & { title?: string | undefined }
+    >;
+    token: FunctionComponent<
       SVGProps<SVGSVGElement> & { title?: string | undefined }
     >;
     logo: {
@@ -74,7 +74,8 @@ export interface Network {
     unit: string;
     priceTicker: string;
   };
-  params: { [key: string]: number };
+  params: Record<string, number>;
+  defaultFeeReserve: number;
 }
 
 export interface PageCategory {
@@ -82,7 +83,7 @@ export interface PageCategory {
   key: string;
 }
 
-export type PageCategories = Array<PageCategory>;
+export type PageCategoryItems = PageCategory[];
 
 export interface PageItem {
   category: number;
@@ -90,8 +91,7 @@ export interface PageItem {
   uri: string;
   hash: string;
   Entry: React.FC<PageProps>;
-  icon?: IconDefinition;
-  animate?: AnyJson;
+  lottie: AnyJson;
   action?: {
     type: string;
     status: string;
@@ -99,25 +99,37 @@ export interface PageItem {
   };
 }
 
-export type PagesConfig = Array<PageItem>;
+export type PagesConfigItems = PageItem[];
+
+export interface PageProps {
+  page: PageProp;
+}
+
+interface PageProp {
+  key: string;
+}
 
 export type MaybeAccount = string | null;
 
 export type MaybeString = string | null;
 
-// any types to compress compiler warnings
-// eslint-disable-next-line
-export type AnyApi = any;
-// eslint-disable-next-line
-export type AnyJson = any;
-// eslint-disable-next-line
-export type AnyFunction = any;
-// eslint-disable-next-line
-export type AnyMetaBatch = any;
-
 // track the status of a syncing / fetching process.
-export enum Sync {
-  Unsynced,
-  Syncing,
-  Synced,
-}
+export type Sync = 'unsynced' | 'syncing' | 'synced';
+
+// track whether bonding should be for nominator or nomination pool.
+export type BondFor = 'pool' | 'nominator';
+
+// generic function with no args or return type.
+export type Fn = () => void;
+
+// any types to compress compiler warnings
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyApi = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyJson = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyFunction = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyMetaBatch = any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnySubscan = any;

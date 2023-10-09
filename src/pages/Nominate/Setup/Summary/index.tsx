@@ -1,157 +1,136 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faCheckCircle } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ButtonPrimary } from '@rossbulat/polkadot-dashboard-ui';
+import { ellipsisFn, unitToPlanck } from '@polkadot-cloud/utils';
+import BigNumber from 'bignumber.js';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
 import { useConnect } from 'contexts/Connect';
-import { useTxFees } from 'contexts/TxFees';
-import { useUi } from 'contexts/UI';
-import { defaultStakeSetup } from 'contexts/UI/defaults';
-import { SetupType } from 'contexts/UI/types';
-import { EstimatedTxFee } from 'library/EstimatedTxFee';
+import { useSetup } from 'contexts/Setup';
 import { Warning } from 'library/Form/Warning';
+import { useBatchCall } from 'library/Hooks/useBatchCall';
+import { usePayeeConfig } from 'library/Hooks/usePayeeConfig';
 import { useSubmitExtrinsic } from 'library/Hooks/useSubmitExtrinsic';
 import { Header } from 'library/SetupSteps/Header';
 import { MotionContainer } from 'library/SetupSteps/MotionContainer';
-import { SetupStepProps } from 'library/SetupSteps/types';
-import { useTranslation } from 'react-i18next';
-import { humanNumber } from 'Utils';
+import type { SetupStepProps } from 'library/SetupSteps/types';
+import { SubmitTx } from 'library/SubmitTx';
 import { SummaryWrapper } from './Wrapper';
 
-export const Summary = (props: SetupStepProps) => {
-  const { section } = props;
-
-  const { api, network } = useApi();
-  const { units } = network;
-  const { activeAccount, accountHasSigner } = useConnect();
-  const { getSetupProgress, setActiveAccountSetup } = useUi();
-  const { txFeesValid } = useTxFees();
+export const Summary = ({ section }: SetupStepProps) => {
   const { t } = useTranslation('pages');
+  const {
+    api,
+    network: { units, unit },
+  } = useApi();
+  const { newBatchCall } = useBatchCall();
+  const { getPayeeItems } = usePayeeConfig();
+  const { getSetupProgress, removeSetupProgress } = useSetup();
+  const { activeAccount, activeProxy, accountHasSigner } = useConnect();
 
-  const setup = getSetupProgress(SetupType.Stake, activeAccount);
-
-  const { controller, bond, nominations, payee } = setup;
+  const setup = getSetupProgress('nominator', activeAccount);
+  const { progress } = setup;
+  const { bond, nominations, payee } = progress;
 
   const getTxs = () => {
     if (!activeAccount || !api) {
       return null;
     }
-    const stashToSubmit = {
-      Id: activeAccount,
-    };
-    const bondToSubmit = bond * 10 ** units;
-    const targetsToSubmit = nominations.map((item: any) => {
-      return {
-        Id: item.address,
-      };
-    });
-    const controllerToSubmit = {
-      Id: controller,
-    };
 
-    // construct a batch of transactions
+    const targetsToSubmit = nominations.map((item: any) => ({
+      Id: item.address,
+    }));
+
+    const payeeToSubmit =
+      payee.destination === 'Account'
+        ? {
+            Account: payee.account,
+          }
+        : payee.destination;
+
+    const bondToSubmit = unitToPlanck(bond, units);
+    const bondAsString = bondToSubmit.isNaN() ? '0' : bondToSubmit.toString();
+
     const txs = [
-      api.tx.staking.bond(stashToSubmit, bondToSubmit.toString(), payee),
+      api.tx.staking.bond(bondAsString, payeeToSubmit),
       api.tx.staking.nominate(targetsToSubmit),
-      api.tx.staking.setController(controllerToSubmit),
     ];
-    return api.tx.utility.batch(txs);
+    return newBatchCall(txs, activeAccount);
   };
 
-  const { submitTx, submitting } = useSubmitExtrinsic({
+  const submitExtrinsic = useSubmitExtrinsic({
     tx: getTxs(),
     from: activeAccount,
     shouldSubmit: true,
     callbackSubmit: () => {},
     callbackInBlock: () => {
-      // reset localStorage setup progress
-      setActiveAccountSetup(SetupType.Stake, defaultStakeSetup);
+      removeSetupProgress('nominator', activeAccount);
     },
   });
+
+  const payeeDisplay =
+    getPayeeItems().find(({ value }) => value === payee.destination)?.title ||
+    payee.destination;
 
   return (
     <>
       <Header
         thisSection={section}
         complete={null}
-        title={t('nominate.summary') || ''}
-        setupType={SetupType.Stake}
+        title={t('nominate.summary')}
+        bondFor="nominator"
       />
       <MotionContainer thisSection={section} activeSection={setup.section}>
-        {!accountHasSigner(activeAccount) && (
-          <Warning text={t('nominate.read_only')} />
-        )}
+        {!(
+          accountHasSigner(activeAccount) || accountHasSigner(activeProxy)
+        ) && <Warning text={t('nominate.readOnly')} />}
         <SummaryWrapper>
           <section>
             <div>
-              <FontAwesomeIcon
-                icon={faCheckCircle as IconProp}
-                transform="grow-1"
-              />{' '}
-              &nbsp; Controller:
+              <FontAwesomeIcon icon={faCheckCircle} transform="grow-1" /> &nbsp;{' '}
+              {t('nominate.payoutDestination')}:
             </div>
-            <div>{controller}</div>
+            <div>
+              {payee.destination === 'Account'
+                ? `${payeeDisplay}: ${ellipsisFn(payee.account)}`
+                : payeeDisplay}
+            </div>
           </section>
           <section>
             <div>
-              <FontAwesomeIcon
-                icon={faCheckCircle as IconProp}
-                transform="grow-1"
-              />{' '}
-              &nbsp; {t('nominate.reward_destination')}:
+              <FontAwesomeIcon icon={faCheckCircle} transform="grow-1" /> &nbsp;{' '}
+              {t('nominate.nominating')}:
             </div>
-            <div>{payee}</div>
+            <div>{t('nominate.validator', { count: nominations.length })}</div>
           </section>
           <section>
             <div>
-              <FontAwesomeIcon
-                icon={faCheckCircle as IconProp}
-                transform="grow-1"
-              />{' '}
-              &nbsp; {t('nominate.nominate')}:
-            </div>
-            <div>{nominations.length}</div>
-          </section>
-          <section>
-            <div>
-              <FontAwesomeIcon
-                icon={faCheckCircle as IconProp}
-                transform="grow-1"
-              />{' '}
-              &nbsp; {t('nominate.bond_amount')}
+              <FontAwesomeIcon icon={faCheckCircle} transform="grow-1" /> &nbsp;{' '}
+              {t('nominate.bondAmount')}:
             </div>
             <div>
-              {humanNumber(bond)} {network.unit}
+              {new BigNumber(bond).toFormat()} {unit}
             </div>
-          </section>
-          <section>
-            <EstimatedTxFee format="table" />
           </section>
         </SummaryWrapper>
         <div
           style={{
             flex: 1,
-            flexDirection: 'row',
             width: '100%',
-            display: 'flex',
-            justifyContent: 'end',
+            borderRadius: '1rem',
+            overflow: 'hidden',
           }}
         >
-          <ButtonPrimary
-            lg
-            onClick={() => submitTx()}
-            disabled={
-              submitting || !accountHasSigner(activeAccount) || !txFeesValid
-            }
-            text={t('nominate.start_nominating')}
+          <SubmitTx
+            submitText={t('nominate.startNominating')}
+            valid
+            noMargin
+            {...submitExtrinsic}
           />
         </div>
       </MotionContainer>
     </>
   );
 };
-
-export default Summary;

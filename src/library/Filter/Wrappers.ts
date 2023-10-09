@@ -1,13 +1,7 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import styled from 'styled-components';
-import {
-  borderPrimary,
-  buttonPrimaryBackground,
-  networkColor,
-  textSecondary,
-} from 'theme';
 
 export const Wrapper = styled.div`
   padding: 0 0.5rem;
@@ -35,9 +29,6 @@ export const Wrapper = styled.div`
 
       > .items {
         display: flex;
-        flex-flow: row nowrap;
-        justify-content: flex-start;
-
         > button {
           padding: 0 0.25rem;
         }
@@ -47,12 +38,12 @@ export const Wrapper = styled.div`
 `;
 
 export const ItemWrapper = styled.div`
-  border: 1px solid ${borderPrimary};
+  border: 1px solid var(--border-primary-color);
+  font-family: InterSemiBold, sans-serif;
   border-radius: 1.5rem;
   display: flex;
-  flex-flow: row nowrap;
   position: relative;
-  padding: 0.6rem 0.95rem;
+  padding: 0.6rem 1rem;
   margin-right: 1rem;
   align-items: center;
   width: max-content;
@@ -61,7 +52,7 @@ export const ItemWrapper = styled.div`
     margin-right: 0;
   }
   .icon {
-    color: ${textSecondary};
+    color: var(--text-color-secondary);
     display: flex;
     flex-flow: column wrap;
     justify-content: center;
@@ -69,11 +60,10 @@ export const ItemWrapper = styled.div`
     margin-right: 0.55rem;
   }
   p {
-    color: ${textSecondary};
+    color: var(--text-color-secondary);
     font-size: 0.9rem;
     margin: 0;
     text-align: left;
-    padding-top: 0.15rem;
     line-height: 0.95rem;
   }
 `;
@@ -84,14 +74,14 @@ export const LargeItemWrapper = styled.div`
   justify-content: center;
   padding: 0.5rem;
   > .inner {
-    border: 1.5px solid ${borderPrimary};
-    background: ${buttonPrimaryBackground};
+    border: 1.5px solid var(--border-primary-color);
+    background: var(--background-list-item);
     border-radius: 0.2rem;
     display: flex;
     flex-flow: column nowrap;
     justify-content: center;
     position: relative;
-    padding: 1rem;
+    padding: 1rem 1.25rem;
 
     &:last-child {
       margin-right: 0;
@@ -102,19 +92,13 @@ export const LargeItemWrapper = styled.div`
       display: flex;
       flex-flow: row wrap;
       align-items: center;
-
-      h3 {
-        margin: 0;
-      }
     }
-
     svg {
-      color: ${networkColor};
+      color: var(--accent-color-primary);
       margin-right: 0.75rem;
     }
-
     p {
-      color: ${textSecondary};
+      color: var(--text-color-secondary);
       margin: 0;
       text-align: left;
       padding: 0.5rem 0 0 0;
@@ -122,4 +106,33 @@ export const LargeItemWrapper = styled.div`
   }
 `;
 
-export default Wrapper;
+export const TabsWrapper = styled.div`
+  display: flex;
+  margin-bottom: 0.75rem;
+
+  > button {
+    &:first-child {
+      border-top-left-radius: 1.5rem;
+      border-bottom-left-radius: 1.5rem;
+    }
+    &:last-child {
+      border-top-right-radius: 1.5rem;
+      border-bottom-right-radius: 1.5rem;
+    }
+  }
+`;
+
+export const TabWrapper = styled.button<{ $active?: boolean }>`
+  font-family: InterSemiBold, sans-serif;
+  border: 1px solid
+    ${(props) =>
+      props.$active
+        ? 'var(--accent-color-primary)'
+        : 'var(--border-primary-color)'};
+  color: ${(props) =>
+    props.$active
+      ? 'var(--accent-color-primary)'
+      : 'var(--text-color-secondary)'};
+  font-size: 0.9rem;
+  padding: 0.5rem 1.25rem;
+`;

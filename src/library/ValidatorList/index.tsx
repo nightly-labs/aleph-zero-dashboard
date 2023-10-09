@@ -1,46 +1,69 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { faBars, faGripVertical } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { isNotZero } from '@polkadot-cloud/utils';
+import { motion } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ListItemsPerBatch, ListItemsPerPage } from 'consts';
 import { useApi } from 'contexts/Api';
 import { useConnect } from 'contexts/Connect';
 import { useFilters } from 'contexts/Filters';
-import { FilterType } from 'contexts/Filters/types';
-import { useModal } from 'contexts/Modal';
 import { useNetworkMetrics } from 'contexts/Network';
-import { StakingContext } from 'contexts/Staking';
 import { useTheme } from 'contexts/Themes';
 import { useUi } from 'contexts/UI';
-import { useValidators } from 'contexts/Validators';
-import { motion } from 'framer-motion';
 import { Header, List, Wrapper as ListWrapper } from 'library/List';
 import { MotionContainer } from 'library/List/MotionContainer';
 import { Pagination } from 'library/List/Pagination';
 import { SearchInput } from 'library/List/SearchInput';
 import { Selectable } from 'library/List/Selectable';
 import { Validator } from 'library/ValidatorList/Validator';
-import React, { useEffect, useRef, useState } from 'react';
-import { networkColors } from 'theme/default';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 import { useValidatorFilters } from '../Hooks/useValidatorFilters';
 import { ListProvider, useList } from '../List/context';
 import { Filters } from './Filters';
 
-export const ValidatorListInner = (props: any) => {
-  const { mode } = useTheme();
-  const { isReady, network } = useApi();
-  const { activeAccount } = useConnect();
-  const { metrics } = useNetworkMetrics();
-  const { fetchValidatorMetaBatch, meta } = useValidators();
+export const ValidatorListInner = ({
+  nominator: initialNominator,
+  validators: initialValidators,
+  allowMoreCols,
+  allowFilters,
+  toggleFavorites,
+  pagination,
+  title,
+  format,
+  selectable,
+  bondFor,
+  onSelected,
+  actions = [],
+  showMenu = true,
+  inModal = false,
+  allowSearch = false,
+  allowListFormat = true,
+  alwaysRefetchValidators = false,
+  defaultFilters = undefined,
+  disableThrottle = false,
+  validatorAction,
+  validatorOnSelectAction,
+}: any) => {
+  const { t } = useTranslation('library');
+  const {
+    isReady,
+    network: { colors },
+  } = useApi();
+  const { setModalResize } = useOverlay().modal;
   const provider = useList();
-  const modal = useModal();
+  const { mode } = useTheme();
   const { isSyncing } = useUi();
+  const { activeAccount } = useConnect();
+  const { activeEra } = useNetworkMetrics();
 
   // determine the nominator of the validator list.
   // By default this will be the activeAccount. But for pools,
   // the pool stash address should be the nominator.
-  const nominator = props.nominator ?? activeAccount;
+  const nominator = initialNominator ?? activeAccount;
 
   const { selected, listFormat, setListFormat } = provider;
 
@@ -55,41 +78,15 @@ export const ValidatorListInner = (props: any) => {
     clearSearchTerm,
   } = useFilters();
   const { applyFilter, applyOrder, applySearch } = useValidatorFilters();
-  const includes = getFilters(FilterType.Include, 'validators');
-  const excludes = getFilters(FilterType.Exclude, 'validators');
+  const includes = getFilters('include', 'validators');
+  const excludes = getFilters('exclude', 'validators');
   const order = getOrder('validators');
   const searchTerm = getSearchTerm('validators');
-
-  const {
-    batchKey,
-    allowMoreCols,
-    allowFilters,
-    toggleFavorites,
-    pagination,
-    title,
-    format,
-    selectable,
-    bondType,
-    validatorAction,
-    validatorOnSelectAction,
-  }: any = props;
-
-  const actions = props.actions ?? [];
-  const showMenu = props.showMenu ?? true;
-  const inModal = props.inModal ?? false;
-  const allowSearch = props.allowSearch ?? false;
-  const allowListFormat = props.allowListFormat ?? true;
-  const alwaysRefetchValidators = props.alwaysRefetchValidators ?? false;
-  const defaultFilters = props.defaultFilters ?? undefined;
 
   const actionsAll = [...actions].filter((action) => !action.onSelected);
   const actionsSelected = [...actions].filter(
     (action: any) => action.onSelected
   );
-
-  const disableThrottle = props.disableThrottle ?? false;
-  const refetchOnListUpdate =
-    props.refetchOnListUpdate !== undefined ? props.refetchOnListUpdate : false;
 
   // current page
   const [page, setPage] = useState<number>(1);
@@ -98,10 +95,10 @@ export const ValidatorListInner = (props: any) => {
   const [renderIteration, _setRenderIteration] = useState<number>(1);
 
   // default list of validators
-  const [validatorsDefault, setValidatorsDefault] = useState(props.validators);
+  const [validatorsDefault, setValidatorsDefault] = useState(initialValidators);
 
   // manipulated list (ordering, filtering) of validators
-  const [validators, setValidators]: any = useState(props.validators);
+  const [validators, setValidators]: any = useState(initialValidators);
 
   // is this the initial fetch
   const [fetched, setFetched] = useState(false);
@@ -123,7 +120,7 @@ export const ValidatorListInner = (props: any) => {
 
   // render batch
   const batchEnd = Math.min(
-    renderIteration * ListItemsPerBatch,
+    renderIteration * ListItemsPerBatch - 1,
     ListItemsPerPage
   );
 
@@ -131,48 +128,51 @@ export const ValidatorListInner = (props: any) => {
   useEffect(() => {
     if (alwaysRefetchValidators) {
       if (
-        JSON.stringify(props.validators) !== JSON.stringify(validatorsDefault)
+        JSON.stringify(initialValidators) !== JSON.stringify(validatorsDefault)
       ) {
         setFetched(false);
       }
     } else {
       setFetched(false);
     }
-  }, [props.validators, nominator]);
+  }, [initialValidators, nominator]);
 
   // set default filters
   useEffect(() => {
     if (allowFilters) {
       if (defaultFilters?.includes?.length) {
         setMultiFilters(
-          FilterType.Include,
+          'include',
           'validators',
-          defaultFilters?.includes
+          defaultFilters?.includes,
+          false
         );
       }
       if (defaultFilters?.excludes?.length) {
         setMultiFilters(
-          FilterType.Exclude,
+          'exclude',
           'validators',
-          defaultFilters?.excludes
+          defaultFilters?.excludes,
+          false
         );
       }
-
-      return () => {
-        resetFilters(FilterType.Exclude, 'validators');
-        resetFilters(FilterType.Include, 'validators');
+    }
+    return () => {
+      if (allowFilters) {
+        resetFilters('exclude', 'validators');
+        resetFilters('include', 'validators');
         resetOrder('validators');
         clearSearchTerm('validators');
-      };
-    }
+      }
+    };
   }, []);
 
   // configure validator list when network is ready to fetch
   useEffect(() => {
-    if (isReady && metrics.activeEra.index !== 0 && !fetched) {
+    if (isReady && isNotZero(activeEra.index) && !fetched) {
       setupValidatorList();
     }
-  }, [isReady, metrics.activeEra.index, fetched]);
+  }, [isReady, activeEra.index, fetched]);
 
   // render throttle
   useEffect(() => {
@@ -185,8 +185,8 @@ export const ValidatorListInner = (props: any) => {
 
   // trigger onSelected when selection changes
   useEffect(() => {
-    if (props.onSelected) {
-      props.onSelected(provider);
+    if (onSelected) {
+      onSelected(provider);
     }
   }, [selected]);
 
@@ -195,14 +195,7 @@ export const ValidatorListInner = (props: any) => {
     if (allowFilters && fetched) {
       handleValidatorsFilterUpdate();
     }
-  }, [
-    order,
-    isSyncing,
-    includes?.length,
-    excludes?.length,
-    meta[batchKey]?.supers,
-    meta[batchKey]?.identities,
-  ]);
+  }, [order, isSyncing, includes, excludes]);
 
   // handle modal resize on list format change
   useEffect(() => {
@@ -211,10 +204,9 @@ export const ValidatorListInner = (props: any) => {
 
   // handle validator list bootstrapping
   const setupValidatorList = () => {
-    setValidatorsDefault(props.validators);
-    setValidators(props.validators);
+    setValidatorsDefault(initialValidators);
+    setValidators(initialValidators);
     setFetched(true);
-    fetchValidatorMetaBatch(batchKey, props.validators, refetchOnListUpdate);
   };
 
   // handle filter / order update
@@ -225,18 +217,9 @@ export const ValidatorListInner = (props: any) => {
       if (order !== 'default') {
         filteredValidators = applyOrder(order, filteredValidators);
       }
-      filteredValidators = applyFilter(
-        includes,
-        excludes,
-        filteredValidators,
-        batchKey
-      );
+      filteredValidators = applyFilter(includes, excludes, filteredValidators);
       if (searchTerm) {
-        filteredValidators = applySearch(
-          filteredValidators,
-          batchKey,
-          searchTerm
-        );
+        filteredValidators = applySearch(filteredValidators, searchTerm);
       }
       setValidators(filteredValidators);
       setPage(1);
@@ -256,29 +239,26 @@ export const ValidatorListInner = (props: any) => {
 
   // if in modal, handle resize
   const maybeHandleModalResize = () => {
-    if (!inModal) return;
-    modal.setResize();
+    if (inModal) setModalResize();
   };
 
   const handleSearchChange = (e: React.FormEvent<HTMLInputElement>) => {
     const newValue = e.currentTarget.value;
 
     let filteredValidators = Object.assign(validatorsDefault);
-    filteredValidators = applyFilter(
-      includes,
-      excludes,
-      filteredValidators,
-      batchKey
-    );
-    filteredValidators = applySearch(filteredValidators, batchKey, newValue);
+    if (order !== 'default') {
+      filteredValidators = applyOrder(order, filteredValidators);
+    }
+    filteredValidators = applyFilter(includes, excludes, filteredValidators);
+    filteredValidators = applySearch(filteredValidators, newValue);
 
     // ensure no duplicates
     filteredValidators = filteredValidators.filter(
       (value: any, index: any, self: any) =>
-        index === self.findIndex((t: any) => t.address === value.address)
+        index === self.findIndex((i: any) => i.address === value.address)
     );
 
-    handleValidatorsFilterUpdate(filteredValidators);
+    setValidators(filteredValidators);
     setPage(1);
     setIsSearching(e.currentTarget.value !== '');
     setRenderIteration(1);
@@ -291,9 +271,9 @@ export const ValidatorListInner = (props: any) => {
         <div>
           <h4>
             {title ||
-              `Dispalying ${validators.length} Validator${
-                validators.length === 1 ? '' : 's'
-              }`}
+              `${t('displayingValidators', {
+                count: validators.length,
+              })}`}
           </h4>
         </div>
         <div>
@@ -303,9 +283,7 @@ export const ValidatorListInner = (props: any) => {
                 <FontAwesomeIcon
                   icon={faBars}
                   color={
-                    listFormat === 'row'
-                      ? networkColors[`${network.name}-${mode}`]
-                      : 'inherit'
+                    listFormat === 'row' ? colors.primary[mode] : 'inherit'
                   }
                 />
               </button>
@@ -313,9 +291,7 @@ export const ValidatorListInner = (props: any) => {
                 <FontAwesomeIcon
                   icon={faGripVertical}
                   color={
-                    listFormat === 'col'
-                      ? networkColors[`${network.name}-${mode}`]
-                      : 'inherit'
+                    listFormat === 'col' ? colors.primary[mode] : 'inherit'
                   }
                 />
               </button>
@@ -323,11 +299,11 @@ export const ValidatorListInner = (props: any) => {
           )}
         </div>
       </Header>
-      <List flexBasisLarge={allowMoreCols ? '33.33%' : '50%'}>
+      <List $flexBasisLarge={allowMoreCols ? '33.33%' : '50%'}>
         {allowSearch && (
           <SearchInput
             handleChange={handleSearchChange}
-            placeholder="Search Address or Identity"
+            placeholder={t('searchAddress')}
           />
         )}
 
@@ -337,58 +313,49 @@ export const ValidatorListInner = (props: any) => {
           <Pagination page={page} total={totalPages} setter={setPage} />
         )}
 
-        {selectable && (
+        {selectable ? (
           <Selectable
             canSelect={listValidators.length > 0}
             actionsAll={actionsAll}
             actionsSelected={actionsSelected}
           />
-        )}
+        ) : null}
 
         <MotionContainer>
           {listValidators.length ? (
             <>
-              {listValidators.map((validator: any, index: number) => {
-                // fetch batch data by referring to default list index.
-                const batchIndex = validatorsDefault.indexOf(validator);
-
-                return (
-                  <motion.div
-                    className={`item ${listFormat === 'row' ? 'row' : 'col'}`}
-                    key={`nomination_${index}`}
-                    variants={{
-                      hidden: {
-                        y: 15,
-                        opacity: 0,
-                      },
-                      show: {
-                        y: 0,
-                        opacity: 1,
-                      },
-                    }}
-                  >
-                    <Validator
-                      validator={validator}
-                      nominator={nominator}
-                      toggleFavorites={toggleFavorites}
-                      batchIndex={batchIndex}
-                      batchKey={batchKey}
-                      format={format}
-                      showMenu={showMenu}
-                      bondType={bondType}
-                      inModal={inModal}
-                      validatorAction={validatorAction}
-                      validatorOnSelectAction={validatorOnSelectAction}
-                    />
-                  </motion.div>
-                );
-              })}
+              {listValidators.map((validator: any, index: number) => (
+                <motion.div
+                  key={`nomination_${index}`}
+                  className={`item ${listFormat === 'row' ? 'row' : 'col'}`}
+                  variants={{
+                    hidden: {
+                      y: 15,
+                      opacity: 0,
+                    },
+                    show: {
+                      y: 0,
+                      opacity: 1,
+                    },
+                  }}
+                >
+                  <Validator
+                    validator={validator}
+                    nominator={nominator}
+                    toggleFavorites={toggleFavorites}
+                    format={format}
+                    showMenu={showMenu}
+                    bondFor={bondFor}
+                    inModal={inModal}
+                    validatorAction={validatorAction}
+                    validatorOnSelectAction={validatorOnSelectAction}
+                  />
+                </motion.div>
+              ))}
             </>
           ) : (
             <h4 style={{ marginTop: '1rem' }}>
-              {isSearching
-                ? 'No validators match this criteria.'
-                : 'No validators.'}
+              {isSearching ? t('noValidatorsMatch') : t('noValidators')}
             </h4>
           )}
         </MotionContainer>
@@ -404,21 +371,7 @@ export const ValidatorList = (props: any) => {
       selectActive={selectActive}
       selectToggleable={selectToggleable}
     >
-      <ValidatorListShouldUpdate {...props} />
+      <ValidatorListInner {...props} />
     </ListProvider>
   );
 };
-
-export class ValidatorListShouldUpdate extends React.Component<any, any> {
-  static contextType = StakingContext;
-
-  shouldComponentUpdate(nextProps: any) {
-    return this.props.validators !== nextProps.validators;
-  }
-
-  render() {
-    return <ValidatorListInner {...this.props} />;
-  }
-}
-
-export default ValidatorList;
