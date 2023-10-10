@@ -11,7 +11,7 @@ import type { Networks } from 'types';
 export const NetworkList: Networks = {};
 
 if (import.meta.env.REACT_APP_DISABLE_MAINNET !== '1') {
-  NetworkList.alephzero = {
+  const alephZero = {
     name: 'Aleph Zero',
     endpoints: {
       rpc: 'wss://ws.azero.dev',
@@ -65,11 +65,13 @@ if (import.meta.env.REACT_APP_DISABLE_MAINNET !== '1') {
       yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
     defaultFeeReserve: 0.1,
-  };
+  } as const;
+
+  NetworkList[alephZero.name] = alephZero;
 }
 
 if (import.meta.env.REACT_APP_DISABLE_TESTNET !== '1') {
-  NetworkList.alephzerotestnet = {
+  const alephZeroTestnet = {
     name: 'Aleph Zero Testnet',
     endpoints: {
       rpc: 'wss://ws.test.azero.dev',
@@ -123,11 +125,13 @@ if (import.meta.env.REACT_APP_DISABLE_TESTNET !== '1') {
       yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
     defaultFeeReserve: 0.1,
-  };
+  } as const;
+
+  NetworkList[alephZeroTestnet.name] = alephZeroTestnet;
 }
 
 if (import.meta.env.REACT_APP_ENABLE_CUSTOM_NETWORK === '1') {
-  NetworkList.azerocustom = {
+  const azeroCustom = {
     name: 'Aleph Zero Custom',
     endpoints: {
       rpc: import.meta.env.REACT_APP_CUSTOM_WS_ADDRESS ?? '',
@@ -181,11 +185,13 @@ if (import.meta.env.REACT_APP_ENABLE_CUSTOM_NETWORK === '1') {
       yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
     defaultFeeReserve: 0.1,
-  };
+  } as const;
+
+  NetworkList[azeroCustom.name] = azeroCustom;
 }
 
 if (import.meta.env.MODE === 'development') {
-  NetworkList.azerolocal = {
+  const azeroLocal = {
     name: 'Aleph Zero Local',
     endpoints: {
       rpc: 'ws://localhost:9944',
@@ -239,8 +245,8 @@ if (import.meta.env.MODE === 'development') {
       yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
     defaultFeeReserve: 0.1,
-  };
-  NetworkList.azerodevnet = {
+  } as const;
+  const azeroDevnet = {
     name: 'Aleph Zero Devnet',
     endpoints: {
       rpc: 'wss://ws.dev.azero.dev',
@@ -294,5 +300,8 @@ if (import.meta.env.MODE === 'development') {
       yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
     defaultFeeReserve: 0.1,
-  };
+  } as const;
+
+  NetworkList[azeroLocal.name] = azeroLocal;
+  NetworkList[azeroDevnet.name] = azeroDevnet;
 }
