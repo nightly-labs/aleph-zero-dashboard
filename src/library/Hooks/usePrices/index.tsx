@@ -52,7 +52,7 @@ export const usePrices = () => {
 
   // subscribe to price
   useEffect(() => {
-    if (services.includes('binance_spot')) initiatePriceInterval();
+    if (plugins.includes('binance_spot')) initiatePriceInterval();
 
     return () => clearInterval(priceHandle);
   }, [network]);

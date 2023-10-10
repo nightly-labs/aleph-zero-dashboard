@@ -19,8 +19,7 @@ import { useSubmitExtrinsic } from 'library/Hooks/useSubmitExtrinsic';
 import { SubmitTx } from 'library/SubmitTx';
 import { useOverlay } from '@polkadot-cloud/react/hooks';
 import { useBatchCall } from 'library/Hooks/useBatchCall';
-import type { AnyApi, AnySubscan } from 'types';
-import { useSubscan } from 'contexts/Subscan';
+import type { AnyApi } from 'types';
 import { usePayouts } from 'contexts/Payouts';
 import type { FormProps, ActivePayout } from './types';
 import { ContentWrapper } from './Wrappers';
@@ -34,8 +33,6 @@ export const Forms = forwardRef(
     const { removeEraPayout } = usePayouts();
     const { setModalStatus } = useOverlay().modal;
     const { getSignerWarnings } = useSignerWarnings();
-    const { unclaimedPayouts: unclaimedPayoutsSubscan, setUnclaimedPayouts } =
-      useSubscan();
     const { units } = network;
 
     const totalPayout =
@@ -87,19 +84,6 @@ export const Forms = forwardRef(
         setModalStatus('closing');
       },
       callbackInBlock: () => {
-        // Remove Subscan unclaimed payout record(s) if they exists.
-        let newUnclaimedPayoutsSubscan = unclaimedPayoutsSubscan;
-
-        payouts?.forEach(({ era, validators }) => {
-          validators?.forEach((validator) => {
-            newUnclaimedPayoutsSubscan = newUnclaimedPayoutsSubscan.filter(
-              (u: AnySubscan) =>
-                !(u.validator_stash === validator && String(u.era) === era)
-            );
-          });
-        });
-        setUnclaimedPayouts(newUnclaimedPayoutsSubscan);
-
         // Deduct from `unclaimedPayouts` in Payouts context.
         payouts?.forEach(({ era, validators }) => {
           for (const v of validators || []) {

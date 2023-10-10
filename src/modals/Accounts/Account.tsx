@@ -53,7 +53,7 @@ export const AccountButton = ({
       ? LedgerIconSVG
       : meta?.source === 'vault'
       ? PolkadotVaultIconSVG
-      : Extensions[meta?.source || '']?.Icon ?? undefined;
+      : Extensions[meta?.source || '']?.icon ?? undefined;
 
   // Determine if this account is active (active account or proxy).
   const isActive =

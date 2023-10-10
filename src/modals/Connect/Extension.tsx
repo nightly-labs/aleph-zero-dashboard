@@ -17,7 +17,7 @@ export const Extension = ({ meta, size, flag }: ExtensionProps) => {
   const { extensions, extensionsStatus } = useExtensions();
   const { connectExtensionAccounts } = useConnect();
   const { addNotification } = useNotifications();
-  const { title, Icon, website } = meta;
+  const { title, icon: Icon, website } = meta;
 
   const { id } = meta;
   const extension = extensions.find((e) => e.id === id);

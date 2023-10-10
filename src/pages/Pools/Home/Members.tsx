@@ -6,18 +6,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { PageRow } from '@polkadot-cloud/react';
 import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
-import { usePlugins } from 'contexts/Plugins';
 import { useActivePools } from 'contexts/Pools/ActivePools';
 import { usePoolMembers } from 'contexts/Pools/PoolMembers';
 import { useTheme } from 'contexts/Themes';
 import { CardWrapper } from 'library/Card/Wrappers';
 import { MembersList as DefaultMemberList } from './MembersList/Default';
-import { MembersList as FetchPageMemberList } from './MembersList/FetchPage';
 
 export const Members = () => {
   const { t } = useTranslation('pages');
   const { mode } = useTheme();
-  const { pluginEnabled } = usePlugins();
   const { getMembersOfPoolFromNode } = usePoolMembers();
   const { selectedActivePool, isOwner, isBouncer, selectedPoolMemberCount } =
     useActivePools();
@@ -80,17 +77,10 @@ export const Members = () => {
 
       <PageRow>
         <CardWrapper>
-          {pluginEnabled('subscan') ? (
-            <FetchPageMemberList
-              {...membersListProps}
-              memberCount={selectedPoolMemberCount}
-            />
-          ) : (
-            <DefaultMemberList
-              {...membersListProps}
-              members={getMembersOfPoolFromNode(selectedActivePool?.id ?? 0)}
-            />
-          )}
+          <DefaultMemberList
+            {...membersListProps}
+            members={getMembersOfPoolFromNode(selectedActivePool?.id ?? 0)}
+          />
         </CardWrapper>
       </PageRow>
     </>

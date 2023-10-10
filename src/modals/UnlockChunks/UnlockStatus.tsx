@@ -1,6 +1,6 @@
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { useApi } from '../../contexts/Api';
-import { useSessionEra } from '../../contexts/SessionEra';
+import { useEraMsLeftUpdatedEverySecond } from './useEraMsLeftUpdatedEverySecond';
 
 type Props = {
   unbondingEra: number;
@@ -12,14 +12,15 @@ type Props = {
  * rerendering "useSessionEra()" hook.
  */
 const UnlockStatus = ({ unbondingEra, activeEra }: Props) => {
-  const left = unbondingEra - activeEra;
-  const { eraTimeLeft } = useSessionEra();
+  const eraMsLeft = useEraMsLeftUpdatedEverySecond();
+
   const {
     consts: { expectedEraTime },
   } = useApi();
 
+  const left = unbondingEra - activeEra;
   const timeToUnbondInMs =
-    left <= 0 ? 0 : (left - 1) * expectedEraTime + eraTimeLeft * 1000;
+    left <= 0 ? 0 : (left - 1) * expectedEraTime.toNumber() + eraMsLeft;
 
   const formattedTimeToUnbond = formatDuration(
     intervalToDuration({ start: 0, end: timeToUnbondInMs }),

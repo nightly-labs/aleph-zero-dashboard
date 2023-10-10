@@ -1,14 +1,22 @@
 import { render } from '@testing-library/react';
-import type { ReactElement } from 'react';
-// import { SessionEraContext } from '../../contexts/SessionEra';
-// import UnlockStatus from './UnlockStatus';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
+import UnlockStatus from './UnlockStatus';
+
+const mockUseEraMsLeftUpdatedEverySecond = vi.hoisted(() => vi.fn());
+
+vi.mock('./useEraMsLeftUpdatedEverySecond.ts', () => ({
+  useEraMsLeftUpdatedEverySecond: mockUseEraMsLeftUpdatedEverySecond,
+}));
 
 test("says it's unlocked if unbonding has passed", () => {
   const activeEra = 2;
   const unbondingEra = activeEra - 1;
 
-  const screen = render(<div>Unlocked</div>);
+  mockUseEraMsLeftUpdatedEverySecond.mockReturnValue(0);
+
+  const screen = render(
+    <UnlockStatus unbondingEra={unbondingEra} activeEra={activeEra} />
+  );
 
   expect(screen.getByText('Unlocked')).toBeInTheDocument();
 });
@@ -16,14 +24,6 @@ test("says it's unlocked if unbonding has passed", () => {
 describe('outputs time to unbond if unbonding has not yet passed', () => {
   const activeEra = 2;
   const unbondingEra = activeEra + 1;
-  const renderWithProvider = (
-    element: ReactElement,
-    params: { eraTimeLeft: number }
-  ) =>
-    render(
-      // @ts-expect-error We only care about a subset of the "value" object in this test
-      <div>Unlocked</div>
-    );
 
   test.each([
     {
@@ -64,10 +64,11 @@ describe('outputs time to unbond if unbonding has not yet passed', () => {
         'Unlocks in approx. 13 days, 13 hours, 12 minutes, 10 seconds (after era 3, i.e. in 1 era)',
       label: 'around 1.5 month',
     },
-  ])('for $label', ({ eraTimeLeft, expectedText }) => {
-    const screen = renderWithProvider(
-      <UnlockStatus unbondingEra={unbondingEra} activeEra={activeEra} />,
-      { eraTimeLeft }
+  ])('for $label', ({ expectedText, eraTimeLeft }) => {
+    mockUseEraMsLeftUpdatedEverySecond.mockReturnValue(eraTimeLeft * 1000);
+
+    const screen = render(
+      <UnlockStatus unbondingEra={unbondingEra} activeEra={activeEra} />
     );
 
     expect(screen.getByText(expectedText)).toBeInTheDocument();

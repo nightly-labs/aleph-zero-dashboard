@@ -1,6 +1,6 @@
 import BN from 'bn.js';
 import { DECIMALS } from './consts';
-import { EraData } from './types';
+import type { EraData } from './types';
 
 const TEN_POW_DECIMALS = new BN(10).pow(new BN(DECIMALS));
 

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import react from '@vitejs/plugin-react-swc';
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import checker from 'vite-plugin-checker';
 import eslint from 'vite-plugin-eslint';
 import svgr from 'vite-plugin-svgr';
@@ -15,9 +15,9 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 //   whereas gh-pages always deploys to `/polkadot-staking-dashboard/`. Producution builds can also
 //   be configureed with the `--base` flag.
 // - `BASE_URL`env variable is used in the codebase to refer to the supplied base.
-export default defineConfig({
+export default defineConfig((env) => ({
   plugins: [
-    eslint(),
+    env.mode !== 'test' && eslint(),
     react(),
     svgr(),
     tsconfigPaths(),
@@ -25,6 +25,10 @@ export default defineConfig({
       typescript: true,
     }),
   ],
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['tests/setup.ts'],
+  },
   build: {
     outDir: 'build',
     rollupOptions: {
@@ -43,4 +47,4 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react/jsx-runtime'],
   },
-});
+}));

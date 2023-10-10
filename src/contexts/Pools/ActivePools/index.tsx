@@ -12,8 +12,6 @@ import type {
 import { useStaking } from 'contexts/Staking';
 import type { AnyApi, AnyJson, Sync } from 'types';
 import { useEffectIgnoreInitial } from '@polkadot-cloud/react/hooks';
-import { useSubscan } from 'contexts/Subscan';
-import { usePlugins } from 'contexts/Plugins';
 import { useApi } from '../../Api';
 import { useConnect } from '../../Connect';
 import { useBondedPools } from '../BondedPools';
@@ -28,9 +26,7 @@ export const ActivePoolsProvider = ({
   children: React.ReactNode;
 }) => {
   const { eraStakers } = useStaking();
-  const { pluginEnabled } = usePlugins();
   const { activeAccount } = useConnect();
-  const { fetchPoolDetails } = useSubscan();
   const { api, network, isReady } = useApi();
   const { membership } = usePoolMemberships();
   const { createAccounts } = usePoolsConfig();
@@ -71,8 +67,6 @@ export const ActivePoolsProvider = ({
   // Store the member count of the selected pool.
   const [selectedPoolMemberCount, setSelectedPoolMemberCount] =
     useState<number>(0);
-
-  const fetchingMemberCount = useRef<boolean>(false);
 
   // Store whether active pool data has been synced. this will be true if no active pool exists for
   // the active account. We just need confirmation this is the case.
@@ -497,14 +491,7 @@ export const ActivePoolsProvider = ({
       setSelectedPoolMemberCount(0);
       return;
     }
-    // If `Subscan` plugin is enabled, fetch member count directly from the API.
-    if (pluginEnabled('subscan') && !fetchingMemberCount.current) {
-      fetchingMemberCount.current = true;
-      const poolDetails = await fetchPoolDetails(selectedActivePool.id);
-      fetchingMemberCount.current = false;
-      setSelectedPoolMemberCount(poolDetails?.member_count || 0);
-      return;
-    }
+
     // If no plugin available, fetch all pool members from RPC and filter them to determine current
     // pool member count. NOTE: Expensive operation.
     setSelectedPoolMemberCount(

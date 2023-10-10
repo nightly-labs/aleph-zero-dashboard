@@ -13,7 +13,7 @@ import { usePayouts } from 'contexts/Payouts';
 import { Connect } from './Connect';
 import { Connected } from './Connected';
 import { SideMenuToggle } from './SideMenuToggle';
-import Spinner from './Spinner';
+import { Spinner } from './Spinner';
 import { LargeScreensOnly, Wrapper } from './Wrappers';
 
 export const Headers = () => {

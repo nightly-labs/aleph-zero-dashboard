@@ -53,12 +53,12 @@ export const Forms = forwardRef(
 
     // valid to submit transaction
     const [valid, setValid] = useState<boolean>(
-      unlock?.value?.gt(new BN('0')) ?? false
+      unlock?.value?.gt(new BigNumber('0')) ?? false
     );
 
     // ensure unlock value is valid
     useEffect(() => {
-      setValid(unlock?.value?.gt(new BN('0')) ?? false);
+      setValid(unlock?.value?.gt(new BigNumber('0')) ?? false);
     }, [unlock]);
 
     // tx to submit

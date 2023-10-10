@@ -1,7 +1,7 @@
-import { ApiPromise } from '@polkadot/api';
+import type { ApiPromise } from '@polkadot/api';
 import BN from 'bn.js';
 import { DECIMALS } from './consts';
-import { EraData } from './types';
+import type { EraData } from './types';
 
 /**
  * Warning: Lots of "ts-ignore"s due to incorrect api library's types.
