@@ -48,6 +48,11 @@
       "minute": "分钟",
       "second": "秒"
     },
+    "title_Aleph Zero": "Aleph Zero抵押平台",
+    "title_Aleph Zero Testnet": "Aleph Zero抵押平台",
+    "title_Aleph Zero Devnet": "Aleph Zero抵押平台",
+    "title_Aleph Zero Local": "Aleph Zero抵押平台",
+    "title_Aleph Zero Custom": "Aleph Zero抵押平台",
     "title_kusama": "Kusama抵押平台",
     "title_polkadot": "Polkadot抵押平台",
     "title_westend": "Westend抵押平台",
