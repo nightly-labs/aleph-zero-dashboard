@@ -10,7 +10,7 @@ import type { Networks } from 'types';
 
 export const NetworkList: Networks = {};
 
-if (import.meta.env.REACT_APP_DISABLE_MAINNET !== '1') {
+if (import.meta.env.VITE_DISABLE_MAINNET !== '1') {
   const alephZero = {
     name: 'Aleph Zero',
     endpoints: {
@@ -70,7 +70,7 @@ if (import.meta.env.REACT_APP_DISABLE_MAINNET !== '1') {
   NetworkList[alephZero.name] = alephZero;
 }
 
-if (import.meta.env.REACT_APP_DISABLE_TESTNET !== '1') {
+if (import.meta.env.VITE_DISABLE_TESTNET !== '1') {
   const alephZeroTestnet = {
     name: 'Aleph Zero Testnet',
     endpoints: {
@@ -129,12 +129,11 @@ if (import.meta.env.REACT_APP_DISABLE_TESTNET !== '1') {
 
   NetworkList[alephZeroTestnet.name] = alephZeroTestnet;
 }
-
-if (import.meta.env.REACT_APP_ENABLE_CUSTOM_NETWORK === '1') {
+if (import.meta.env.VITE_ENABLE_CUSTOM_NETWORK === '1') {
   const azeroCustom = {
     name: 'Aleph Zero Custom',
     endpoints: {
-      rpc: import.meta.env.REACT_APP_CUSTOM_WS_ADDRESS ?? '',
+      rpc: import.meta.env.VITE_CUSTOM_WS_ADDRESS ?? '',
       lightClient: null,
     },
     namespace: '',

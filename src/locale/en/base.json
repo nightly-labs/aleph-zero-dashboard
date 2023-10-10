@@ -54,6 +54,11 @@
       "second_one": "second",
       "second_other": "seconds"
     },
+    "title_Aleph Zero": "Aleph Zero Dashboard",
+    "title_Aleph Zero Testnet": "Aleph Zero Dashboard",
+    "title_Aleph Zero Devnet": "Aleph Zero Dashboard",
+    "title_Aleph Zero Local": "Aleph Zero Dashboard",
+    "title_Aleph Zero Custom": "Aleph Zero Dashboard",
     "title_kusama": "Kusama Staking Dashboard",
     "title_polkadot": "Polkadot Staking Dashboard",
     "title_westend": "Westend Staking Dashboard",

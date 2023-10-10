@@ -22,7 +22,7 @@ const isNetworkNameValidConfig = (value: NetworkName) =>
   Object.keys(NetworkList).includes(value);
 
 export const defaultNetworkName: NetworkName =
-  import.meta.env.NODE_ENV === 'production' &&
+  import.meta.env.MODE === 'production' &&
   isNetworkNameValidConfig('Aleph Zero')
     ? 'Aleph Zero'
     : isNetworkNameValidConfig('Aleph Zero Testnet')
