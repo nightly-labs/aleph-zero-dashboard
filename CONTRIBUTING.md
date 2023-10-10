@@ -30,12 +30,12 @@ VITE_ORGANISATION="© Parity Technologies"
 VITE_PRIVACY_URL=https://...
 
 # disable mainnet / testnet network (for e.g. testnet deployment)
-REACT_APP_DISABLE_MAINNET=1
-REACT_APP_DISABLE_TESTNET=1
+VITE_DISABLE_MAINNET=1
+VITE_DISABLE_TESTNET=1
 
 # add connection to a custom network (for example a feature net, local and devnet are avaliable by default in a development build)
-REACT_APP_ENABLE_CUSTOM_NETWORK=1
-REACT_APP_CUSTOM_WS_ADDRESS=wss://ws.test.azero.dev
+VITE_ENABLE_CUSTOM_NETWORK=1
+VITE_CUSTOM_WS_ADDRESS=wss://ws.test.azero.dev
 
 ```
 
