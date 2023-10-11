@@ -154,7 +154,6 @@ export const IdentityWrapper = styled(motion.div)`
   }
   h4 {
     color: var(--text-color-secondary);
-    font-family: InterSemiBold, sans-serif;
     position: absolute;
     top: 0;
     width: 100%;

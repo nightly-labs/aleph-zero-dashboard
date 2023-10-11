@@ -59,7 +59,6 @@ export const AccountInputWrapper = styled.div`
           flex-grow: 1;
 
           > input {
-            font-family: InterSemiBold, sans-serif;
             width: 100%;
             border: none;
             margin: 0;

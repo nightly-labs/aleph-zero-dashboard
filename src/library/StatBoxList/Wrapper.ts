@@ -63,7 +63,6 @@ export const StatBoxWrapper = styled(motion.div)`
     }
 
     h4 {
-      font-family: InterSemiBold, sans-serif;
       flex: 1;
       display: flex;
       flex-flow: row wrap;
@@ -96,7 +95,6 @@ export const StatBoxWrapper = styled(motion.div)`
 
         h3 {
           color: var(--text-color-invert);
-          font-family: InterSemiBold, sans-serif;
           text-align: center;
           margin: 0;
           font-size: 0.9rem;
@@ -120,7 +118,6 @@ export const StatBoxWrapper = styled(motion.div)`
       overflow: hidden;
 
       h3 {
-        font-family: InterBold, sans-serif;
         display: flex;
         flex-flow: row wrap;
         margin-top: 0.1rem;
@@ -149,7 +146,6 @@ export const TextTitleWrapper = styled.div<{ $primary?: boolean }>`
     props.$primary === true
       ? 'var(--accent-color-primary)'
       : 'var(--text-color-primary)'};
-  font-family: InterBold, sans-serif;
   display: flex;
   flex-flow: row wrap;
   margin-bottom: 0.35rem;
@@ -166,7 +162,6 @@ export const TextTitleWrapper = styled.div<{ $primary?: boolean }>`
 
   span {
     color: var(--text-color-primary);
-    font-family: InterSemiBold, sans-serif;
     font-size: 0.95rem;
     margin-left: 0.55rem;
     margin-top: 0.1rem;
@@ -178,7 +173,6 @@ export const TimeLeftWrapper = styled.div<{ primary?: boolean }>`
     props.primary === true
       ? 'var(--accent-color-primary)'
       : 'var(--text-color-primary)'};
-  font-family: InterBold, sans-serif;
   display: flex;
   flex-flow: row wrap;
   font-size: 1.2rem;
@@ -190,7 +184,6 @@ export const TimeLeftWrapper = styled.div<{ primary?: boolean }>`
 
   span {
     color: var(--text-color-primary);
-    font-family: InterSemiBold, sans-serif;
     font-size: 0.95rem;
     margin-left: 0.3rem;
     margin-top: 0.1rem;

@@ -2,11 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import styled from 'styled-components';
-import {
-  SideMenuMaximisedWidth,
-  SideMenuMinimisedWidth,
-  SideMenuStickyThreshold,
-} from 'consts';
+import { SideMenuStickyThreshold } from 'consts';
 import type { MinimisedProps } from './types';
 
 export const Wrapper = styled.div<MinimisedProps>`
@@ -19,8 +15,6 @@ export const Wrapper = styled.div<MinimisedProps>`
   display: flex;
   flex-flow: column nowrap;
   backdrop-filter: blur(4px);
-  width: ${(props) =>
-    props.$minimised ? SideMenuMinimisedWidth : SideMenuMaximisedWidth};
 
   &::-webkit-scrollbar {
     display: none;

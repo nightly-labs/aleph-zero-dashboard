@@ -24,7 +24,7 @@ export const Connect = () => {
               onClick={() => {
                 openModal({ key: 'Accounts' });
               }}
-              style={{ color: 'white', fontSize: '1.05rem' }}
+              style={{ color: 'black', fontSize: '1.05rem' }}
             />
             <span />
             <ButtonText
@@ -34,7 +34,7 @@ export const Connect = () => {
               onClick={() => {
                 openModal({ key: 'Connect' });
               }}
-              style={{ color: 'white', fontSize: '1.05rem' }}
+              style={{ color: 'black', fontSize: '1.05rem' }}
             />
           </>
         ) : (
@@ -45,7 +45,7 @@ export const Connect = () => {
             onClick={() => {
               openModal({ key: accounts.length ? 'Accounts' : 'Connect' });
             }}
-            style={{ color: 'white', fontSize: '1.05rem' }}
+            style={{ color: 'black', fontSize: '1.05rem' }}
           />
         )}
       </ConnectedAccount>

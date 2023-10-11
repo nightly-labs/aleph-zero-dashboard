@@ -38,7 +38,6 @@ export const ItemWrapper = styled.div`
     z-index: 1;
   }
   .title {
-    font-family: InterSemiBold, sans-serif;
     margin: 0;
     padding: 0;
     flex: 1;

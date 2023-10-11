@@ -17,9 +17,6 @@ export const CardHeaderWrapper = styled.div<CardHeaderWrapperProps>`
   width: 100%;
   padding: 0rem 0.25rem;
 
-  h2 {
-    font-family: InterBold, sans-serif;
-  }
   h3 {
     margin-top: 0.25rem;
   }
@@ -35,10 +32,6 @@ export const CardHeaderWrapper = styled.div<CardHeaderWrapperProps>`
     align-items: center;
     flex-grow: ${(props) => (props.$withAction ? 1 : 0)};
   }
-  h3,
-  h4 {
-    font-family: InterSemiBold, sans-serif;
-  }
   h4 {
     margin-top: 0;
     margin-bottom: 0.4rem;
@@ -49,7 +42,6 @@ export const CardHeaderWrapper = styled.div<CardHeaderWrapperProps>`
   }
   .note {
     color: var(--text-color-secondary);
-    font-family: InterSemiBold, sans-serif;
     font-size: 1.1rem;
     margin-top: 0.2rem;
     margin-left: 0.4rem;

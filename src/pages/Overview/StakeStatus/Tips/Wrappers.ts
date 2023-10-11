@@ -85,7 +85,6 @@ export const ItemInnerWrapper = styled.div`
           > h4 {
             color: var(--text-color-secondary);
             transition: color var(--transition-duration);
-            font-family: InterSemiBold, sans-serif;
             text-align: left;
             font-size: 1.05rem;
             text-overflow: ellipsis;

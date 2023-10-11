@@ -26,7 +26,6 @@ export const MinDelayInputWrapper = styled.div`
     padding-right: 0.75rem;
 
     input {
-      font-family: InterSemiBold, sans-serif;
       width: 32px;
       margin: 0 0.6rem 0 0;
       padding: 0.5rem 0.2rem 0.5rem 0.75rem;

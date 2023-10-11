@@ -66,6 +66,14 @@ export const GenerateNominations = ({
     }
   }, [activeAccount]);
 
+  console.log({
+    isReady,
+    stakers,
+    ids: Object.values(validatorIdentities),
+    supers: Object.values(validatorSupers),
+    validators,
+  });
+
   // refetch if fetching is triggered
   useEffect(() => {
     if (!isReady || !validators.length) {
@@ -170,6 +178,8 @@ export const GenerateNominations = ({
     setTargets({ nominations: [validator] });
     updateSetters([validator]);
   };
+
+  console.log({ fetching });
 
   return (
     <>

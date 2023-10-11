@@ -78,7 +78,6 @@ export const InputWrapper = styled.div`
             }
 
             p {
-              font-family: InterSemiBold, sans-serif;
               position: absolute;
               top: 0;
               left: 0;
@@ -92,7 +91,6 @@ export const InputWrapper = styled.div`
             }
           }
           > input {
-            font-family: InterBold, sans-serif;
             border: none;
             padding: 0;
             width: 100%;

@@ -18,8 +18,7 @@ export const EmptyH256 = new Uint8Array(32);
 export const ModPrefix = stringToU8a('modl');
 export const U32Opts = { bitLength: 32, isLe: true };
 
-export const SideMenuMaximisedWidth = '16rem';
-export const SideMenuMinimisedWidth = '90px';
+export const SideMenuMinimisedWidth = '75px';
 export const SideMenuStickyThreshold = 1150;
 export const SectionFullWidthThreshold = 1000;
 export const ShowAccountsButtonWidthThreshold = 825;

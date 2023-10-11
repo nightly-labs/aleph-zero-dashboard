@@ -59,7 +59,6 @@ export const Legend = styled.div`
   }
 
   > h4 {
-    font-family: InterSemiBold, sans-serif;
     display: flex;
     align-items: center;
     font-size: 1.1rem;
@@ -94,7 +93,6 @@ export const Bar = styled.div`
     transition: width 1.5s cubic-bezier(0, 1, 0, 1);
 
     > span {
-      font-family: InterBold, sans-serif;
       position: absolute;
       left: 0;
       text-overflow: ellipsis;

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 // Network themes.
+import '@polkadot-cloud/core/theme/aleph-zero-relay/index.css';
 import '@polkadot-cloud/core/theme/polkadot-relay/index.css';
 import '@polkadot-cloud/core/theme/kusama-relay/index.css';
 import '@polkadot-cloud/core/theme/westend-relay/index.css';

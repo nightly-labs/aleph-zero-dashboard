@@ -33,6 +33,28 @@ html {
   src: url('../public/fonts/Gilroy-Medium.otf');
 }
 
+body {
+  margin: 0;
+  font-family: 'Karla', 'sans-serif', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  font-variation-settings: 'wght' 500;
+}
+
+h1, h2,
+.core-page-title h1, .modal-content h1 {
+  font-family: 'Gilroy', 'sans-serif', sans-serif;
+}
+
+.modal-content h3 {
+  font-family: 'Karla', 'sans-serif', sans-serif;
+}
+
+.btn-text,
+.btn-primary-invert,
+.btn-tab,
+.btn-mono-invert,
 .btn-layout,
 button {
   font-family: 'Gilroy', sans-serif;
@@ -82,31 +104,37 @@ button.btn-submit {
   color: inherit;
 }
 
-.theme-aleph-zero-relay,
-.theme-aleph-zero-testnet-relay,
-.theme-aleph-zero-devnet-relay,
-.theme-aleph-zero-local-relay,
-.theme-aleph-zero-custom-relay {
-  --accent-color-primary: #00ccab;
-  --accent-color-primary-dark: #00ccab;
-  --accent-color-secondary-light: #00ccab;
-  --accent-color-secondary-dark: #00ccab;
-  --accent-color-stroke-light: #00ccab;
-  --accent-color-stroke-dark: #00ccab;
-  --accent-color-transparent-light: rgb(0, 204, 171, 0.05);
-  --accent-color-transparent-dark: rgb(0, 204, 171, 0.05);
-  --accent-color-pending-light: rgb(0, 204, 171, 0.25);
-  --accent-color-pending-dark: rgb(0, 204, 171, 0.25);
+.theme-dark {
+  --text-color-primary: rgb(204, 204, 204);
+  --text-color-secondary: rgb(170, 170, 170);
 
-  --button-border-radius-small: 0.75rem;
-  --button-border-radius-large: 1.5rem;
-  --button-padding-small: 0.41rem 1rem;
-  --button-padding-large: 0.53rem 1rem;
-  --button-spacing-small: 0.125rem;
-  --button-spacing-large: 0.625rem;
-  --button-font-size-small: 1rem;
-  --button-font-size-large: 1.15rem;
-  --opacity-disabled: 0.3;
-  --title-font-size: 1.75rem;
-  --transition-duration: 0.15s;
+  --gradient-background: rgb(17, 27, 36) fixed;
+  --gradient-side-menu: rgb(17, 27, 36);
+
+  --background-primary: rgb(20, 32, 42);
+  --background-floating-card: rgb(20, 32, 42);
+  --background-invert: rgb(237, 240, 243);
+  --background-modal: rgb(20, 32, 42);
+  --background-default: rgb(17, 27, 36);
+  --background-list-item: rgb(22, 35, 46);
+  --background-app-footer: rgb(15, 23, 31);
+
+
+  --modal-background-color: rgba(15, 23, 31, 0.9);
+
+  --button-tertiary-background: rgb(27, 43, 56);
+  --button-tab-background: rgb(27, 43, 56);
+  --button-hover-background: #1b2b38;
+  --button-primary-background: rgb(24, 39, 51);
+  --button-secondary-background: #182733;
+
+  --border-primary-color: rgb(27, 43, 56);
+}
+
+.theme-light {
+  --background-invert: rgb(24, 39, 51);
+}
+
+.theme-dark #logotype_brandmark {
+  fill: white;
 }
