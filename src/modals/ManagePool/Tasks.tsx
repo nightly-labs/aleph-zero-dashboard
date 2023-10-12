@@ -79,7 +79,6 @@ export const Tasks = forwardRef(({ setSection, setTask }: any, ref: any) => {
             <div>
               <h3>{t('updateClaimPermission')}</h3>
               <p>{t('updateWhoClaimRewards')}</p>
-              <div>{chevronIconElement}</div>
             </div>
           </ButtonOption>
 
@@ -94,7 +93,6 @@ export const Tasks = forwardRef(({ setSection, setTask }: any, ref: any) => {
               <div>
                 <h3>{t('renamePool')}</h3>
                 <p>{t('updateName')}</p>
-                <div>{chevronIconElement}</div>
               </div>
             </ButtonOption>
           )}
@@ -111,7 +109,6 @@ export const Tasks = forwardRef(({ setSection, setTask }: any, ref: any) => {
                   <div>
                     <h3>{t('unlockPool')}</h3>
                     <p>{t('allowToJoin')}</p>
-                    <div>{chevronIconElement}</div>
                   </div>
                 </ButtonOption>
               ) : (
@@ -125,7 +122,6 @@ export const Tasks = forwardRef(({ setSection, setTask }: any, ref: any) => {
                   <div>
                     <h3>{t('lockPool')}</h3>
                     <p>{t('stopJoiningPool')}</p>
-                    <div>{chevronIconElement}</div>
                   </div>
                 </ButtonOption>
               )}
@@ -139,7 +135,6 @@ export const Tasks = forwardRef(({ setSection, setTask }: any, ref: any) => {
                 <div>
                   <h3>{t('destroyPool')}</h3>
                   <p>{t('changeToDestroy')}</p>
-                  <div>{chevronIconElement}</div>
                 </div>
               </ButtonOption>
             </>
@@ -154,7 +149,6 @@ export const Tasks = forwardRef(({ setSection, setTask }: any, ref: any) => {
               <div>
                 <h3>{t('leavePool')}</h3>
                 <p>{t('unbondFundsLeavePool')}</p>
-                <div>{chevronIconElement}</div>
               </div>
             </ButtonOption>
           )}
