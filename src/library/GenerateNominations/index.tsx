@@ -38,10 +38,9 @@ export const GenerateNominations = ({
   const { isReady } = useApi();
   const { openModal } = useOverlay().modal;
   const { isFastUnstaking } = useUnstaking();
-  const { stakers } = useStaking().eraStakers;
   const { activeAccount, isReadOnlyAccount } = useConnect();
   const { setTargets } = useStaking();
-  const { validators, validatorIdentities, validatorSupers } = useValidators();
+  const { validators } = useValidators();
   const { fetch: fetchFromMethod } = useFetchMehods();
 
   // store the method of fetching validators
