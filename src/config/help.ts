@@ -26,12 +26,12 @@ export const HelpConfig: HelpItems = [
     ],
     external: [
       [
-        'dashboard_basics',
+        'dashboardBasics',
         'https://docs.alephzero.org/aleph-zero/dashboard/dashboard-basics',
         'docs.alephzero.org',
       ],
       [
-        'how_to_start',
+        'howToStart',
         'https://docs.alephzero.org/aleph-zero/stake/how-to-start-staking-with-the-aleph-zero-dashboard',
         'docs.alephzero.org',
       ],
