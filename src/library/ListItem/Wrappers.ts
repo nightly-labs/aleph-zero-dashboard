@@ -238,7 +238,7 @@ export const SelectSingleWrapper = styled.button`
   height: 1.1rem;
   padding: 0;
   border-radius: 50%;
-  border: 1px solid var(--radio-background);
+  border: 1px solid var(--accent-color-primary);
 
   * {
     cursor: pointer;

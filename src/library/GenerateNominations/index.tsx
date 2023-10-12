@@ -72,14 +72,6 @@ export const GenerateNominations = ({
       return;
     }
 
-    if (
-      !stakers.length ||
-      !Object.values(validatorIdentities).length ||
-      !Object.values(validatorSupers).length
-    ) {
-      return;
-    }
-
     if (fetching) {
       fetchNominationsForMethod();
     }
