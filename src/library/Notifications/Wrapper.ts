@@ -26,20 +26,20 @@ export const Wrapper = styled.ul`
     overflow: hidden;
 
     &.notification--error {
-      background: var(--background-error);
+      background: var(--status-danger-color);
     }
 
     &.notification--success {
-      background: var(--background-success);
+      background: var(--status-success-color);
     }
 
     h3 {
-      color: var(--text-invert);
+      color: var(--text-color-invert);
       margin: 0 0 0.5rem;
       flex: 1;
     }
     h5 {
-      color: var(--text-invert);
+      color: var(--text-color-invert);
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
