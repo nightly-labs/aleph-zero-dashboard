@@ -1,5 +1,5 @@
 diff --git a/node_modules/@polkadot-cloud/core/template/default/index.css b/node_modules/@polkadot-cloud/core/template/default/index.css
-index 93d847d..5a4c359 100644
+index 93d847d..5eea5d2 100644
 --- a/node_modules/@polkadot-cloud/core/template/default/index.css
 +++ b/node_modules/@polkadot-cloud/core/template/default/index.css
 @@ -1 +1,101 @@
@@ -61,7 +61,7 @@ index 93d847d..5a4c359 100644
 +  --background-primary: rgb(20, 32, 42);
 +  --background-invert: rgb(237, 240, 243);
 +  --background-list-item: rgb(22, 35, 46);
-+  --background-modal-item: rgb(32 26 32 / 50%);
++  --background-modal-item: rgba(22, 22, 22, 0.4);
 +  --background-floating-card: rgb(20, 32, 42);
 +  --background-app-footer: rgb(15, 23, 31);
 +  --background-warning: #33332a;
