@@ -108,11 +108,12 @@ export const Connect = () => {
                 onClick={() => setSection(1)}
                 active={section === 1}
               />
+              {/* Waiting for support on backend.
               <ButtonTab
                 title={t('proxies')}
                 onClick={() => setSection(2)}
                 active={section === 2}
-              />
+              /> */}
             </ModalSection>
           </ModalCustomHeader>
         </ModalFixedTitle>

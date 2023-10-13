@@ -94,7 +94,7 @@ export const ProxiesProvider = ({
   const delegatesRef = useRef(delegates);
 
   const subscribeToProxies = async (address: string) => {
-    if (!api) return undefined;
+    if (!api?.query.proxy) return undefined;
 
     const unsub = await api.queryMulti<AnyApi>(
       [[api.query.proxy.proxies, address]],
@@ -257,7 +257,7 @@ export const ProxiesProvider = ({
 
   // Queries the chain to check if the given delegator & delegate pair is valid proxy.
   const handleDeclareDelegate = async (delegator: string) => {
-    if (!api) return [];
+    if (!api?.query.proxy) return [];
 
     const result: AnyApi = (await api.query.proxy.proxies(delegator)).toHuman();
 
