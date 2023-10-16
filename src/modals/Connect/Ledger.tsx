@@ -20,6 +20,7 @@ import { useApi } from 'contexts/Api';
 import { useHelp } from 'contexts/Help';
 import { ReactComponent as LedgerLogoSVG } from 'img/ledgerLogo.svg';
 import { useOverlay } from '@polkadot-cloud/react/hooks';
+import { LedgerApps } from 'config/ledger';
 
 export const Ledger = (): React.ReactElement => {
   const { openHelp } = useHelp();
@@ -28,7 +29,7 @@ export const Ledger = (): React.ReactElement => {
   const url = 'ledger.com';
 
   // Only render on Polkadot and Kusama networks.
-  if (!['polkadot', 'kusama'].includes(name)) {
+  if (!LedgerApps.some(({ network }) => network === name)) {
     return <></>;
   }
 

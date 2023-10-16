@@ -27,7 +27,6 @@ import { Extension } from './Extension';
 import { Ledger } from './Ledger';
 import { Proxies } from './Proxies';
 import { ReadOnly } from './ReadOnly';
-import { Vault } from './Vault';
 import { ExtensionsWrapper } from './Wrappers';
 
 export const Connect = () => {
@@ -147,7 +146,7 @@ export const Connect = () => {
               <ActionItem text={t('hardware')} />
               <ExtensionsWrapper>
                 <SelectItems layout="two-col">
-                  {[Vault, Ledger].map((Item: AnyFunction, i: number) => (
+                  {[Ledger].map((Item: AnyFunction, i: number) => (
                     <Item key={`hardware_item_${i}`} />
                   ))}
                 </SelectItems>
