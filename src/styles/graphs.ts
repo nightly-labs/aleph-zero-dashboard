@@ -6,7 +6,7 @@ import type { AnyJson } from 'types';
 export const graphColors: Record<string, AnyJson> = {
   inactive: {
     light: '#eee',
-    dark: 'rgb(39,35,39)',
+    dark: '#0f171f',
   },
   tooltip: {
     light: '#333',
