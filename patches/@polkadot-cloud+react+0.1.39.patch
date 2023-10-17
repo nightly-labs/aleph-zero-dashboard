@@ -1,0 +1,15 @@
+diff --git a/node_modules/@polkadot-cloud/react/overlay/Overlay/Modal.js b/node_modules/@polkadot-cloud/react/overlay/Overlay/Modal.js
+index 675baaa..40df904 100644
+--- a/node_modules/@polkadot-cloud/react/overlay/Overlay/Modal.js
++++ b/node_modules/@polkadot-cloud/react/overlay/Overlay/Modal.js
+@@ -134,9 +134,7 @@ export var Modal = function (_a) {
+                 },
+             }, style: { opacity: status === "opening" ? 0 : 1 }, children: _jsxs("div", { children: [_jsx(ModalHeight, { ref: heightRef, size: size, style: {
+                             height: modalHeight,
+-                            overflow: modalHeight >= modalMaxHeight && !(options === null || options === void 0 ? void 0 : options.disableScroll)
+-                                ? "scroll"
+-                                : "hidden",
++                            overflow: "auto",
+                         }, children: _jsx(ModalCard, { ref: modalRef, className: externalOverlayStatus === "open" || canvasStatus === "open"
+                                 ? "dimmed"
+                                 : undefined, children: _jsx(ErrorBoundary, { FallbackComponent: Fallback || null, children: ActiveModal && _jsx(ActiveModal, {}) }) }) }), _jsx("button", { type: "button", className: "close", onClick: function () {
