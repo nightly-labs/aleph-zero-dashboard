@@ -2,8 +2,9 @@ FROM node:buster as BUILDER
 
 WORKDIR /app
 COPY . .
-RUN apt update && apt install -y git
-RUN yarn install && yarn build
+
+RUN yarn install
+RUN export $BUILD_ENVS && yarn build
 
 # --------------------------------------------------
 FROM nginx
