@@ -68,14 +68,12 @@ export const Payouts = () => {
             transition: 'opacity 0.5s',
           }}
         >
-          <PayoutBar
-            payouts={payouts.slice(AVERAGE_WINDOW_SIZE)}
-            height="150px"
-          />
+          <PayoutBar payouts={payouts.slice(-MaxPayoutDays)} height="150px" />
           <div style={{ marginTop: '3rem' }}>
             <PayoutLine
               payouts={payouts}
               averageWindowSize={AVERAGE_WINDOW_SIZE}
+              maxPayoutDays={MaxPayoutDays}
               height="65px"
             />
           </div>

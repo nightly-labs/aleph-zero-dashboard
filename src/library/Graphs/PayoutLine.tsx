@@ -37,10 +37,11 @@ ChartJS.register(
 export const PayoutLine = ({
   payouts,
   averageWindowSize,
+  maxPayoutDays,
   height,
   background,
 }: PayoutLineProps) => {
-  const graphablePayouts = payouts.slice(averageWindowSize); // Leave out oldest "averageWindowSize" number of values for the average window
+  const graphablePayouts = payouts.slice(-maxPayoutDays); // Take only values included in latest maxPayoutDays.
   const { mode } = useTheme();
   const { unit, units, colors } = useApi().network;
   const { isSyncing } = useUi();
@@ -48,19 +49,21 @@ export const PayoutLine = ({
   const { membership: poolMembership } = usePoolMemberships();
   const averageValues = useMemo(
     () =>
-      payouts.length < averageWindowSize
-        ? []
-        : payouts
-            .map(([, payout]) => payout)
-            .reduce<number[]>((acc, _, i, arr) => {
-              if (i < averageWindowSize - 1) return acc;
+      payouts
+        .map(([, payout]) => payout)
+        .reduce<number[]>((acc, eraPayout, i, allPayouts) => {
+          const previousAvg = acc[i - 1] ?? 0;
+          const previousDivider = Math.min(acc.length, averageWindowSize);
+          const previousSum = previousAvg * previousDivider;
 
-              const sum = arr
-                .slice(i - averageWindowSize + 1, i + 1)
-                .reduce((s, v) => s + (v || 0), 0);
+          const excludedPayout = allPayouts[i - averageWindowSize] ?? 0;
+          const sum = eraPayout + previousSum - excludedPayout;
+          const avg = sum / Math.min(acc.length + 1, averageWindowSize);
 
-              return [...acc, round(sum / averageWindowSize, 2)];
-            }, []),
+          return [...acc, avg];
+        }, [])
+        .map((avgPayout) => round(avgPayout, 2))
+        .slice(-maxPayoutDays),
     [payouts]
   );
 

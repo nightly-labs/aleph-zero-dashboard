@@ -58,7 +58,7 @@ export const Payouts = ({ page }: PageProps) => {
               />
             </h4>
             <h2>
-              {fromEra && toEra ? (
+              {fromEra != null && toEra != null ? (
                 <>
                   {fromEra}
                   {fromEra !== toEra && <>&nbsp;-&nbsp;{toEra}</>}
@@ -87,12 +87,13 @@ export const Payouts = ({ page }: PageProps) => {
               }}
             >
               <PayoutBar
-                payouts={payouts.slice(AVERAGE_WINDOW_SIZE)}
+                payouts={payouts.slice(-MaxPayoutDays)}
                 height="165px"
               />
               <PayoutLine
                 payouts={payouts}
                 averageWindowSize={AVERAGE_WINDOW_SIZE}
+                maxPayoutDays={MaxPayoutDays}
                 height="65px"
               />
             </GraphWrapper>

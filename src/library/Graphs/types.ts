@@ -19,6 +19,7 @@ export interface PayoutBarProps {
 export interface PayoutLineProps {
   payouts: [number, number][];
   averageWindowSize: number;
+  maxPayoutDays: number;
   height: string;
   background?: string;
 }
