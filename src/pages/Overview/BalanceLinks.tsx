@@ -6,12 +6,14 @@ import { ButtonPrimaryInvert, Separator } from '@polkadot-cloud/react';
 import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
 import { useConnect } from 'contexts/Connect';
+import { NetworkNameEnum } from 'types';
 import { MoreWrapper } from './Wrappers';
 
 export const BalanceLinks = () => {
   const { t } = useTranslation('pages');
   const { name } = useApi().network;
   const { activeAccount } = useConnect();
+  const networkNameDomainPart = name.toLocaleLowerCase().replaceAll(' ', '');
 
   return (
     <MoreWrapper>
@@ -22,7 +24,7 @@ export const BalanceLinks = () => {
           lg
           onClick={() =>
             window.open(
-              `https://${name}.subscan.io/account/${activeAccount}`,
+              `https://${networkNameDomainPart}.subscan.io/account/${activeAccount}`,
               '_blank'
             )
           }
@@ -30,20 +32,7 @@ export const BalanceLinks = () => {
           iconTransform="shrink-2"
           text="Subscan"
           marginRight
-          disabled={!activeAccount}
-        />
-        <ButtonPrimaryInvert
-          lg
-          onClick={() =>
-            window.open(
-              `https://${name}.polkawatch.app/nomination/${activeAccount}`,
-              '_blank'
-            )
-          }
-          iconRight={faExternalLinkAlt}
-          iconTransform="shrink-2"
-          text="Polkawatch"
-          disabled={!(activeAccount && ['polkadot', 'kusama'].includes(name))}
+          disabled={name !== NetworkNameEnum.AlephZero}
         />
       </section>
     </MoreWrapper>
