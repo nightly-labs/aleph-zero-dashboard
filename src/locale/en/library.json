@@ -156,6 +156,7 @@
     "submitTransaction": "Ready to submit transaction.",
     "syncing": "Syncing",
     "syncingPoolList": "Syncing Pool list",
+    "termsOfUse": "Terms of use",
     "tooSmall": "Bond amount is too small.",
     "transactionCancelled": "Transaction was cancelled",
     "transactionInBlock": "Transaction in block",
