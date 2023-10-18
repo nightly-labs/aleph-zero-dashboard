@@ -9,7 +9,6 @@ import {
 } from '@polkadot-cloud/react';
 import { useTranslation } from 'react-i18next';
 import { CardWrapper } from 'library/Card/Wrappers';
-import { ControllerNotStash } from 'pages/Nominate/Active/ControllerNotStash';
 import { ActiveAccounts } from './ActiveAccounts';
 import { BalanceChart } from './BalanceChart';
 import { BalanceLinks } from './BalanceLinks';
@@ -31,7 +30,6 @@ export const Overview = () => {
           <ActiveAccounts />
         </PageHeading>
       </PageRow>
-      <ControllerNotStash />
       <PageRow>
         <StakeStatus />
       </PageRow>

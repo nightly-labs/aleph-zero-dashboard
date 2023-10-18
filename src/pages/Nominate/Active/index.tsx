@@ -16,7 +16,6 @@ import { useUi } from 'contexts/UI';
 import { CardHeaderWrapper, CardWrapper } from 'library/Card/Wrappers';
 import { GenerateNominations } from 'library/GenerateNominations';
 import { StatBoxList } from 'library/StatBoxList';
-import { ControllerNotStash } from './ControllerNotStash';
 import { ManageBond } from './ManageBond';
 import { Nominations } from './Nominations';
 import { MinimumActiveStakeStat } from './Stats/MinimumActiveStake';
@@ -42,7 +41,6 @@ export const Active = () => {
         <MinimumNominatorBondStat />
         <MinimumActiveStakeStat />
       </StatBoxList>
-      <ControllerNotStash />
       <UnstakePrompts />
       <PageRow>
         <RowSection hLast>
