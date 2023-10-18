@@ -17,7 +17,6 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 // - `BASE_URL`env variable is used in the codebase to refer to the supplied base.
 export default defineConfig((env) => ({
   plugins: [
-    env.mode !== 'test' && eslint(),
     react(),
     svgr(),
     tsconfigPaths(),
