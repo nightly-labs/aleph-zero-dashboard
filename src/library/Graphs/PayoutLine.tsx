@@ -41,7 +41,7 @@ export const PayoutLine = ({
   height,
   background,
 }: PayoutLineProps) => {
-  const graphablePayouts = payouts.slice(-maxPayoutDays); // Take only values included in latest maxPayoutDays.
+  const graphablePayouts = payouts.slice(-maxPayoutDays);
   const { mode } = useTheme();
   const { unit, units, colors } = useApi().network;
   const { isSyncing } = useUi();
@@ -53,8 +53,8 @@ export const PayoutLine = ({
         .map(([, payout]) => payout)
         .reduce<number[]>((acc, eraPayout, i, allPayouts) => {
           const previousAvg = acc[i - 1] ?? 0;
-          const previousDivider = Math.min(acc.length, averageWindowSize);
-          const previousSum = previousAvg * previousDivider;
+          const previousDivisor = Math.min(acc.length, averageWindowSize);
+          const previousSum = previousAvg * previousDivisor;
 
           const excludedPayout = allPayouts[i - averageWindowSize] ?? 0;
           const sum = eraPayout + previousSum - excludedPayout;

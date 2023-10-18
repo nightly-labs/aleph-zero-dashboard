@@ -28,8 +28,8 @@ export const Ledger = (): React.ReactElement => {
   const { name } = useApi().network;
   const url = 'ledger.com';
 
-  // Only render on Polkadot and Kusama networks.
-  if (!LedgerApps.some(({ network }) => network === name)) {
+  // Only render on selected networks.
+  if (LedgerApps.every(({ network }) => network !== name)) {
     return <></>;
   }
 
