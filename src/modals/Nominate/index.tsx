@@ -1,58 +1,57 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { faArrowAltCircleUp } from '@fortawesome/free-regular-svg-icons';
-import { faPlayCircle } from '@fortawesome/free-solid-svg-icons';
-import { ButtonSubmit } from '@rossbulat/polkadot-dashboard-ui';
+import { ModalPadding, ModalWarnings } from '@polkadot-cloud/react';
+import { planckToUnit } from '@polkadot-cloud/utils';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
 import { useBalances } from 'contexts/Balances';
+import { useBonded } from 'contexts/Bonded';
 import { useConnect } from 'contexts/Connect';
-import { useModal } from 'contexts/Modal';
 import { useStaking } from 'contexts/Staking';
-import { useTxFees } from 'contexts/TxFees';
-import { useValidators } from 'contexts/Validators';
-import { EstimatedTxFee } from 'library/EstimatedTxFee';
 import { Warning } from 'library/Form/Warning';
+import { useSignerWarnings } from 'library/Hooks/useSignerWarnings';
 import { useSubmitExtrinsic } from 'library/Hooks/useSubmitExtrinsic';
 import { Identity } from 'library/ListItem/Labels/Identity';
-import { Title } from 'library/Modal/Title';
-import { useEffect, useState } from 'react';
-import { planckBnToUnit } from 'Utils';
-import {
-  FooterWrapper,
-  NotesWrapper,
-  PaddingWrapper,
-  Separator,
-} from '../Wrappers';
+import { Close } from 'library/Modal/Close';
+import { SubmitTx } from 'library/SubmitTx';
+import { useTxMeta } from 'contexts/TxMeta';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 
 export const Nominate = () => {
+  const { t } = useTranslation('modals');
   const { api, network } = useApi();
   const { activeAccount } = useConnect();
-  const { targets, staking, getControllerNotImported } = useStaking();
-  const { getBondedAccount, getLedgerForStash } = useBalances();
-  const { setStatus: setModalStatus } = useModal();
-  const { txFeesValid } = useTxFees();
-  const { units } = network;
+  const { notEnoughFunds } = useTxMeta();
+  const { getBondedAccount } = useBonded();
+  const { getStashLedger } = useBalances();
+  const { targets, staking } = useStaking();
+  const { getSignerWarnings } = useSignerWarnings();
+  const { setModalStatus, setModalResize } = useOverlay().modal;
+
+  const { units, unit } = network;
   const { minNominatorBond } = staking;
   const controller = getBondedAccount(activeAccount);
   const { nominations } = targets;
-  const ledger = getLedgerForStash(activeAccount);
+  const ledger = getStashLedger(activeAccount);
   const { active } = ledger;
-  const { meta } = useValidators();
 
-  const batchKey = 'generate_nominations_active';
-  const addresses = meta[batchKey]?.addresses ?? [];
-
-  const activeBase = planckBnToUnit(active, units);
-  const minNominatorBondBase = planckBnToUnit(minNominatorBond, units);
+  const activeUnit = planckToUnit(active, units);
+  const minNominatorBondUnit = planckToUnit(minNominatorBond, units);
 
   // valid to submit transaction
   const [valid, setValid] = useState<boolean>(false);
 
   // ensure selected key is valid
   useEffect(() => {
-    setValid(nominations.length > 0 && activeBase >= minNominatorBondBase);
+    setValid(
+      nominations.length > 0 &&
+        activeUnit.isGreaterThanOrEqualTo(minNominatorBondUnit)
+    );
   }, [targets]);
+
+  useEffect(() => setModalResize(), [notEnoughFunds]);
 
   // tx to submit
   const getTx = () => {
@@ -60,83 +59,65 @@ export const Nominate = () => {
     if (!valid || !api) {
       return tx;
     }
-    const targetsToSubmit = nominations.map((item: any) => {
-      return {
-        Id: item.address,
-      };
-    });
+    const targetsToSubmit = nominations.map((item: any) => ({
+      Id: item.address,
+    }));
     tx = api.tx.staking.nominate(targetsToSubmit);
     return tx;
   };
 
-  const { submitTx, submitting } = useSubmitExtrinsic({
+  const submitExtrinsic = useSubmitExtrinsic({
     tx: getTx(),
     from: controller,
     shouldSubmit: valid,
     callbackSubmit: () => {
-      setModalStatus(2);
+      setModalStatus('closing');
     },
     callbackInBlock: () => {},
   });
 
   // warnings
-  const warnings = [];
-  if (getControllerNotImported(controller)) {
-    warnings.push(
-      'You must have your controller account imported to start nominating'
-    );
-  }
+  const warnings = getSignerWarnings(
+    activeAccount,
+    true,
+    submitExtrinsic.proxySupported
+  );
   if (!nominations.length) {
-    warnings.push('You have no nominations set.');
+    warnings.push(`${t('noNominationsSet')}`);
   }
-  if (activeBase < minNominatorBondBase) {
+
+  if (!activeUnit.isGreaterThan(minNominatorBondUnit)) {
     warnings.push(
-      `You do not meet the minimum nominator bond of ${minNominatorBondBase} ${network.unit}. Please bond some funds before nominating.`
+      `${t('notMeetMinimum', {
+        minNominatorBondUnit: minNominatorBondUnit.toString(),
+        unit,
+      })}`
     );
   }
 
   const nomination = nominations.length ? nominations[0] : null;
-  const batchIndex = addresses.indexOf(nomination.address);
 
   return (
     <>
-      <Title title="Nominate" icon={faPlayCircle} />
-      <PaddingWrapper verticalOnly>
-        <div style={{ padding: '0 1rem', width: '100%' }}>
-          {warnings.map((text: any, index: number) => (
-            <Warning key={index} text={text} />
-          ))}
-          <h2>You intend to nominate:</h2>
-          <Identity
-            meta={meta}
-            address={nomination.address}
-            batchKey={batchKey}
-            batchIndex={batchIndex}
-          />
-          <Separator />
-          <NotesWrapper>
-            <p>
-              Once submitted, you will start nominating your chosen validators.
-            </p>
-            <EstimatedTxFee />
-          </NotesWrapper>
-          <FooterWrapper>
-            <div>
-              <ButtonSubmit
-                text={`Submit${submitting ? 'ting' : ''}`}
-                iconLeft={faArrowAltCircleUp}
-                iconTransform="grow-2"
-                onClick={() => submitTx()}
-                disabled={
-                  !valid || submitting || warnings.length > 0 || !txFeesValid
-                }
-              />
-            </div>
-          </FooterWrapper>
-        </div>
-      </PaddingWrapper>
+      <Close />
+      <ModalPadding>
+        <h2 className="title unbounded">{t('nominate')}</h2>
+        {warnings.length > 0 ? (
+          <ModalWarnings withMargin>
+            {warnings.map((text, i) => (
+              <Warning key={`warning_${i}`} text={text} />
+            ))}
+          </ModalWarnings>
+        ) : null}
+        <h2>You intend to nominate:</h2>
+        <Identity address={nomination.address} />
+        <p>{t('onceSubmitted')}</p>
+      </ModalPadding>
+      <SubmitTx
+        fromController
+        valid={valid && warnings.length === 0}
+        {...submitExtrinsic}
+      />
     </>
   );
 };
-
-export default Nominate;

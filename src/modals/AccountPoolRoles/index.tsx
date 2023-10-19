@@ -1,33 +1,36 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { faBars, faChevronRight } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useModal } from 'contexts/Modal';
+import { faBars } from '@fortawesome/free-solid-svg-icons';
+import {
+  ButtonOption,
+  ModalPadding,
+  PolkadotIcon,
+} from '@polkadot-cloud/react';
+import { useTranslation } from 'react-i18next';
 import { useActivePools } from 'contexts/Pools/ActivePools';
 import { useBondedPools } from 'contexts/Pools/BondedPools';
 import { usePoolMemberships } from 'contexts/Pools/PoolMemberships';
-import { BondedPool } from 'contexts/Pools/types';
-import Identicon from 'library/Identicon';
 import { Title } from 'library/Modal/Title';
 import { useStatusButtons } from 'pages/Pools/Home/Status/useStatusButtons';
-import { PaddingWrapper } from '../Wrappers';
-import { ContentWrapper, StyledButton } from './Wrappers';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
+import { useTheme } from 'contexts/Themes';
+import { ContentWrapper } from './Wrappers';
 
 export const AccountPoolRoles = () => {
-  const { config } = useModal();
+  const { t } = useTranslation('modals');
+  const { options } = useOverlay().modal.config;
   const { getAccountPools } = useBondedPools();
   const { membership } = usePoolMemberships();
-  const { who } = config;
-
+  const { who } = options;
   const accountPools = getAccountPools(who);
   const totalAccountPools = Object.entries(accountPools).length;
   const { label } = useStatusButtons();
 
   return (
     <>
-      <Title title="All Pool Roles" icon={faBars} />
-      <PaddingWrapper>
+      <Title title={t('allPoolRoles')} icon={faBars} />
+      <ModalPadding>
         <ContentWrapper>
           {membership && (
             <>
@@ -38,8 +41,9 @@ export const AccountPoolRoles = () => {
             </>
           )}
           <h4>
-            Active Roles in <b>{totalAccountPools}</b> Pool
-            {totalAccountPools === 1 ? '' : 's'}
+            {t('activeRoles', {
+              count: totalAccountPools,
+            })}
           </h4>
           <div className="items">
             {Object.entries(accountPools).map(([key, item]: any, i: number) => (
@@ -47,46 +51,43 @@ export const AccountPoolRoles = () => {
             ))}
           </div>
         </ContentWrapper>
-      </PaddingWrapper>
+      </ModalPadding>
     </>
   );
 };
 
-const Button = ({ item, poolId }: { item: Array<string>; poolId: string }) => {
-  const { setStatus } = useModal();
+const Button = ({ item, poolId }: { item: string[]; poolId: string }) => {
+  const { t } = useTranslation('modals');
+  const { setModalStatus } = useOverlay().modal;
   const { bondedPools } = useBondedPools();
+  const { mode } = useTheme();
   const { setSelectedPoolId } = useActivePools();
-
-  const pool = bondedPools.find((b: BondedPool) => String(b.id) === poolId);
+  const pool = bondedPools.find((b) => String(b.id) === poolId);
   const stash = pool?.addresses?.stash || '';
 
   return (
-    <StyledButton
+    <ButtonOption
+      content
       disabled={false}
-      type="button"
-      className="action-button"
       onClick={() => {
         setSelectedPoolId(poolId);
-        setStatus(2);
+        setModalStatus('closing');
       }}
     >
       <div className="icon">
-        <Identicon value={stash} size={30} />
+        <PolkadotIcon dark={mode === 'dark'} nocopy address={stash} size={30} />
       </div>
 
       <div className="details">
-        <h3>Pool {poolId}</h3>
+        <h3>
+          {t('pool')} {poolId}
+        </h3>
         <h4>
-          {item.includes('root') && <span>Root</span>}
-          {item.includes('nominator') && <span>Nominator</span>}
-          {item.includes('stateToggler') && <span>State Toggler</span>}
+          {item.includes('root') ? <span>{t('root')}</span> : null}
+          {item.includes('nominator') ? <span>{t('nominator')}</span> : null}
+          {item.includes('bouncer') ? <span>{t('bouncer')}</span> : null}
         </h4>
       </div>
-      <div>
-        <FontAwesomeIcon transform="shrink-2" icon={faChevronRight} />
-      </div>
-    </StyledButton>
+    </ButtonOption>
   );
 };
-
-export default AccountPoolRoles;

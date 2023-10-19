@@ -1,79 +1,84 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { faArrowAltCircleUp } from '@fortawesome/free-solid-svg-icons';
-import { ButtonSubmit } from '@rossbulat/polkadot-dashboard-ui';
+import {
+  ModalFooter,
+  ModalPadding,
+  ModalWarnings,
+} from '@polkadot-cloud/react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
-import { useBalances } from 'contexts/Balances';
+import { useBonded } from 'contexts/Bonded';
 import { useConnect } from 'contexts/Connect';
-import { useModal } from 'contexts/Modal';
 import { useActivePools } from 'contexts/Pools/ActivePools';
-import { useTxFees } from 'contexts/TxFees';
-import { useValidators } from 'contexts/Validators';
-import { Validator } from 'contexts/Validators/types';
-import { EstimatedTxFee } from 'library/EstimatedTxFee';
+import type { Validator } from 'contexts/Validators/types';
 import { Warning } from 'library/Form/Warning';
+import { useSignerWarnings } from 'library/Hooks/useSignerWarnings';
 import { useSubmitExtrinsic } from 'library/Hooks/useSubmitExtrinsic';
 import { Title } from 'library/Modal/Title';
+import { SubmitTx } from 'library/SubmitTx';
 import { ValidatorList } from 'library/ValidatorList';
-import { useEffect, useState } from 'react';
-import { FooterWrapper, NotesWrapper, PaddingWrapper } from '../Wrappers';
+import { useTxMeta } from 'contexts/TxMeta';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
+import { useFavoriteValidators } from 'contexts/Validators/FavoriteValidators';
 import { ListWrapper } from './Wrappers';
 
 export const NominateFromFavorites = () => {
+  const { t } = useTranslation('modals');
   const { consts, api } = useApi();
-  const { activeAccount, accountHasSigner } = useConnect();
-  const { getBondedAccount } = useBalances();
-  const { config, setStatus: setModalStatus, setResize } = useModal();
-  const { favoritesList } = useValidators();
+  const { activeAccount } = useConnect();
+  const { notEnoughFunds } = useTxMeta();
+  const { getBondedAccount } = useBonded();
+  const { favoritesList } = useFavoriteValidators();
+  const { getSignerWarnings } = useSignerWarnings();
+  const {
+    config: { options },
+    setModalStatus,
+    setModalResize,
+  } = useOverlay().modal;
   const { selectedActivePool, isNominator, isOwner } = useActivePools();
-  const controller = getBondedAccount(activeAccount);
-  const { txFeesValid } = useTxFees();
 
+  const controller = getBondedAccount(activeAccount);
   const { maxNominations } = consts;
-  const { bondType, nominations } = config;
-  const signingAccount = bondType === 'pool' ? activeAccount : controller;
+  const { bondFor, nominations } = options;
+  const signingAccount = bondFor === 'pool' ? activeAccount : controller;
 
   // store filtered favorites
-  const [availableFavorites, setAvailableFavorites] = useState<
-    Array<Validator>
-  >([]);
+  const [availableFavorites, setAvailableFavorites] = useState<Validator[]>([]);
 
   // store selected favorites in local state
-  const [selectedFavorites, setSelectedFavorites] = useState<Array<Validator>>(
-    []
-  );
+  const [selectedFavorites, setSelectedFavorites] = useState<Validator[]>([]);
 
   // store filtered favorites
   useEffect(() => {
     if (favoritesList) {
-      const _availableFavorites = favoritesList.filter(
-        (favorite: Validator) =>
-          !nominations.find(
-            (nomination: string) => nomination === favorite.address
-          ) && !favorite.prefs.blocked
+      setAvailableFavorites(
+        favoritesList.filter(
+          (favorite) =>
+            !nominations.find(
+              (nomination: string) => nomination === favorite.address
+            ) && !favorite.prefs.blocked
+        )
       );
-      setAvailableFavorites(_availableFavorites);
     }
   }, []);
 
   // calculate active + selected favorites
   const nominationsToSubmit = nominations.concat(
-    selectedFavorites.map((favorite: Validator) => favorite.address)
+    selectedFavorites.map((favorite) => favorite.address)
   );
 
   // valid to submit transaction
   const [valid, setValid] = useState<boolean>(false);
 
-  useEffect(() => {
-    setResize();
-  }, [selectedFavorites]);
+  useEffect(() => setModalResize(), [notEnoughFunds, selectedFavorites]);
 
   // ensure selected list is within limits
   useEffect(() => {
     setValid(
       nominationsToSubmit.length > 0 &&
-        nominationsToSubmit.length <= maxNominations &&
+        maxNominations.isGreaterThanOrEqualTo(nominationsToSubmit.length) &&
         selectedFavorites.length > 0
     );
   }, [selectedFavorites]);
@@ -86,7 +91,7 @@ export const NominateFromFavorites = () => {
   };
 
   const totalAfterSelection = nominations.length + selectedFavorites.length;
-  const overMaxNominations = totalAfterSelection > maxNominations;
+  const overMaxNominations = maxNominations.isLessThan(totalAfterSelection);
 
   // tx to submit
   const getTx = () => {
@@ -96,14 +101,14 @@ export const NominateFromFavorites = () => {
     }
 
     const targetsToSubmit = nominationsToSubmit.map((item: any) =>
-      bondType === 'pool'
+      bondFor === 'pool'
         ? item
         : {
             Id: item,
           }
     );
 
-    if (bondType === 'pool') {
+    if (bondFor === 'pool') {
       tx = api.tx.nominationPools.nominate(
         selectedActivePool?.id,
         targetsToSubmit
@@ -114,36 +119,42 @@ export const NominateFromFavorites = () => {
     return tx;
   };
 
-  const { submitTx, submitting } = useSubmitExtrinsic({
+  const submitExtrinsic = useSubmitExtrinsic({
     tx: getTx(),
     from: signingAccount,
     shouldSubmit: valid,
     callbackSubmit: () => {
-      setModalStatus(2);
+      setModalStatus('closing');
     },
     callbackInBlock: () => {},
   });
 
+  const warnings = getSignerWarnings(
+    activeAccount,
+    bondFor === 'nominator',
+    submitExtrinsic.proxySupported
+  );
+
   return (
     <>
-      <Title title="Nominate Favorites" />
-      <PaddingWrapper>
-        <div style={{ marginBottom: '1rem' }}>
-          {!accountHasSigner(signingAccount) && (
-            <Warning
-              text={`You must have your${
-                bondType === 'stake' ? ' controller' : ' '
-              }account imported to add nominations.`}
-            />
-          )}
+      <Title title={t('nominateFavorites')} />
+      <ModalPadding>
+        <div style={{ marginBottom: '1rem', width: '100%' }}>
+          {warnings.length ? (
+            <ModalWarnings withMargin>
+              {warnings.map((text, i) => (
+                <Warning key={`warning_${i}`} text={text} />
+              ))}
+            </ModalWarnings>
+          ) : null}
         </div>
         <ListWrapper>
           {availableFavorites.length > 0 ? (
             <ValidatorList
-              bondType="stake"
+              bondFor="nominator"
               validators={availableFavorites}
               batchKey={batchKey}
-              title="Favorite Validators / Not Nominated"
+              title={t('favoriteNotNominated')}
               selectable
               selectActive
               selectToggleable={false}
@@ -154,48 +165,35 @@ export const NominateFromFavorites = () => {
               refetchOnListUpdate
             />
           ) : (
-            <h3>No Favorites Available.</h3>
+            <h3>{t('noFavoritesAvailable')}</h3>
           )}
         </ListWrapper>
-        <NotesWrapper style={{ paddingBottom: 0 }}>
-          <EstimatedTxFee />
-        </NotesWrapper>
-        <FooterWrapper>
+        <ModalFooter>
           <h3
             className={
               selectedFavorites.length === 0 ||
-              nominationsToSubmit.length > maxNominations
+              maxNominations.isLessThan(nominationsToSubmit.length)
                 ? ''
                 : 'active'
             }
           >
             {selectedFavorites.length > 0
               ? overMaxNominations
-                ? `Adding this many favorites will surpass ${maxNominations} nominations.`
-                : `Adding ${selectedFavorites.length} Nomination${
-                    selectedFavorites.length !== 1 ? `s` : ``
-                  }`
-              : `No Favorites Selected`}
+                ? `${t('willSurpass', {
+                    maxNominations: maxNominations.toString(),
+                  })}`
+                : `${t('addingFavorite', {
+                    count: selectedFavorites.length,
+                  })}`
+              : `${t('noFavoritesSelected')}`}
           </h3>
-          <div>
-            <ButtonSubmit
-              text={`Submit${submitting ? 'ting' : ''}`}
-              iconLeft={faArrowAltCircleUp}
-              iconTransform="grow-2"
-              onClick={() => submitTx()}
-              disabled={
-                !valid ||
-                submitting ||
-                (bondType === 'pool' && !isNominator() && !isOwner()) ||
-                !accountHasSigner(signingAccount) ||
-                !txFeesValid
-              }
-            />
-          </div>
-        </FooterWrapper>
-      </PaddingWrapper>
+        </ModalFooter>
+      </ModalPadding>
+      <SubmitTx
+        fromController={bondFor === 'nominator'}
+        valid={valid && !(bondFor === 'pool' && !isNominator() && !isOwner())}
+        {...submitExtrinsic}
+      />
     </>
   );
 };
-
-export default NominateFromFavorites;

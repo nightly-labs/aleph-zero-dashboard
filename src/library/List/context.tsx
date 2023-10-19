@@ -1,5 +1,5 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import React, { useState } from 'react';
 import * as defaults from './defaults';
@@ -10,15 +10,17 @@ export const ListContext: React.Context<any> = React.createContext(
 
 export const useList = () => React.useContext(ListContext);
 
-export const ListProvider = (props: any) => {
-  const selectToggleable = props.selectToggleable ?? true;
-
+export const ListProvider = ({
+  selectToggleable = true,
+  selectActive: initialSelctActive = false,
+  children,
+}: any) => {
   // store the currently selected validators from the list
-  const [selected, setSelected] = useState<Array<any>>([]);
+  const [selected, setSelected] = useState<any[]>([]);
 
   // store whether validator selection is active
-  const [selectActive, _setSelectActive] = useState(
-    props.selectActive ?? false
+  const [selectActive, setSelectActiveState] = useState(
+    initialSelctActive ?? false
   );
 
   // store the list format of the list
@@ -32,7 +34,7 @@ export const ListProvider = (props: any) => {
     setSelected([_item]);
   };
 
-  const removeFromSelected = (items: Array<any>) => {
+  const removeFromSelected = (items: any[]) => {
     setSelected([...selected].filter((item) => !items.includes(item)));
   };
 
@@ -41,7 +43,7 @@ export const ListProvider = (props: any) => {
   };
 
   const setSelectActive = (_selectActive: boolean) => {
-    _setSelectActive(_selectActive);
+    setSelectActiveState(_selectActive);
     if (_selectActive === false) {
       resetSelected();
     }
@@ -66,7 +68,7 @@ export const ListProvider = (props: any) => {
         selectToggleable,
       }}
     >
-      {props.children}
+      {children}
     </ListContext.Provider>
   );
 };

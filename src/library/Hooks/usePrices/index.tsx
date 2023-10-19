@@ -1,13 +1,15 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { useApi } from 'contexts/Api';
-import { useUi } from 'contexts/UI';
 import { useEffect, useRef, useState } from 'react';
+import { useApi } from 'contexts/Api';
+import { usePlugins } from 'contexts/Plugins';
+import { useUnitPrice } from 'library/Hooks/useUnitPrice';
 
 export const usePrices = () => {
-  const { network, fetchDotPrice } = useApi();
-  const { services } = useUi();
+  const { network } = useApi();
+  const { plugins } = usePlugins();
+  const fetchUnitPrice = useUnitPrice();
 
   const pricesLocalStorage = () => {
     const pricesLocal = localStorage.getItem(`${network.name}_prices`);
@@ -35,8 +37,7 @@ export const usePrices = () => {
   };
 
   const initiatePriceInterval = async () => {
-    const _prices = await fetchDotPrice();
-    setPrices(_prices);
+    setPrices(await fetchUnitPrice());
     if (priceHandle === null) {
       setPriceInterval();
     }
@@ -45,30 +46,27 @@ export const usePrices = () => {
   let priceHandle: any = null;
   const setPriceInterval = async () => {
     priceHandle = setInterval(async () => {
-      const _prices = await fetchDotPrice();
-      setPrices(_prices);
+      setPrices(await fetchUnitPrice());
     }, 1000 * 30);
   };
 
   // subscribe to price
   useEffect(() => {
-    if (services.includes('binance_spot')) initiatePriceInterval();
+    if (plugins.includes('binance_spot')) initiatePriceInterval();
 
     return () => clearInterval(priceHandle);
   }, [network]);
 
   // servie toggle
   useEffect(() => {
-    if (services.includes('binance_spot')) {
+    if (plugins.includes('binance_spot')) {
       if (priceHandle === null) {
         initiatePriceInterval();
       }
     } else if (priceHandle !== null) {
       clearInterval(priceHandle);
     }
-  }, [services]);
+  }, [plugins]);
 
   return pricesRef.current;
 };
-
-export default usePrices;

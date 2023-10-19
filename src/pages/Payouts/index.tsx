@@ -1,46 +1,42 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
+import { ButtonHelp, PageRow, PageTitle } from '@polkadot-cloud/react';
 import { MaxPayoutDays } from 'consts';
+import { useHelp } from 'contexts/Help';
+import { CardHeaderWrapper, CardWrapper } from 'library/Card/Wrappers';
 import { PayoutBar } from 'library/Graphs/PayoutBar';
 import { PayoutLine } from 'library/Graphs/PayoutLine';
-import { formatSize, useSize } from 'library/Graphs/Utils';
-import {
-  CardHeaderWrapper,
-  CardWrapper,
-  GraphWrapper,
-} from 'library/Graphs/Wrappers';
-import Spinner from 'library/Headers/Spinner';
+import { formatSize } from 'library/Graphs/Utils';
 import usePayouts from 'library/Hooks/usePayouts';
-import { OpenHelpIcon } from 'library/OpenHelpIcon';
-import { PageTitle } from 'library/PageTitle';
+import { GraphWrapper } from 'library/Graphs/Wrapper';
+import { useSize } from 'library/Hooks/useSize';
 import { StatBoxList } from 'library/StatBoxList';
-import StatusLabel from 'library/StatusLabel';
 import { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
-import { PageRowWrapper } from 'Wrappers';
-import { PageProps } from '../types';
+import { StatusLabel } from 'library/StatusLabel';
+import { Spinner } from 'library/Headers/Spinner';
+import type { PageProps } from 'types';
 import { PayoutList } from './PayoutList';
-import LastEraPayoutStatBox from './Stats/LastEraPayout';
+import { LastEraPayoutStat } from './Stats/LastEraPayout';
 
 const AVERAGE_WINDOW_SIZE = 10;
-
-export const Payouts = (props: PageProps) => {
+export const Payouts = ({ page }: PageProps) => {
   const { t } = useTranslation();
+  const { openHelp } = useHelp();
 
-  const { page } = props;
   const { key } = page;
 
   const ref = useRef<HTMLDivElement>(null);
   const size = useSize(ref.current);
-  const { width, height, minHeight } = formatSize(size, 300);
+  const { width, height, minHeight } = formatSize(size, 280);
 
   const { loading, payouts, hasAnyPayouts } = usePayouts(
     MaxPayoutDays + AVERAGE_WINDOW_SIZE
   );
+
   const { fromEra, toEra } = useMemo(
-    // @ts-ignore TS7031: Something's off with build config as, contrary to the error, "era"'s type is easily inferable
     () => calcErasRange(payouts.map(([era]) => era)),
     [payouts]
   );
@@ -49,17 +45,20 @@ export const Payouts = (props: PageProps) => {
     <>
       <PageTitle title={t(key, { ns: 'base' })} />
       <StatBoxList>
-        <LastEraPayoutStatBox />
+        <LastEraPayoutStat />
       </StatBoxList>
-      <PageRowWrapper className="page-padding" noVerticalSpacer>
-        <GraphWrapper>
-          <CardHeaderWrapper padded>
+      <PageRow>
+        <CardWrapper>
+          <CardHeaderWrapper>
             <h4>
-              {t('payouts.payout_history', { ns: 'pages' })}
-              <OpenHelpIcon helpKey="Payout History" />
+              {t('payouts.payoutHistory', { ns: 'pages' })}
+              <ButtonHelp
+                marginLeft
+                onClick={() => openHelp('Payout History')}
+              />
             </h4>
             <h2>
-              {fromEra && toEra ? (
+              {fromEra != null && toEra != null ? (
                 <>
                   {fromEra}
                   {fromEra !== toEra && <>&nbsp;-&nbsp;{toEra}</>}
@@ -73,13 +72,12 @@ export const Payouts = (props: PageProps) => {
             {!loading && !hasAnyPayouts && (
               <StatusLabel
                 status="sync_or_setup"
-                title={t('payouts.not_staking', { ns: 'pages' })}
+                title={t('payouts.notStaking', { ns: 'pages' })}
                 topOffset="30%"
               />
             )}
             {loading && <LoadingIndicator />}
-            <div
-              className="graph"
+            <GraphWrapper
               style={{
                 height: `${height}px`,
                 width: `${width}px`,
@@ -89,36 +87,35 @@ export const Payouts = (props: PageProps) => {
               }}
             >
               <PayoutBar
-                payouts={payouts.slice(AVERAGE_WINDOW_SIZE)}
-                height="150px"
+                payouts={payouts.slice(-MaxPayoutDays)}
+                height="165px"
               />
               <PayoutLine
                 payouts={payouts}
                 averageWindowSize={AVERAGE_WINDOW_SIZE}
-                height="75px"
+                maxPayoutDays={MaxPayoutDays}
+                height="65px"
               />
-            </div>
+            </GraphWrapper>
           </div>
-        </GraphWrapper>
-      </PageRowWrapper>
+        </CardWrapper>
+      </PageRow>
       {payouts && hasAnyPayouts ? (
-        <PageRowWrapper className="page-padding" noVerticalSpacer>
+        <PageRow>
           <CardWrapper>
             <PayoutList
-              title={t('payouts.recent_payouts', { ns: 'pages' })}
+              title={t('payouts.recentPayouts', { ns: 'pages' })}
               payouts={payouts}
               pagination
             />
           </CardWrapper>
-        </PageRowWrapper>
+        </PageRow>
       ) : (
         <></>
       )}
     </>
   );
 };
-
-export default Payouts;
 
 const calcErasRange = (allEras: number[]) =>
   allEras.reduce(

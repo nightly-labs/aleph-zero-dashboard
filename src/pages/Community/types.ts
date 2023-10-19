@@ -1,4 +1,4 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
 
 export interface ItemProps {
   item: Item;
@@ -12,5 +12,5 @@ export interface Item {
   twitter: string;
   website: string;
   thumbnail: string;
-  validators: { [key: string]: string };
+  validators: Record<string, string>;
 }

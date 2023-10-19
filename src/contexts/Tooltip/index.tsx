@@ -1,15 +1,10 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import React, { RefObject, useState } from 'react';
+import { setStateWithRef } from '@polkadot-cloud/utils';
+import React, { useState } from 'react';
 import { defaultTooltipContext } from './defaults';
-import { TooltipContextInterface } from './types';
-
-export const TooltipContext = React.createContext<TooltipContextInterface>(
-  defaultTooltipContext
-);
-
-export const useTooltip = () => React.useContext(TooltipContext);
+import type { TooltipContextInterface } from './types';
 
 export const TooltipProvider = ({
   children,
@@ -18,6 +13,8 @@ export const TooltipProvider = ({
 }) => {
   const [open, setOpen] = useState(0);
   const [show, setShow] = useState(0);
+  const showRef = React.useRef(show);
+
   const [text, setText] = useState<string>('');
   const [position, setPosition] = useState<[number, number]>([0, 0]);
 
@@ -27,50 +24,23 @@ export const TooltipProvider = ({
   };
 
   const closeTooltip = () => {
-    setShow(0);
+    setStateWithRef(0, setShow, showRef);
     setOpen(0);
   };
 
-  const setTooltipPosition = (ref: RefObject<HTMLDivElement>) => {
-    if (open || !ref?.current) return;
-    const bodyRect = document.body.getBoundingClientRect();
-    const elemRect = ref.current.getBoundingClientRect();
-
-    const x = elemRect.left - bodyRect.left;
-    const y = elemRect.top - bodyRect.top;
-
+  const setTooltipPosition = (x: number, y: number) => {
     setPosition([x, y]);
     openTooltip();
   };
 
-  const checkTooltipPosition = (ref: RefObject<HTMLDivElement>) => {
-    if (!ref?.current) return;
-
-    const bodyRect = document.body.getBoundingClientRect();
-    const menuRect = ref.current.getBoundingClientRect();
-
-    let x = menuRect.left - bodyRect.left;
-    let y = menuRect.top - bodyRect.top - menuRect.height;
-    const right = menuRect.right;
-    const bottom = menuRect.bottom;
-
-    // small offset from menu start
-    y -= 5;
-
-    const documentPadding = 20;
-
-    if (right > bodyRect.right) {
-      x = bodyRect.right - ref.current.offsetWidth - documentPadding;
-    }
-    if (bottom > bodyRect.bottom) {
-      y = bodyRect.bottom - ref.current.offsetHeight - documentPadding;
-    }
-    setPosition([x, y]);
-    setShow(1);
+  const showTooltip = () => {
+    setStateWithRef(1, setShow, showRef);
   };
 
-  const setTooltipMeta = (t: string) => {
+  const setTooltipTextAndOpen = (t: string) => {
+    if (open) return;
     setText(t);
+    openTooltip();
   };
 
   return (
@@ -79,10 +49,10 @@ export const TooltipProvider = ({
         openTooltip,
         closeTooltip,
         setTooltipPosition,
-        checkTooltipPosition,
-        setTooltipMeta,
+        showTooltip,
+        setTooltipTextAndOpen,
         open,
-        show,
+        show: showRef.current,
         position,
         text,
       }}
@@ -91,3 +61,9 @@ export const TooltipProvider = ({
     </TooltipContext.Provider>
   );
 };
+
+export const TooltipContext = React.createContext<TooltipContextInterface>(
+  defaultTooltipContext
+);
+
+export const useTooltip = () => React.useContext(TooltipContext);

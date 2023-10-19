@@ -1,27 +1,31 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
+import { ModalPadding } from '@polkadot-cloud/react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
-import { useModal } from 'contexts/Modal';
-import { useValidators } from 'contexts/Validators';
-import { Validator } from 'contexts/Validators/types';
+import type { Validator } from 'contexts/Validators/types';
 import { Title } from 'library/Modal/Title';
 import { ValidatorList } from 'library/ValidatorList';
-import { useEffect, useState } from 'react';
-import { PaddingWrapper } from '../Wrappers';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
+import { useFavoriteValidators } from 'contexts/Validators/FavoriteValidators';
 import { FooterWrapper, ListWrapper } from './Wrappers';
 
 export const SelectFavorites = () => {
+  const { t } = useTranslation('modals');
   const { consts } = useApi();
-  const { config, setStatus, setResize } = useModal();
-  const { favoritesList } = useValidators();
+  const {
+    config: { options },
+    setModalStatus,
+    setModalResize,
+  } = useOverlay().modal;
+  const { favoritesList } = useFavoriteValidators();
   const { maxNominations } = consts;
-  const { nominations, callback: generateNominationsCallback } = config;
+  const { nominations, callback: generateNominationsCallback } = options;
 
   // store filtered favorites
-  const [availableFavorites, setAvailableFavorites] = useState<
-    Array<Validator>
-  >([]);
+  const [availableFavorites, setAvailableFavorites] = useState<Validator[]>([]);
 
   // store selected favorites in local state
   const [selectedFavorites, setSelectedFavorites] = useState([]);
@@ -29,19 +33,18 @@ export const SelectFavorites = () => {
   // store filtered favorites
   useEffect(() => {
     if (favoritesList) {
-      const _availableFavorites = favoritesList.filter(
-        (favorite: Validator) =>
-          !nominations.find(
-            (nomination: Validator) => nomination.address === favorite.address
-          ) && !favorite.prefs.blocked
+      setAvailableFavorites(
+        favoritesList.filter(
+          (favorite) =>
+            !nominations.find(
+              (nomination: Validator) => nomination.address === favorite.address
+            ) && !favorite.prefs.blocked
+        )
       );
-      setAvailableFavorites(_availableFavorites);
     }
   }, []);
 
-  useEffect(() => {
-    setResize();
-  }, [selectedFavorites]);
+  useEffect(() => setModalResize(), [selectedFavorites]);
 
   const batchKey = 'favorite_validators';
 
@@ -54,23 +57,23 @@ export const SelectFavorites = () => {
     if (!selectedFavorites.length) return;
     const newNominations = [...nominations].concat(...selectedFavorites);
     generateNominationsCallback(newNominations);
-    setStatus(0);
+    setModalStatus('closing');
   };
 
   const totalAfterSelection = nominations.length + selectedFavorites.length;
-  const overMaxNominations = totalAfterSelection > maxNominations;
+  const overMaxNominations = maxNominations.isLessThan(totalAfterSelection);
 
   return (
     <>
-      <Title title="Add From Favorites" />
-      <PaddingWrapper>
+      <Title title={t('addFromFavorites')} />
+      <ModalPadding>
         <ListWrapper>
           {availableFavorites.length > 0 ? (
             <ValidatorList
-              bondType="stake"
+              bondFor="nominator"
               validators={availableFavorites}
               batchKey={batchKey}
-              title="Favorite Validators"
+              title={t('favoriteValidators')}
               selectable
               selectActive
               selectToggleable={false}
@@ -81,7 +84,7 @@ export const SelectFavorites = () => {
               refetchOnListUpdate
             />
           ) : (
-            <h3>No Favorites Available.</h3>
+            <h3>{t('noFavoritesAvailable')}</h3>
           )}
         </ListWrapper>
         <FooterWrapper>
@@ -92,16 +95,16 @@ export const SelectFavorites = () => {
           >
             {selectedFavorites.length > 0
               ? overMaxNominations
-                ? `Adding this many favorites will surpass ${maxNominations} nominations.`
-                : `Add ${selectedFavorites.length} Favorite${
-                    selectedFavorites.length !== 1 ? `s` : ``
-                  } to Nominations`
-              : `No Favorites Selected`}
+                ? `${t('willSurpass', {
+                    maxNominations: maxNominations.toString(),
+                  })}`
+                : `${t('addingFavorite', {
+                    count: selectedFavorites.length,
+                  })}`
+              : `${t('noFavoritesSelected')}`}
           </button>
         </FooterWrapper>
-      </PaddingWrapper>
+      </ModalPadding>
     </>
   );
 };
-
-export default SelectFavorites;

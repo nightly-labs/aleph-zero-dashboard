@@ -1,9 +1,8 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import styled from 'styled-components';
-import { borderPrimary, networkColor, textPrimary, textSecondary } from 'theme';
-import { ListProps, PaginationWrapperProps } from './types';
+import type { ListProps, PaginationWrapperProps } from './types';
 
 export const Wrapper = styled.div`
   display: flex;
@@ -12,7 +11,7 @@ export const Wrapper = styled.div`
 `;
 
 export const Header = styled.div`
-  border-bottom: 1px solid ${borderPrimary};
+  border-bottom: 1px solid var(--border-primary-color);
   display: flex;
   flex-flow: row wrap;
   justify-content: flex-end;
@@ -20,18 +19,12 @@ export const Header = styled.div`
   flex: 1;
 
   h4 {
-    color: ${textSecondary};
-    margin: 0;
+    color: var(--text-color-secondary);
   }
 
   > div {
     display: flex;
-    flex-flow: row nowrap;
     align-items: center;
-  }
-
-  > div:first-child {
-    justify-content: flex-start;
   }
 
   > div:last-child {
@@ -39,11 +32,11 @@ export const Header = styled.div`
     flex: 1;
 
     button {
-      color: ${textSecondary};
+      color: var(--text-color-secondary);
       font-size: 1.1rem;
       margin: 0 0.5rem 0 0.75rem;
       opacity: 0.6;
-      transition: all 0.2s;
+      transition: all var(--transition-duration);
 
       &:hover {
         opacity: 0.9;
@@ -58,13 +51,8 @@ export const PaginationWrapper = styled.div<PaginationWrapperProps>`
   align-items: center;
   padding: 0.75rem 0.5rem;
 
-  h4 {
-    margin: 0;
-  }
-
   > div:first-child {
     display: flex;
-    justify-content: flex-start;
     flex: 1;
   }
   > div:last-child {
@@ -76,14 +64,20 @@ export const PaginationWrapper = styled.div<PaginationWrapperProps>`
       padding: 0 0.25rem;
       margin-left: 0.5rem;
       &.next {
-        color: ${(props) => (props.next ? networkColor : textSecondary)};
-        cursor: ${(props) => (props.next ? 'pointer' : 'default')};
-        opacity: ${(props) => (props.next ? 1 : 0.4)};
+        color: ${(props) =>
+          props.$next
+            ? 'var(--accent-color-primary)'
+            : 'var(--text-color-secondary)'};
+        cursor: ${(props) => (props.$next ? 'pointer' : 'default')};
+        opacity: ${(props) => (props.$next ? 1 : 0.4)};
       }
       &.prev {
-        color: ${(props) => (props.prev ? networkColor : textSecondary)};
-        cursor: ${(props) => (props.prev ? 'pointer' : 'default')};
-        opacity: ${(props) => (props.prev ? 1 : 0.4)};
+        color: ${(props) =>
+          props.$prev
+            ? 'var(--accent-color-primary)'
+            : 'var(--text-color-secondary)'};
+        cursor: ${(props) => (props.$prev ? 'pointer' : 'default')};
+        opacity: ${(props) => (props.$prev ? 1 : 0.4)};
       }
     }
   }
@@ -95,9 +89,9 @@ export const SelectableWrapper = styled.div`
   align-items: center;
 
   > button {
-    border: 1px solid ${borderPrimary};
+    border: 1px solid var(--border-primary-color);
     font-size: 1rem;
-    color: ${textSecondary};
+    color: var(--text-color-secondary);
     border-radius: 0.2rem;
     padding: 0.45rem 1rem;
     margin-right: 0.5rem;
@@ -108,11 +102,11 @@ export const SelectableWrapper = styled.div`
     }
 
     &:disabled {
-      opacity: 0.5;
+      opacity: var(--opacity-disabled);
     }
 
     &:hover {
-      color: ${textPrimary};
+      color: var(--text-color-primary);
     }
   }
 `;
@@ -121,33 +115,18 @@ export const List = styled.div<ListProps>`
   margin-top: 1rem;
   width: 100%;
 
-  .search {
-    width: 100%;
-    margin: 0.25rem 0 0.75rem 0;
-    display: flex;
-    flex-flow: row wrap;
-
-    > input {
-      border: 1.75px solid ${borderPrimary};
-      border-radius: 1.75rem;
-      padding: 0.75rem 1.25rem;
-      font-size: 1.15rem;
-      font-variation-settings: 'wght' 525;
-      &:focus {
-        border-width: 1.75px;
-      }
-    }
-  }
-
   > div {
     display: flex;
-    flex-flow: row wrap;
-    justify-content: flex-start;
-    align-items: flex-start;
+    flex-wrap: wrap;
+
+    h4 {
+      &.none {
+        padding: 0.5rem;
+      }
+    }
 
     > .item {
       display: flex;
-      flex-flow: row nowrap;
       align-items: center;
       overflow: hidden;
 
@@ -163,12 +142,30 @@ export const List = styled.div<ListProps>`
           max-width: 50%;
         }
         @media (min-width: 1500px) {
-          flex-basis: ${(props) => props.flexBasisLarge};
-          max-width: ${(props) => props.flexBasisLarge};
+          flex-basis: ${(props) => props.$flexBasisLarge};
+          max-width: ${(props) => props.$flexBasisLarge};
         }
       }
     }
   }
 `;
 
-export default List;
+export const SearchInputWrapper = styled.div`
+  display: flex;
+  flex-flow: row wrap;
+  margin: 0.5rem 0 1.5rem 0;
+  width: 100%;
+
+  > input {
+    border: 1.75px solid var(--border-primary-color);
+    color: var(--text-color-secondary);
+    border-radius: 1.75rem;
+    padding: 0.75rem 1.25rem;
+    font-size: 1.15rem;
+    width: 100%;
+
+    &:focus {
+      border-width: 1.75px;
+    }
+  }
+`;

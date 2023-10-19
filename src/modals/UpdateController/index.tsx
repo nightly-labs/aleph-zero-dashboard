@@ -1,121 +1,84 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { faArrowAltCircleUp } from '@fortawesome/free-regular-svg-icons';
-import { faExchangeAlt } from '@fortawesome/free-solid-svg-icons';
-import { ButtonSubmit } from '@rossbulat/polkadot-dashboard-ui';
+import { ModalPadding, ModalWarnings } from '@polkadot-cloud/react';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
-import { useBalances } from 'contexts/Balances';
+import { useBonded } from 'contexts/Bonded';
 import { useConnect } from 'contexts/Connect';
-import { ImportedAccount } from 'contexts/Connect/types';
-import { useModal } from 'contexts/Modal';
-import { useTxFees } from 'contexts/TxFees';
-import { EstimatedTxFee } from 'library/EstimatedTxFee';
-import { AccountDropdown } from 'library/Form/AccountDropdown';
-import { InputItem } from 'library/Form/types';
-import { getEligibleControllers } from 'library/Form/Utils/getEligibleControllers';
 import { Warning } from 'library/Form/Warning';
+import { useSignerWarnings } from 'library/Hooks/useSignerWarnings';
 import { useSubmitExtrinsic } from 'library/Hooks/useSubmitExtrinsic';
-import { Title } from 'library/Modal/Title';
-import { useEffect, useState } from 'react';
-import { FooterWrapper, NotesWrapper } from '../Wrappers';
-import Wrapper from './Wrapper';
+import { Close } from 'library/Modal/Close';
+import { SubmitTx } from 'library/SubmitTx';
+import { useTxMeta } from 'contexts/TxMeta';
+import { useEffect } from 'react';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
+import { Switch } from './Switch';
+import { Wrapper } from './Wrapper';
 
 export const UpdateController = () => {
+  const { t } = useTranslation('modals');
   const { api } = useApi();
-  const { setStatus: setModalStatus } = useModal();
-  const { activeAccount, getAccount, accountHasSigner } = useConnect();
-  const { getBondedAccount } = useBalances();
-  const { txFeesValid } = useTxFees();
+  const { notEnoughFunds } = useTxMeta();
+  const { getBondedAccount } = useBonded();
+  const { getSignerWarnings } = useSignerWarnings();
+  const { activeAccount, getAccount } = useConnect();
+  const { setModalStatus, setModalResize } = useOverlay().modal;
 
   const controller = getBondedAccount(activeAccount);
   const account = getAccount(controller);
 
-  // the selected value in the form
-  const [selected, setSelected] = useState<ImportedAccount | null>(null);
-
-  // get eligible controller accounts
-  const items = getEligibleControllers();
-
-  // reset selected value on account change
-  useEffect(() => {
-    setSelected(null);
-  }, [activeAccount, items]);
-
-  // handle account selection change
-  const handleOnChange = ({ selectedItem }: { selectedItem: InputItem }) => {
-    setSelected(selectedItem);
-  };
-
   // tx to submit
   const getTx = () => {
     let tx = null;
-    if (!selected || !api) {
+    if (!api) {
       return tx;
     }
-    const controllerToSubmit = {
-      Id: selected?.address ?? '',
-    };
-    tx = api.tx.staking.setController(controllerToSubmit);
+    tx = api.tx.staking.setController();
     return tx;
   };
 
+  useEffect(() => setModalResize(), [notEnoughFunds]);
+
   // handle extrinsic
-  const { submitTx, submitting } = useSubmitExtrinsic({
+  const submitExtrinsic = useSubmitExtrinsic({
     tx: getTx(),
     from: activeAccount,
     shouldSubmit: true,
     callbackSubmit: () => {
-      setModalStatus(2);
+      setModalStatus('closing');
     },
     callbackInBlock: () => {},
   });
 
+  const warnings = getSignerWarnings(
+    activeAccount,
+    false,
+    submitExtrinsic.proxySupported
+  );
+
   return (
     <>
-      <Title
-        title="Change Controller Account"
-        icon={faExchangeAlt}
-        helpKey="Controller Account Eligibility"
-      />
-      <Wrapper>
-        <div style={{ padding: '0 1rem', width: '100%' }}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            {!accountHasSigner(activeAccount) && (
-              <Warning text="Your stash account is read only and cannot sign transactions." />
-            )}
-          </div>
-          <AccountDropdown
-            items={items}
-            onChange={handleOnChange}
-            placeholder="Search Account"
-            current={account}
-            value={selected}
-            height="17rem"
-          />
-          <NotesWrapper>
-            <EstimatedTxFee />
-          </NotesWrapper>
-          <FooterWrapper>
-            <div>
-              <ButtonSubmit
-                text={`Submit${submitting ? 'ting' : ''}`}
-                iconLeft={faArrowAltCircleUp}
-                iconTransform="grow-2"
-                onClick={() => submitTx()}
-                disabled={
-                  selected === null ||
-                  submitting ||
-                  !accountHasSigner(activeAccount) ||
-                  !txFeesValid
-                }
-              />
+      <Close />
+      <ModalPadding>
+        <h2 className="title unbounded">{t('changeControllerAccount')}</h2>
+        <Wrapper>
+          <div style={{ width: '100%' }}>
+            <div style={{ marginBottom: '1.5rem' }}>
+              {warnings.length > 0 ? (
+                <ModalWarnings withMargin>
+                  {warnings.map((text, i) => (
+                    <Warning key={`warning${i}`} text={text} />
+                  ))}
+                </ModalWarnings>
+              ) : null}
             </div>
-          </FooterWrapper>
-        </div>
-      </Wrapper>
+            <Switch current={account} to={activeAccount} />
+          </div>
+        </Wrapper>
+      </ModalPadding>
+      <SubmitTx valid={activeAccount !== null} {...submitExtrinsic} />
     </>
   );
 };
-
-export default UpdateController;

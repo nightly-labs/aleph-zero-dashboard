@@ -1,14 +1,10 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import React, { RefObject, useState } from 'react';
+import type { RefObject } from 'react';
+import React, { useState } from 'react';
 import { defaultMenuContext } from './defaults';
-import { MenuContextInterface } from './types';
-
-export const MenuContext =
-  React.createContext<MenuContextInterface>(defaultMenuContext);
-
-export const useMenu = () => React.useContext(MenuContext);
+import type { MenuContextInterface } from './types';
 
 export const MenuProvider = ({ children }: { children: React.ReactNode }) => {
   const [open, setOpen] = useState(0);
@@ -89,3 +85,8 @@ export const MenuProvider = ({ children }: { children: React.ReactNode }) => {
     </MenuContext.Provider>
   );
 };
+
+export const MenuContext =
+  React.createContext<MenuContextInterface>(defaultMenuContext);
+
+export const useMenu = () => React.useContext(MenuContext);

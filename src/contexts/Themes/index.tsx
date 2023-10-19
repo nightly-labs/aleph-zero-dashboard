@@ -1,50 +1,57 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
+import { setStateWithRef } from '@polkadot-cloud/utils';
 import React, { useRef } from 'react';
-import { setStateWithRef } from 'Utils';
 import { defaultThemeContext } from './defaults';
-import { ThemeContextInterface } from './types';
-
-export const ThemeContext =
-  React.createContext<ThemeContextInterface>(defaultThemeContext);
-
-export const useTheme = () => React.useContext(ThemeContext);
+import type { Theme, ThemeContextInterface } from './types';
 
 export const ThemesProvider = ({ children }: { children: React.ReactNode }) => {
-  // get the current theme
-  let localTheme = localStorage.getItem('theme') || '';
+  let initialTheme: Theme = 'light';
 
-  // provide default theme if not set
-  if (!['light', 'dark'].includes(localTheme)) {
-    // check system theme
-    localTheme = 'dark';
-    localStorage.setItem('theme', localTheme);
+  // get the current theme
+  const localThemeRaw = localStorage.getItem('theme') || '';
+
+  // Provide system theme if raw theme is not valid.
+  if (!['light', 'dark'].includes(localThemeRaw)) {
+    const systemTheme =
+      window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+
+    initialTheme = 'dark';
+    localStorage.setItem('theme', systemTheme);
+  } else {
+    // `localThemeRaw` is a valid theme.
+    initialTheme = localThemeRaw as Theme;
   }
 
-  // the theme state
-  const [state, setState] = React.useState<{ mode: string; card: string }>({
-    mode: localTheme,
-    card: 'shadow',
-  });
-  const stateRef = useRef(state);
+  // the theme mode
+  const [theme, setTheme] = React.useState<Theme>(initialTheme);
+  const themeRef = useRef(theme);
 
-  const toggleTheme = (_theme: string | null = null): void => {
-    if (_theme === null) {
-      _theme = state.mode === 'dark' ? 'light' : 'dark';
-    }
-    localStorage.setItem('theme', _theme);
-    setStateWithRef({ ...stateRef.current, mode: _theme }, setState, stateRef);
+  const toggleTheme = (maybeTheme: Theme | null = null): void => {
+    const newTheme =
+      maybeTheme || (themeRef.current === 'dark' ? 'light' : 'dark');
+
+    localStorage.setItem('theme', newTheme);
+    setStateWithRef(newTheme, setTheme, themeRef);
   };
 
   return (
     <ThemeContext.Provider
       value={{
         toggleTheme,
-        mode: stateRef.current.mode,
+        mode: themeRef.current,
       }}
     >
       {children}
     </ThemeContext.Provider>
   );
 };
+
+export const ThemeContext =
+  React.createContext<ThemeContextInterface>(defaultThemeContext);
+
+export const useTheme = () => React.useContext(ThemeContext);

@@ -1,5 +1,5 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { faBars, faGripVertical } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -10,48 +10,43 @@ import { motion } from 'framer-motion';
 import { Header, List, Wrapper as ListWrapper } from 'library/List';
 import { MotionContainer } from 'library/List/MotionContainer';
 import React from 'react';
-import { networkColors } from 'theme/default';
-import { PayoutListProps } from '../types';
 import { ItemWrapper } from '../Wrappers';
+import type { PayoutListProps } from '../types';
 import { PayoutListProvider, usePayoutList } from './context';
 
-export const PayoutListInner = (props: PayoutListProps) => {
-  const { allowMoreCols, payouts } = props;
-
+export const PayoutListInner = ({
+  allowMoreCols,
+  title,
+  payouts,
+}: PayoutListProps) => {
   const { mode } = useTheme();
-  const { network } = useApi();
+  const {
+    network: { colors },
+  } = useApi();
   const { listFormat, setListFormat } = usePayoutList();
 
   return (
     <ListWrapper>
       <Header>
         <div>
-          <h4>{props.title}</h4>
+          <h4>{title}</h4>
         </div>
         <div>
           <button type="button" onClick={() => setListFormat('row')}>
             <FontAwesomeIcon
               icon={faBars}
-              color={
-                listFormat === 'row'
-                  ? networkColors[`${network.name}-${mode}`]
-                  : 'inherit'
-              }
+              color={listFormat === 'row' ? colors.primary[mode] : 'inherit'}
             />
           </button>
           <button type="button" onClick={() => setListFormat('col')}>
             <FontAwesomeIcon
               icon={faGripVertical}
-              color={
-                listFormat === 'col'
-                  ? networkColors[`${network.name}-${mode}`]
-                  : 'inherit'
-              }
+              color={listFormat === 'col' ? colors.primary[mode] : 'inherit'}
             />
           </button>
         </div>
       </Header>
-      <List flexBasisLarge={allowMoreCols ? '33.33%' : '50%'}>
+      <List $flexBasisLarge={allowMoreCols ? '33.33%' : '50%'}>
         <MotionContainer>
           {payouts
             .slice()
@@ -96,13 +91,11 @@ export const PayoutListInner = (props: PayoutListProps) => {
   );
 };
 
-export const PayoutList = (props: PayoutListProps) => {
-  return (
-    <PayoutListProvider>
-      <PayoutListShouldUpdate {...props} />
-    </PayoutListProvider>
-  );
-};
+export const PayoutList = (props: PayoutListProps) => (
+  <PayoutListProvider>
+    <PayoutListShouldUpdate {...props} />
+  </PayoutListProvider>
+);
 
 export class PayoutListShouldUpdate extends React.Component<PayoutListProps> {
   static contextType = StakingContext;
@@ -111,5 +104,3 @@ export class PayoutListShouldUpdate extends React.Component<PayoutListProps> {
     return <PayoutListInner {...this.props} />;
   }
 }
-
-export default PayoutList;

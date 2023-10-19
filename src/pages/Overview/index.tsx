@@ -1,75 +1,56 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { SectionFullWidthThreshold, SideMenuStickyThreshold } from 'consts';
-import { useUi } from 'contexts/UI';
-import { GraphWrapper } from 'library/Graphs/Wrappers';
-import { PageTitle } from 'library/PageTitle';
-import { useTranslation } from 'react-i18next';
 import {
-  PageRowWrapper,
-  RowPrimaryWrapper,
-  RowSecondaryWrapper,
-  TopBarWrapper,
-} from 'Wrappers';
-import { ActiveAccount } from './ActiveAccount';
-import BalanceGraph from './BalanceGraph';
+  PageHeading,
+  PageRow,
+  PageTitle,
+  RowSection,
+} from '@polkadot-cloud/react';
+import { useTranslation } from 'react-i18next';
+import { CardWrapper } from 'library/Card/Wrappers';
+import { ActiveAccounts } from './ActiveAccounts';
+import { BalanceChart } from './BalanceChart';
+import { BalanceLinks } from './BalanceLinks';
 import { NetworkStats } from './NetworkSats';
-import Payouts from './Payouts';
+import { Payouts } from './Payouts';
+import { StakeStatus } from './StakeStatus';
 import PayoutsErrorBoundary from './PayoutsErrorBoundary';
-import Reserve from './Reserve';
-import { Tips } from './Tips';
 
 export const Overview = () => {
-  const { services } = useUi();
   const { t } = useTranslation('pages');
 
-  const PAYOUTS_HEIGHT = 410;
-  const BALANCE_HEIGHT = PAYOUTS_HEIGHT;
+  const PAYOUTS_HEIGHT = 380;
 
   return (
     <>
       <PageTitle title={t('overview.overview')} />
-      <PageRowWrapper className="page-padding" noVerticalSpacer>
-        <TopBarWrapper>
-          <ActiveAccount />
-        </TopBarWrapper>
-      </PageRowWrapper>
-      {services.includes('tips') && (
-        <PageRowWrapper className="page-padding" noVerticalSpacer>
-          <Tips />
-        </PageRowWrapper>
-      )}
-      <PageRowWrapper className="page-padding" noVerticalSpacer>
-        <RowSecondaryWrapper
-          hOrder={0}
-          vOrder={0}
-          thresholdStickyMenu={SideMenuStickyThreshold}
-          thresholdFullWidth={SectionFullWidthThreshold}
-        >
-          <GraphWrapper style={{ minHeight: BALANCE_HEIGHT }} flex>
-            <BalanceGraph />
-            <Reserve />
-          </GraphWrapper>
-        </RowSecondaryWrapper>
-        <RowPrimaryWrapper
-          hOrder={1}
-          vOrder={1}
-          thresholdStickyMenu={SideMenuStickyThreshold}
-          thresholdFullWidth={SectionFullWidthThreshold}
-        >
-          <GraphWrapper style={{ minHeight: PAYOUTS_HEIGHT }} flex>
+      <PageRow>
+        <PageHeading>
+          <ActiveAccounts />
+        </PageHeading>
+      </PageRow>
+      <PageRow>
+        <StakeStatus />
+      </PageRow>
+      <PageRow>
+        <RowSection secondary>
+          <CardWrapper height={PAYOUTS_HEIGHT}>
+            <BalanceChart />
+            <BalanceLinks />
+          </CardWrapper>
+        </RowSection>
+        <RowSection hLast vLast>
+          <CardWrapper style={{ minHeight: PAYOUTS_HEIGHT }}>
             <PayoutsErrorBoundary>
               <Payouts />
             </PayoutsErrorBoundary>
-          </GraphWrapper>
-        </RowPrimaryWrapper>
-      </PageRowWrapper>
-      <PageRowWrapper className="page-padding" noVerticalSpacer>
+          </CardWrapper>
+        </RowSection>
+      </PageRow>
+      <PageRow>
         <NetworkStats />
-      </PageRowWrapper>
+      </PageRow>
     </>
   );
 };
-
-export default Overview;

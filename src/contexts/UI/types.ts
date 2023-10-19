@@ -1,34 +1,15 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
-
-import { MaybeAccount } from 'types';
-
-export enum SetupType {
-  Pool = 'pool',
-  Stake = 'stake',
-}
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 export interface UIContextInterface {
-  setSideMenu: (v: number) => void;
-  setUserSideMenuMinimised: (v: number) => void;
-  toggleService: (k: string) => void;
-  getSetupProgress: (t: SetupType, a: MaybeAccount) => any;
-  getStakeSetupProgressPercent: (a: MaybeAccount) => number;
-  getPoolSetupProgressPercent: (a: MaybeAccount) => number;
-  setActiveAccountSetup: (t: SetupType, p: any) => void;
-  setActiveAccountSetupSection: (t: SetupType, s: number) => void;
-  getServices: () => string[];
-  setOnNominatorSetup: (v: number) => void;
-  setOnPoolSetup: (v: number) => void;
+  setSideMenu: (v: boolean) => void;
+  setUserSideMenuMinimised: (v: boolean) => void;
   setContainerRefs: (v: any) => void;
-  sideMenuOpen: number;
-  userSideMenuMinimised: number;
-  sideMenuMinimised: number;
-  services: string[];
-  onNominatorSetup: number;
-  onPoolSetup: number;
-  isSyncing: boolean;
-  networkSyncing: boolean;
-  poolsSyncing: boolean;
+  sideMenuOpen: boolean;
+  userSideMenuMinimised: boolean;
+  sideMenuMinimised: boolean;
   containerRefs: any;
+  isSyncing: boolean;
+  isNetworkSyncing: boolean;
+  isPoolSyncing: boolean;
 }

@@ -1,19 +1,67 @@
 {
   "base": {
-    "stake": "Stake",
-    "validators": "Validators",
-    "overview": "Overview",
-    "nominate": "Nominate",
-    "pools": "Pools",
-    "payouts": "Payouts",
+    "active": "Active",
+    "allowAll": "Allow All",
+    "allowAnyoneCompound": "Allow anyone to compound rewards on your behalf.",
+    "allowAnyoneCompoundWithdraw": "Allow anyone to compound or withdraw rewards on your behalf.",
+    "allowAnyoneWithdraw": "Allow anyone to withdraw rewards on your behalf.",
+    "allowCompound": "Allow Compound",
+    "allowWithdraw": "Allow Withdraw",
     "community": "Community",
-    "favorites": "Favorites",
-    "network": "Network",
     "feedback": "Feedback",
+    "goTo": "Go To",
     "help": "Help",
     "inactive": "Inactive",
-    "active": "Active",
+    "network": "Network",
+    "nominate": "Nominate",
+    "overview": "Overview",
+    "payee": {
+      "account": {
+        "subtitle": "Send payouts to another account as free balance.",
+        "title": "To Another Account"
+      },
+      "none": {
+        "subtitle": "Have no payout destination set.",
+        "title_active": "Not Assigned",
+        "title_default": "None"
+      },
+      "staked": {
+        "subtitle": "Add payouts to your existing staked balance automatically.",
+        "title_active": "Compounding",
+        "title_default": "Compound"
+      },
+      "stash": {
+        "subtitle": "Payouts are sent to your account as free balance.",
+        "title": "To Your Account"
+      }
+    },
+    "payouts": "Payouts",
+    "pools": "Pools",
+    "resources": "Resources",
+    "stake": "Stake",
     "support": "Support",
-    "resources": "Resources"
+    "time": {
+      "day_one": "day",
+      "day_other": "days",
+      "hour_one": "hour",
+      "hour_other": "hours",
+      "hr_one": "hr",
+      "hr_other": "hrs",
+      "min_one": "min",
+      "min_other": "mins",
+      "minute_one": "minute",
+      "minute_other": "minutes",
+      "second_one": "second",
+      "second_other": "seconds"
+    },
+    "title_Aleph Zero": "Aleph Zero Dashboard",
+    "title_Aleph Zero Testnet": "Aleph Zero Dashboard",
+    "title_Aleph Zero Devnet": "Aleph Zero Dashboard",
+    "title_Aleph Zero Local": "Aleph Zero Dashboard",
+    "title_Aleph Zero Custom": "Aleph Zero Dashboard",
+    "title_kusama": "Kusama Staking Dashboard",
+    "title_polkadot": "Polkadot Staking Dashboard",
+    "title_westend": "Westend Staking Dashboard",
+    "validators": "Validators"
   }
 }

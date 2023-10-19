@@ -1,76 +1,89 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { PAGES_CONFIG, PAGE_CATEGORIES } from 'config/pages';
-import { PolkadotUrl, UriPrefix } from 'consts';
-import { useApi } from 'contexts/Api';
-import { useBalances } from 'contexts/Balances';
-import { useConnect } from 'contexts/Connect';
-import { usePoolMemberships } from 'contexts/Pools/PoolMemberships';
-import { useStaking } from 'contexts/Staking';
-import { useUi } from 'contexts/UI';
-import { UIContextInterface } from 'contexts/UI/types';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
-import { PageCategory, PageItem, PagesConfig } from 'types';
-import Heading from './Heading/Heading';
+import { PageCategories, PagesConfig } from 'config/pages';
+import { PolkadotUrl } from 'consts';
+import { useApi } from 'contexts/Api';
+import { useBonded } from 'contexts/Bonded';
+import { useConnect } from 'contexts/Connect';
+import { usePoolMemberships } from 'contexts/Pools/PoolMemberships';
+import { useSetup } from 'contexts/Setup';
+import type { SetupContextInterface } from 'contexts/Setup/types';
+import { useStaking } from 'contexts/Staking';
+import { useUi } from 'contexts/UI';
+import type { UIContextInterface } from 'contexts/UI/types';
+import type { PageCategory, PageItem, PagesConfigItems } from 'types';
+import { Heading } from './Heading/Heading';
 import { Primary } from './Primary';
 import { LogoWrapper } from './Wrapper';
 
 export const Main = () => {
+  const { t, i18n } = useTranslation('base');
   const { network } = useApi();
   const { activeAccount, accounts } = useConnect();
   const { pathname } = useLocation();
-  const { getBondedAccount } = useBalances();
-  const { getControllerNotImported, inSetup: inNominatorSetup } = useStaking();
+  const { getBondedAccount } = useBonded();
+  const { inSetup: inNominatorSetup, addressDifferentToStash } = useStaking();
   const { membership } = usePoolMemberships();
   const controller = getBondedAccount(activeAccount);
   const {
-    isSyncing,
-    sideMenuMinimised,
-    getPoolSetupProgressPercent,
-    getStakeSetupProgressPercent,
-  }: UIContextInterface = useUi();
-  const controllerNotImported = getControllerNotImported(controller);
-  const { t } = useTranslation('base');
+    onNominatorSetup,
+    onPoolSetup,
+    getPoolSetupPercent,
+    getNominatorSetupPercent,
+  }: SetupContextInterface = useSetup();
+  const { isSyncing, sideMenuMinimised }: UIContextInterface = useUi();
+  const controllerDifferentToStash = addressDifferentToStash(controller);
 
   const [pageConfig, setPageConfig] = useState({
-    categories: Object.assign(PAGE_CATEGORIES),
-    pages: Object.assign(PAGES_CONFIG),
+    categories: Object.assign(PageCategories),
+    pages: Object.assign(PagesConfig),
   });
 
   useEffect(() => {
     if (!accounts.length) return;
 
     // inject actions into menu items
-    const _pages = Object.assign(pageConfig.pages);
-    for (let i = 0; i < _pages.length; i++) {
-      const { uri } = _pages[i];
+    const pages = Object.assign(pageConfig.pages);
+    for (let i = 0; i < pages.length; i++) {
+      const { uri } = pages[i];
 
       // set undefined action as default
-      _pages[i].action = undefined;
+      pages[i].action = undefined;
+      if (uri === `${import.meta.env.BASE_URL}`) {
+        const warning = !isSyncing && controllerDifferentToStash;
+        if (warning) {
+          pages[i].action = {
+            type: 'bullet',
+            status: 'warning',
+          };
+        }
+      }
 
-      if (uri === `${UriPrefix}/nominate`) {
+      if (uri === `${import.meta.env.BASE_URL}nominate`) {
         // configure Stake action
-        const warning = !isSyncing && controllerNotImported;
         const staking = !inNominatorSetup();
-        const setupPercent = getStakeSetupProgressPercent(activeAccount);
+        const warning = !isSyncing && controllerDifferentToStash;
+        const setupPercent = getNominatorSetupPercent(activeAccount);
 
         if (staking) {
-          _pages[i].action = {
+          pages[i].action = {
             type: 'text',
             status: 'success',
             text: t('active'),
           };
-        } else if (warning) {
-          _pages[i].action = {
+        }
+        if (warning) {
+          pages[i].action = {
             type: 'bullet',
             status: 'warning',
           };
-        } else if (setupPercent > 0 && !staking) {
-          _pages[i].action = {
+        }
+        if (!staking && (onNominatorSetup || setupPercent > 0)) {
+          pages[i].action = {
             type: 'text',
             status: 'warning',
             text: `${setupPercent}%`,
@@ -78,19 +91,20 @@ export const Main = () => {
         }
       }
 
-      if (uri === `${UriPrefix}/pools`) {
+      if (uri === `${import.meta.env.BASE_URL}pools`) {
         // configure Pools action
         const inPool = membership;
-        const setupPercent = getPoolSetupProgressPercent(activeAccount);
+        const setupPercent = getPoolSetupPercent(activeAccount);
 
         if (inPool) {
-          _pages[i].action = {
+          pages[i].action = {
             type: 'text',
             status: 'success',
             text: t('active'),
           };
-        } else if (setupPercent > 0 && !inPool) {
-          _pages[i].action = {
+        }
+        if (!inPool && (setupPercent > 0 || onPoolSetup)) {
+          pages[i].action = {
             type: 'text',
             status: 'warning',
             text: `${setupPercent}%`,
@@ -100,30 +114,31 @@ export const Main = () => {
     }
     setPageConfig({
       categories: pageConfig.categories,
-      pages: _pages,
+      pages,
     });
   }, [
     network,
     activeAccount,
     accounts,
-    controllerNotImported,
+    controllerDifferentToStash,
     isSyncing,
     membership,
     inNominatorSetup(),
-    getStakeSetupProgressPercent(activeAccount),
-    getPoolSetupProgressPercent(activeAccount),
+    getNominatorSetupPercent(activeAccount),
+    getPoolSetupPercent(activeAccount),
+    i18n.resolvedLanguage,
+    onNominatorSetup,
+    onPoolSetup,
   ]);
 
   // remove pages that network does not support
-  const pagesToDisplay: PagesConfig = Object.values(pageConfig.pages);
+  const pagesToDisplay: PagesConfigItems = Object.values(pageConfig.pages);
 
   return (
     <>
       <LogoWrapper
-        onClick={() => {
-          window.open(PolkadotUrl, '_blank');
-        }}
-        minimised={sideMenuMinimised}
+        $minimised={sideMenuMinimised}
+        onClick={() => window.open(PolkadotUrl, '_blank')}
       >
         {sideMenuMinimised ? (
           <network.brand.icon style={{ maxHeight: '100%', width: '2rem' }} />
@@ -149,23 +164,14 @@ export const Main = () => {
 
             {/* display category links */}
             {pagesToDisplay.map(
-              ({ category, hash, icon, key, animate, action }: PageItem) => (
+              ({ category, hash, key, lottie, action }: PageItem) => (
                 <React.Fragment key={`sidemenu_page_${categoryId}_${key}`}>
                   {category === categoryId && (
                     <Primary
                       name={t(key)}
                       to={hash}
                       active={hash === pathname}
-                      icon={
-                        icon ? (
-                          <FontAwesomeIcon
-                            icon={icon}
-                            transform="grow-1"
-                            className="fa-icon"
-                          />
-                        ) : undefined
-                      }
-                      animate={animate}
+                      lottie={lottie}
                       action={action}
                       minimised={sideMenuMinimised}
                     />

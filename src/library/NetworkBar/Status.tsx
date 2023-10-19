@@ -1,32 +1,31 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { useApi } from 'contexts/Api';
-import { ConnectionStatus } from 'contexts/Api/types';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+import { useApi } from 'contexts/Api';
 
 export const Status = () => {
-  const { status } = useApi();
+  const { t } = useTranslation('library');
+  const { apiStatus } = useApi();
 
   return (
     <>
-      {status === ConnectionStatus.Disconnected && (
+      {apiStatus === 'disconnected' && (
         <motion.p animate={{ opacity: [0, 1] }} transition={{ duration: 0.3 }}>
-          Disconnected
+          {t('disconnected')}
         </motion.p>
       )}
-      {status === ConnectionStatus.Connecting && (
+      {apiStatus === 'connecting' && (
         <motion.p animate={{ opacity: [0, 1] }} transition={{ duration: 0.3 }}>
-          Connecting...
+          {t('connecting')}...
         </motion.p>
       )}
-      {status === ConnectionStatus.Connected && (
+      {apiStatus === 'connected' && (
         <motion.p animate={{ opacity: [0, 1] }} transition={{ duration: 0.3 }}>
-          Connected to Network
+          {t('connectedToNetwork')}
         </motion.p>
       )}
     </>
   );
 };
-
-export default Status;

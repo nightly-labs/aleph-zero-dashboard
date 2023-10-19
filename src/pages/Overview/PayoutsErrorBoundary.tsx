@@ -1,4 +1,5 @@
-import { Component, ReactElement } from 'react';
+import type { ReactElement } from 'react';
+import { Component } from 'react';
 import styled from 'styled-components';
 
 export default class PayoutsErrorBoundary extends Component<{

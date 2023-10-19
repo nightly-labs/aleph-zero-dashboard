@@ -1,14 +1,12 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import styled from 'styled-components';
-import { backgroundLabel, networkColor, textSecondary } from 'theme';
 
 export const Wrapper = styled.div`
   width: 100%;
   display: flex;
   flex-flow: row wrap;
-  justify-content: flex-start;
   align-items: flex-end;
   margin-top: 1rem;
 
@@ -16,7 +14,6 @@ export const Wrapper = styled.div`
     width: 100%;
     display: flex;
     flex-flow: row wrap;
-    justify-content: flex-start;
     align-items: flex-end;
     margin-top: 1rem;
 
@@ -34,27 +31,26 @@ export const Wrapper = styled.div`
       }
       h4,
       h5 {
-        color: ${textSecondary};
+        color: var(--text-color-secondary);
       }
 
       h4 {
         display: flex;
         flex-flow: row wrap;
         align-items: center;
-        margin-bottom: 0.4rem;
+        margin: 1.25rem 0 0.4rem 0;
       }
       h5 {
-        margin: 0;
         position: relative;
         opacity: 0.75;
       }
       .bar {
-        background: ${backgroundLabel};
+        background: var(--background-list-item);
         width: 100%;
         padding: 0.65rem 0.75rem;
         overflow: hidden;
         position: relative;
-        transition: background 0.15s;
+        transition: background var(--transition-duration);
       }
       &:first-child .bar {
         border-top-left-radius: 1.5rem;
@@ -70,14 +66,14 @@ export const Wrapper = styled.div`
 
       &.invert {
         h4 {
-          color: ${networkColor};
+          color: var(--accent-color-primary);
         }
         h5 {
           opacity: 1;
           color: #111b24;
         }
         .bar {
-          background: ${networkColor};
+          background: var(--accent-color-primary);
         }
       }
     }

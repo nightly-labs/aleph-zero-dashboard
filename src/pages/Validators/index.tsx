@@ -1,76 +1,49 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { useApi } from 'contexts/Api';
-import { useValidators } from 'contexts/Validators';
-import { CardWrapper } from 'library/Graphs/Wrappers';
-import { PageTitle } from 'library/PageTitle';
-import { StatBoxList } from 'library/StatBoxList';
-import { ValidatorList } from 'library/ValidatorList';
+import { PageTitle } from '@polkadot-cloud/react';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PageRowWrapper } from 'Wrappers';
-import { PageProps } from '../types';
-import ActiveValidatorsStatBox from './Stats/ActiveValidators';
-import AverageCommissionStatBox from './Stats/AverageCommission';
-import TotalValidatorsStatBox from './Stats/TotalValidators';
+import { AllValidators } from './AllValidators';
+import { ValidatorFavorites } from './Favorites';
+import { ValidatorsTabsProvider, useValidatorsTabs } from './context';
 
-export const Validators = (props: PageProps) => {
-  const { page } = props;
-  const { key } = page;
+export const ValidatorsInner = () => {
+  const { t } = useTranslation('pages');
+  const { activeTab, setActiveTab } = useValidatorsTabs();
 
-  const { isReady } = useApi();
-  const { validators } = useValidators();
-  const { t } = useTranslation();
-  const defaultFilters = {
-    includes: ['active'],
-    excludes: ['all_commission', 'blocked_nominations', 'missing_identity'],
-  };
+  // back to tab 0 if not in the first tab
+  useEffect(() => {
+    if (![0].includes(activeTab)) {
+      setActiveTab(0);
+    }
+  }, []);
+
+  let tabs = [
+    {
+      title: t('validators.allValidators'),
+      active: activeTab === 0,
+      onClick: () => setActiveTab(0),
+    },
+  ];
+
+  tabs = tabs.concat({
+    title: t('validators.favorites'),
+    active: activeTab === 1,
+    onClick: () => setActiveTab(1),
+  });
 
   return (
     <>
-      <PageTitle title={t(key, { ns: 'base' })} />
-      <StatBoxList>
-        <TotalValidatorsStatBox />
-        <ActiveValidatorsStatBox />
-        <AverageCommissionStatBox />
-      </StatBoxList>
-      <PageRowWrapper className="page-padding" noVerticalSpacer>
-        <CardWrapper>
-          {!isReady ? (
-            <div className="item">
-              <h3>{t('validators.connecting', { ns: 'pages' })}</h3>
-            </div>
-          ) : (
-            <>
-              {validators.length === 0 && (
-                <div className="item">
-                  <h3>
-                    {t('validators.fetching_validators', { ns: 'pages' })}
-                  </h3>
-                </div>
-              )}
-
-              {validators.length > 0 && (
-                <ValidatorList
-                  bondType="stake"
-                  validators={validators}
-                  batchKey="validators_browse"
-                  title={t('validators.network_validators', { ns: 'pages' })}
-                  selectable={false}
-                  defaultFilters={defaultFilters}
-                  allowMoreCols
-                  allowFilters
-                  allowSearch
-                  pagination
-                  toggleFavorites
-                />
-              )}
-            </>
-          )}
-        </CardWrapper>
-      </PageRowWrapper>
+      <PageTitle title={t('validators.validators')} tabs={tabs} />
+      {activeTab === 0 && <AllValidators />}
+      {activeTab === 1 && <ValidatorFavorites />}
     </>
   );
 };
 
-export default Validators;
+export const Validators = () => (
+  <ValidatorsTabsProvider>
+    <ValidatorsInner />
+  </ValidatorsTabsProvider>
+);

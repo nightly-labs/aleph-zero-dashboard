@@ -1,41 +1,43 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { useModal } from 'contexts/Modal';
+import { ModalPadding } from '@polkadot-cloud/react';
+import { useTranslation } from 'react-i18next';
 import { Title } from 'library/Modal/Title';
 import { ValidatorList } from 'library/ValidatorList';
-import { PaddingWrapper } from '../Wrappers';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 import { ListWrapper } from './Wrappers';
 
 export const PoolNominations = () => {
-  const { config } = useModal();
-  const { nominator, targets } = config;
+  const {
+    config: { options },
+  } = useOverlay().modal;
+  const { nominator, targets } = options;
   const batchKey = 'pool_nominations';
+  const { t } = useTranslation('modals');
 
   return (
     <>
-      <Title title="Pool Nominations" />
-      <PaddingWrapper>
+      <Title title={t('poolNominations')} />
+      <ModalPadding>
         <ListWrapper>
           {targets.length > 0 ? (
             <ValidatorList
               format="nomination"
-              bondType="pool"
+              bondFor="pool"
               validators={targets}
               nominator={nominator}
               batchKey={batchKey}
-              title="Pool Nominations"
+              title={t('poolNominations')}
               showMenu={false}
               inModal
               refetchOnListUpdate
             />
           ) : (
-            <h3>This pool is not nominating.</h3>
+            <h3>{t('poolIsNotNominating')}</h3>
           )}
         </ListWrapper>
-      </PaddingWrapper>
+      </ModalPadding>
     </>
   );
 };
-
-export default PoolNominations;

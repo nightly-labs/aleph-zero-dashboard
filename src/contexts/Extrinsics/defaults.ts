@@ -1,12 +1,11 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { ExtrinsicsContextInterface } from './types';
+import type { ExtrinsicsContextInterface } from './types';
 
 export const defaultExtrinsicsContext: ExtrinsicsContextInterface = {
-  // eslint-disable-next-line
   addPending: (t) => {},
-  // eslint-disable-next-line
   removePending: (t) => {},
   pending: [],
 };

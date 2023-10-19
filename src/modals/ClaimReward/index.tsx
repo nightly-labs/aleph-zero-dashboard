@@ -1,37 +1,43 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { faArrowAltCircleUp } from '@fortawesome/free-regular-svg-icons';
-import { faPlus, faShare } from '@fortawesome/free-solid-svg-icons';
-import { ButtonSubmit } from '@rossbulat/polkadot-dashboard-ui';
-import { BN } from 'bn.js';
+import { ActionItem, ModalPadding, ModalWarnings } from '@polkadot-cloud/react';
+import { greaterThanZero, planckToUnit } from '@polkadot-cloud/utils';
+import BigNumber from 'bignumber.js';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
 import { useConnect } from 'contexts/Connect';
-import { useModal } from 'contexts/Modal';
 import { useActivePools } from 'contexts/Pools/ActivePools';
-import { useTxFees } from 'contexts/TxFees';
-import { EstimatedTxFee } from 'library/EstimatedTxFee';
 import { Warning } from 'library/Form/Warning';
+import { useSignerWarnings } from 'library/Hooks/useSignerWarnings';
 import { useSubmitExtrinsic } from 'library/Hooks/useSubmitExtrinsic';
-import { Title } from 'library/Modal/Title';
-import { useEffect, useState } from 'react';
-import { planckBnToUnit } from 'Utils';
-import { FooterWrapper, PaddingWrapper, Separator } from '../Wrappers';
+import { Close } from 'library/Modal/Close';
+import { SubmitTx } from 'library/SubmitTx';
+import { useTxMeta } from 'contexts/TxMeta';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 
 export const ClaimReward = () => {
+  const { t } = useTranslation('modals');
   const { api, network } = useApi();
-  const { setStatus: setModalStatus, config } = useModal();
+  const { activeAccount } = useConnect();
+  const { notEnoughFunds } = useTxMeta();
   const { selectedActivePool } = useActivePools();
-  const { activeAccount, accountHasSigner } = useConnect();
-  const { txFeesValid } = useTxFees();
+  const { getSignerWarnings } = useSignerWarnings();
+  const {
+    setModalStatus,
+    config: { options },
+    setModalResize,
+  } = useOverlay().modal;
+
   const { units, unit } = network;
-  let { unclaimedRewards } = selectedActivePool || {};
-  unclaimedRewards = unclaimedRewards ?? new BN(0);
-  const { claimType } = config;
+  let { pendingRewards } = selectedActivePool || {};
+  pendingRewards = pendingRewards ?? new BigNumber(0);
+  const { claimType } = options;
 
   // ensure selected payout is valid
   useEffect(() => {
-    if (unclaimedRewards?.gtn(0)) {
+    if (pendingRewards?.isGreaterThan(0)) {
       setValid(true);
     } else {
       setValid(false);
@@ -56,73 +62,55 @@ export const ClaimReward = () => {
     return tx;
   };
 
-  const { submitTx, submitting } = useSubmitExtrinsic({
+  const submitExtrinsic = useSubmitExtrinsic({
     tx: getTx(),
     from: activeAccount,
     shouldSubmit: valid,
     callbackSubmit: () => {
-      setModalStatus(2);
+      setModalStatus('closing');
     },
     callbackInBlock: () => {},
   });
 
+  const warnings = getSignerWarnings(
+    activeAccount,
+    false,
+    submitExtrinsic.proxySupported
+  );
+
+  if (!greaterThanZero(pendingRewards)) {
+    warnings.push(`${t('noRewards')}`);
+  }
+
+  useEffect(() => setModalResize(), [notEnoughFunds, warnings.length]);
+
   return (
     <>
-      <Title
-        title={`${claimType === 'bond' ? 'Bond' : 'Withdraw'} Rewards`}
-        icon={claimType === 'bond' ? faPlus : faShare}
-      />
-      <PaddingWrapper>
-        <div
-          style={{
-            width: '100%',
-          }}
-        >
-          {!accountHasSigner(activeAccount) && (
-            <Warning text="Your account is read only, and cannot sign transactions." />
-          )}
-          {!unclaimedRewards?.gtn(0) && (
-            <Warning text="You have no rewards to claim." />
-          )}
-          <h2>
-            {planckBnToUnit(unclaimedRewards, units)} {unit}
-          </h2>
-          <Separator />
-          <div className="notes">
-            {claimType === 'bond' ? (
-              <p>
-                Once submitted, your rewards will be bonded back into the pool.
-                You own these additional bonded funds and will be able to
-                withdraw them at any time.
-              </p>
-            ) : (
-              <p>
-                Withdrawing rewards will immediately transfer them to your
-                account as free balance.
-              </p>
-            )}
-            <EstimatedTxFee />
-          </div>
-          <FooterWrapper>
-            <div>
-              <ButtonSubmit
-                text={`Submit${submitting ? 'ting' : ''}`}
-                iconLeft={faArrowAltCircleUp}
-                iconTransform="grow-2"
-                onClick={() => submitTx()}
-                disabled={
-                  !valid ||
-                  submitting ||
-                  !accountHasSigner(activeAccount) ||
-                  !txFeesValid
-                }
-              />
-            </div>
-          </FooterWrapper>
-        </div>
-      </PaddingWrapper>
+      <Close />
+      <ModalPadding>
+        <h2 className="title unbounded">
+          {claimType === 'bond' ? t('compound') : t('withdraw')} {t('rewards')}
+        </h2>
+        {warnings.length > 0 ? (
+          <ModalWarnings withMargin>
+            {warnings.map((text, i) => (
+              <Warning key={`warning${i}`} text={text} />
+            ))}
+          </ModalWarnings>
+        ) : null}
+        <ActionItem
+          text={`${t('claim')} ${`${planckToUnit(
+            pendingRewards,
+            units
+          )} ${unit}`}`}
+        />
+        {claimType === 'bond' ? (
+          <p>{t('claimReward1')}</p>
+        ) : (
+          <p>{t('claimReward2')}</p>
+        )}
+      </ModalPadding>
+      <SubmitTx valid={valid} {...submitExtrinsic} />
     </>
   );
 };
-
-export default ClaimReward;

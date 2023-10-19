@@ -1,11 +1,11 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 export const defaultContext = {
   setSelectable: (_selectable: boolean) => {},
   addToSelected: (item: any) => {},
-  removeFromSelected: (items: Array<any>) => {},
+  removeFromSelected: (items: any[]) => {},
   resetSelected: () => {},
   setListFormat: (v: string) => {},
   selected: [],

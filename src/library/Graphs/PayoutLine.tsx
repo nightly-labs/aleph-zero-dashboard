@@ -1,6 +1,7 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
+import BigNumber from 'bignumber.js';
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -11,20 +12,17 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
+import { Line } from 'react-chartjs-2';
 import { useApi } from 'contexts/Api';
 import { usePoolMemberships } from 'contexts/Pools/PoolMemberships';
 import { useStaking } from 'contexts/Staking';
 import { useTheme } from 'contexts/Themes';
 import { useUi } from 'contexts/UI';
 import { useMemo } from 'react';
-import { Line } from 'react-chartjs-2';
-import {
-  defaultThemes,
-  networkColors,
-  networkColorsSecondary,
-} from 'theme/default';
-import { humanNumber, round } from 'Utils';
-import { PayoutLineProps } from './types';
+import { graphColors } from 'styles/graphs';
+
+import { round } from 'Utils';
+import type { PayoutLineProps } from './types';
 
 ChartJS.register(
   CategoryScale,
@@ -39,30 +37,33 @@ ChartJS.register(
 export const PayoutLine = ({
   payouts,
   averageWindowSize,
+  maxPayoutDays,
   height,
   background,
 }: PayoutLineProps) => {
-  const graphablePayouts = payouts.slice(averageWindowSize); // Leave out oldest "averageWindowSize" number of values for the average window
+  const graphablePayouts = payouts.slice(-maxPayoutDays);
   const { mode } = useTheme();
-  const { name, unit } = useApi().network;
+  const { unit, units, colors } = useApi().network;
   const { isSyncing } = useUi();
   const { inSetup } = useStaking();
   const { membership: poolMembership } = usePoolMemberships();
   const averageValues = useMemo(
     () =>
-      payouts.length < averageWindowSize
-        ? []
-        : payouts
-            .map(([, payout]) => payout)
-            .reduce<number[]>((acc, _, i, arr) => {
-              if (i < averageWindowSize - 1) return acc;
+      payouts
+        .map(([, payout]) => payout)
+        .reduce<number[]>((acc, eraPayout, i, allPayouts) => {
+          const previousAvg = acc[i - 1] ?? 0;
+          const previousDivisor = Math.min(acc.length, averageWindowSize);
+          const previousSum = previousAvg * previousDivisor;
 
-              const sum = arr
-                .slice(i - averageWindowSize + 1, i + 1)
-                .reduce((s, v) => s + (v || 0), 0);
+          const excludedPayout = allPayouts[i - averageWindowSize] ?? 0;
+          const sum = eraPayout + previousSum - excludedPayout;
+          const avg = sum / Math.min(acc.length + 1, averageWindowSize);
 
-              return [...acc, round(sum / averageWindowSize, 2)];
-            }, []),
+          return [...acc, avg];
+        }, [])
+        .map((avgPayout) => round(avgPayout, 2))
+        .slice(-maxPayoutDays),
     [payouts]
   );
 
@@ -71,10 +72,10 @@ export const PayoutLine = ({
 
   // determine color for payouts
   const color = notStaking
-    ? networkColors[`${name}-${mode}`]
+    ? colors.primary[mode]
     : !poolingOnly
-    ? networkColors[`${name}-${mode}`]
-    : networkColorsSecondary[`${name}-${mode}`];
+    ? colors.primary[mode]
+    : colors.secondary[mode];
 
   // configure graph options
   const options = {
@@ -100,7 +101,7 @@ export const PayoutLine = ({
           display: false,
         },
         grid: {
-          color: defaultThemes.graphs.grid[mode],
+          color: graphColors.grid[mode],
         },
       },
     },
@@ -110,15 +111,18 @@ export const PayoutLine = ({
       },
       tooltip: {
         displayColors: false,
-        backgroundColor: defaultThemes.graphs.tooltip[mode],
-        titleColor: defaultThemes.text.invert[mode],
-        bodyColor: defaultThemes.text.invert[mode],
+        backgroundColor: graphColors.tooltip[mode],
+        titleColor: graphColors.label[mode],
+        bodyColor: graphColors.label[mode],
         bodyFont: {
           weight: '600',
         },
         callbacks: {
           title: () => [],
-          label: (context: any) => ` ${humanNumber(context.parsed.y)} ${unit}`,
+          label: (context: any) =>
+            ` ${new BigNumber(context.parsed.y)
+              .decimalPlaces(units)
+              .toFormat()} ${unit}`,
         },
         intersect: false,
         interaction: {
@@ -149,10 +153,11 @@ export const PayoutLine = ({
         {averageWindowSize > 1 ? `${averageWindowSize} Day Average` : null}
       </h5>
       <div
-        className="graph_line"
         style={{
           height: height || 'auto',
           background: background || 'none',
+          marginTop: '0.6rem',
+          padding: '0 0 0.5rem 1.5rem',
         }}
       >
         <Line options={options} data={data} />
@@ -160,5 +165,3 @@ export const PayoutLine = ({
     </>
   );
 };
-
-export default PayoutLine;

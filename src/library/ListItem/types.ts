@@ -1,9 +1,9 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { BondedPool } from 'contexts/Pools/types';
-import React from 'react';
-import { AnyMetaBatch, MaybeAccount } from 'types';
+import type React from 'react';
+import type { BondedPool } from 'contexts/Pools/types';
+import type { BondFor, MaybeAccount } from 'types';
 
 export interface BlockedProps {
   prefs: {
@@ -13,9 +13,7 @@ export interface BlockedProps {
 }
 
 export interface CopyAddressProps {
-  validator: {
-    address: string;
-  };
+  address: string;
 }
 
 export interface FavoriteProps {
@@ -24,9 +22,6 @@ export interface FavoriteProps {
 
 export interface IdentityProps {
   address: string;
-  batchIndex: number;
-  batchKey: string;
-  meta: AnyMetaBatch;
 }
 
 export interface PoolIdentityProps {
@@ -42,13 +37,12 @@ export interface MetricsProps {
 
 export interface NominationStatusProps {
   address: string;
-  bondType: string;
+  bondFor: BondFor;
   nominator: MaybeAccount;
 }
 
 export interface OversubscribedProps {
-  batchIndex: number;
-  batchKey: string;
+  address: MaybeAccount;
 }
 
 export interface SelectProps {

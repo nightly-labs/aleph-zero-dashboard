@@ -1,0 +1,66 @@
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
+
+html {
+  font-size: 10.5px;
+  @media (min-width: 600px) {
+    font-size: 11px;
+  }
+}
+
+/* Aleph custom styles */
+
+@import url('https://fonts.googleapis.com/css2?family=Karla&display=swap');
+
+@font-face {
+  font-family: 'Gilroy';
+  font-style: normal;
+  src: url('../../public/fonts/gilroy-regular.otf');
+}
+
+@font-face {
+  font-family: 'Gilroy';
+  font-style: 600;
+  src: url('../../public/fonts/Gilroy-Medium.otf');
+}
+
+body {
+  margin: 0;
+  font-family: 'Karla', 'sans-serif', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  font-variation-settings: 'wght' 500;
+}
+
+h1, h2,
+.core-page-title h1, .modal-content h1 {
+  font-family: 'Gilroy', 'sans-serif', sans-serif;
+}
+
+.modal-content h3 {
+  font-family: 'Karla', 'sans-serif', sans-serif;
+}
+
+.btn-primary {
+  color: black;
+}
+
+.btn-text,
+.btn-primary-invert,
+.btn-tab,
+.btn-mono-invert,
+.btn-layout,
+button {
+  font-family: 'Gilroy', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.04rem;
+}
+
+button.btn-submit {
+  color: inherit;
+}
+
+.theme-dark #logotype_brandmark {
+  fill: white;
+}

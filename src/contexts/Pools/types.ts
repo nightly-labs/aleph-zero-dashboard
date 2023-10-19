@@ -1,8 +1,8 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import BN from 'bn.js';
-import { AnyApi, AnyJson, AnyMetaBatch, MaybeAccount, Sync } from 'types';
+import type BigNumber from 'bignumber.js';
+import type { AnyApi, AnyJson, AnyMetaBatch, MaybeAccount, Sync } from 'types';
 
 // PoolsConfig types
 export interface PoolsConfigContextState {
@@ -18,34 +18,44 @@ export interface PoolConfigState {
   unsub: AnyApi;
 }
 
+export type ClaimPermission =
+  | 'Permissioned'
+  | 'PermissionlessCompound'
+  | 'PermissionlessWithdraw'
+  | 'PermissionlessAll';
+
 export interface PoolStats {
-  counterForPoolMembers: BN;
-  counterForBondedPools: BN;
-  counterForRewardPools: BN;
-  lastPoolId: BN;
-  maxPoolMembers: BN;
-  maxPoolMembersPerPool: BN;
-  maxPools: BN;
-  minCreateBond: BN;
-  minJoinBond: BN;
+  counterForPoolMembers: BigNumber;
+  counterForBondedPools: BigNumber;
+  counterForRewardPools: BigNumber;
+  lastPoolId: BigNumber;
+  maxPoolMembers: BigNumber | null;
+  maxPoolMembersPerPool: BigNumber | null;
+  maxPools: BigNumber | null;
+  minCreateBond: BigNumber;
+  minJoinBond: BigNumber;
+  globalMaxCommission: number;
 }
 
 // PoolMemberships types
 export interface PoolMembershipsContextState {
-  memberships: Array<PoolMembership>;
+  memberships: PoolMembership[];
   membership: PoolMembership | null;
+  claimPermissionConfig: ClaimPermissionConfig[];
 }
 
 export interface PoolMembership {
   address: string;
   poolId: number;
   points: string;
+  balance: BigNumber;
   lastRecordedRewardCounter: string;
-  unbondingEras: { [key: number]: string };
-  unlocking: Array<{
+  unbondingEras: Record<number, string>;
+  claimPermission: ClaimPermission;
+  unlocking: {
     era: number;
-    value: BN;
-  }>;
+    value: BigNumber;
+  }[];
 }
 
 // BondedPool types
@@ -53,7 +63,7 @@ export interface BondedPoolsContextState {
   fetchPoolsMetaBatch: (k: string, v: [], r?: boolean) => void;
   queryBondedPool: (p: number) => any;
   getBondedPool: (p: number) => BondedPool | null;
-  updateBondedPools: (p: Array<BondedPool>) => void;
+  updateBondedPools: (p: BondedPool[]) => void;
   addToBondedPools: (p: BondedPool) => void;
   removeFromBondedPools: (p: number) => void;
   getPoolNominationStatus: (n: MaybeAccount, o: MaybeAccount) => any;
@@ -62,7 +72,7 @@ export interface BondedPoolsContextState {
   getAccountPools: (w: MaybeAccount) => any;
   replacePoolRoles: (poolId: number, roleEdits: AnyJson) => void;
   poolSearchFilter: (l: any, k: string, v: string) => void;
-  bondedPools: Array<BondedPool>;
+  bondedPools: BondedPool[];
   meta: AnyMetaBatch;
 }
 
@@ -72,7 +82,7 @@ export interface ActivePool {
   bondedPool: any;
   rewardPool: any;
   rewardAccountBalance: any;
-  unclaimedRewards: any;
+  pendingRewards: any;
 }
 
 export interface BondedPool {
@@ -84,12 +94,21 @@ export interface BondedPool {
     depositor: string;
     nominator: string;
     root: string;
-    stateToggler: string;
+    bouncer: string;
   };
   state: PoolState;
+  commission?: {
+    current?: AnyJson | null;
+    max?: AnyJson | null;
+    changeRate: {
+      maxIncrease: AnyJson;
+      minDelay: AnyJson;
+    } | null;
+    throttleFrom?: AnyJson | null;
+  };
 }
 
-export type NominationStatuses = { [key: string]: string };
+export type NominationStatuses = Record<string, string>;
 
 export interface ActivePoolsContextState {
   isBonding: () => boolean;
@@ -97,7 +116,7 @@ export interface ActivePoolsContextState {
   isOwner: () => boolean;
   isMember: () => boolean;
   isDepositor: () => boolean;
-  isStateToggler: () => boolean;
+  isBouncer: () => boolean;
   getPoolBondedAccount: () => MaybeAccount;
   getPoolUnlocking: () => any;
   getPoolRoles: () => PoolRoles;
@@ -108,18 +127,23 @@ export interface ActivePoolsContextState {
   targets: any;
   poolNominations: any;
   synced: Sync;
+  selectedPoolMemberCount: number;
 }
 
 // PoolMembers types
 export interface PoolMemberContext {
-  fetchPoolMembersMetaBatch: (k: string, v: [], r: boolean) => void;
+  fetchPoolMembersMetaBatch: (k: string, v: AnyMetaBatch[], r: boolean) => void;
   queryPoolMember: (w: MaybeAccount) => any;
-  getMembersOfPool: (p: number) => any;
+  getMembersOfPoolFromNode: (p: number) => any;
   addToPoolMembers: (m: any) => void;
-  getPoolMember: (w: MaybeAccount) => any | null;
   removePoolMember: (w: MaybeAccount) => void;
-  poolMembers: any;
+  getPoolMemberCount: (p: number) => number;
+  poolMembersNode: any;
   meta: AnyMetaBatch;
+  poolMembersApi: PoolMember[];
+  setPoolMembersApi: (p: PoolMember[]) => void;
+  fetchedPoolMembersApi: Sync;
+  setFetchedPoolMembersApi: (s: Sync) => void;
 }
 
 // Misc types
@@ -127,7 +151,7 @@ export interface PoolRoles {
   depositor: string;
   nominator: string;
   root: string;
-  stateToggler: string;
+  bouncer: string;
 }
 
 export interface PoolAddresses {
@@ -137,14 +161,15 @@ export interface PoolAddresses {
 
 export type MaybePool = number | null;
 
-export enum PoolState {
-  /// The pool is open to be joined, and is working normally.
-  Open = 'Open',
-  /// The pool is blocked. No one else can join.
-  Block = 'Blocked',
-  /// The pool is in the process of being destroyed.
-  ///
-  /// All members can now be permissionlessly unbonded, and the pool can never go back to any
-  /// other state other than being dissolved.
-  Destroy = 'Destroying',
+export type PoolState = 'Open' | 'Blocked' | 'Destroying';
+
+export interface ClaimPermissionConfig {
+  label: string;
+  value: ClaimPermission;
+  description: string;
+}
+
+export interface PoolMember {
+  poolId: number;
+  who: string;
 }

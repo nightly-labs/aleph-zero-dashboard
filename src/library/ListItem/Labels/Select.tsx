@@ -1,19 +1,15 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
+import type { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faCheck, faCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { SelectSingleWrapper, SelectWrapper } from 'library/ListItem/Wrappers';
-import { useTheme } from 'styled-components';
-import { defaultThemes } from 'theme/default';
+import styled from 'styled-components';
 import { useList } from '../../List/context';
-import { SelectProps } from '../types';
+import type { SelectProps } from '../types';
 
-export const Select = (props: SelectProps) => {
-  const { item } = props;
-
-  const { mode }: any = useTheme();
+export const Select = ({ item }: SelectProps) => {
   const { addToSelected, removeFromSelected, selected } = useList();
 
   const isSelected = selected.includes(item);
@@ -28,13 +24,7 @@ export const Select = (props: SelectProps) => {
         }
       }}
     >
-      {isSelected && (
-        <FontAwesomeIcon
-          icon={faCheck as IconProp}
-          transform="shrink-2"
-          color={defaultThemes.text.primary[mode]}
-        />
-      )}
+      {isSelected && <FontAwesomeIcon icon={faCheck} transform="shrink-2" />}
     </SelectWrapper>
   );
 };
@@ -42,7 +32,6 @@ export const Select = (props: SelectProps) => {
 export const SelectSingle = (props: SelectProps) => {
   const { item, onSelect } = props;
 
-  const { mode }: any = useTheme();
   const { addAsSingleSelect, selected } = useList();
 
   const isSelected = selected.includes(item);
@@ -57,14 +46,15 @@ export const SelectSingle = (props: SelectProps) => {
       }}
     >
       {isSelected && (
-        <FontAwesomeIcon
+        <StyledFontAwesomeIcon
           icon={faCircle as IconProp}
           transform="shrink-2"
-          color={defaultThemes.text.primary[mode]}
         />
       )}
     </SelectSingleWrapper>
   );
 };
 
-export default Select;
+const StyledFontAwesomeIcon = styled(FontAwesomeIcon)`
+  color: var(--text-color-primary);
+`;

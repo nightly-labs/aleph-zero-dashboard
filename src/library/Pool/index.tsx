@@ -1,22 +1,23 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faCopy } from '@fortawesome/free-regular-svg-icons';
 import { faBars, faProjectDiagram } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useConnect } from 'contexts/Connect';
 import { useMenu } from 'contexts/Menu';
-import { useModal } from 'contexts/Modal';
 import { useNotifications } from 'contexts/Notifications';
-import { NotificationText } from 'contexts/Notifications/types';
+import type { NotificationText } from 'contexts/Notifications/types';
 import { useBondedPools } from 'contexts/Pools/BondedPools';
 import { usePoolMemberships } from 'contexts/Pools/PoolMemberships';
-import { PoolState } from 'contexts/Pools/types';
 import { useUi } from 'contexts/UI';
-import { useValidators } from 'contexts/Validators';
+import { useValidators } from 'contexts/Validators/ValidatorEntries';
+import { usePoolCommission } from 'library/Hooks/usePoolCommission';
 import { FavoritePool } from 'library/ListItem/Labels/FavoritePool';
 import { PoolBonded } from 'library/ListItem/Labels/PoolBonded';
+import { PoolCommission } from 'library/ListItem/Labels/PoolCommission';
 import { PoolIdentity } from 'library/ListItem/Labels/PoolIdentity';
 import {
   Labels,
@@ -25,27 +26,27 @@ import {
   Wrapper,
 } from 'library/ListItem/Wrappers';
 import { usePoolsTabs } from 'pages/Pools/Home/context';
-import { useRef } from 'react';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 import { JoinPool } from '../ListItem/Labels/JoinPool';
 import { Members } from '../ListItem/Labels/Members';
 import { PoolId } from '../ListItem/Labels/PoolId';
-import { PoolProps } from './types';
+import type { PoolProps } from './types';
 
-export const Pool = (props: PoolProps) => {
-  const { pool, batchKey, batchIndex } = props;
+export const Pool = ({ pool, batchKey, batchIndex }: PoolProps) => {
+  const { t } = useTranslation('library');
   const { memberCounter, addresses, id, state } = pool;
-
-  const { openModalWith } = useModal();
+  const { openModal } = useOverlay().modal;
   const { activeAccount, isReadOnlyAccount } = useConnect();
   const { meta } = useBondedPools();
   const { membership } = usePoolMemberships();
   const { addNotification } = useNotifications();
   const { validators } = useValidators();
-  const { poolsSyncing } = useUi();
-
-  // assumes component is under `PoolsTabsProvider` (Pools page)
+  const { isPoolSyncing } = useUi();
   const { setActiveTab } = usePoolsTabs();
   const { setMenuPosition, setMenuItems, open }: any = useMenu();
+  const { getCurrentCommission } = usePoolCommission();
+
+  const currentCommission = getCurrentCommission(id);
 
   // get metadata from pools metabatch
   const nominations = meta[batchKey]?.nominations ?? [];
@@ -66,35 +67,34 @@ export const Pool = (props: PoolProps) => {
     addresses.stash == null
       ? null
       : {
-          title: 'Address Copied to Clipboard',
+          title: t('addressCopiedToClipboard'),
           subtitle: addresses.stash,
         };
 
   // consruct pool menu items
-  const menuItems: Array<any> = [];
+  const menuItems: any[] = [];
 
   // add view pool nominations button to menu
   menuItems.push({
-    icon: <FontAwesomeIcon icon={faProjectDiagram as IconProp} />,
+    icon: <FontAwesomeIcon icon={faProjectDiagram} transform="shrink-3" />,
     wrap: null,
-    title: `View Pool Nominations`,
+    title: `${t('viewPoolNominations')}`,
     cb: () => {
-      openModalWith(
-        'PoolNominations',
-        {
+      openModal({
+        key: 'PoolNominations',
+        options: {
           nominator: addresses.stash,
           targets: targetValidators,
         },
-        'large'
-      );
+      });
     },
   });
 
   // add copy pool address button to menu
   menuItems.push({
-    icon: <FontAwesomeIcon icon={faCopy as IconProp} />,
+    icon: <FontAwesomeIcon icon={faCopy} transform="shrink-3" />,
     wrap: null,
-    title: `Copy Pool Address`,
+    title: t('copyPoolAddress'),
     cb: () => {
       navigator.clipboard.writeText(addresses.stash);
       if (notificationCopyAddress) {
@@ -112,7 +112,7 @@ export const Pool = (props: PoolProps) => {
   };
 
   return (
-    <Wrapper format="nomination">
+    <Wrapper $format="nomination">
       <div className="inner">
         <MenuPosition ref={posRef} />
         <div className="row">
@@ -123,9 +123,12 @@ export const Pool = (props: PoolProps) => {
           />
           <div>
             <Labels>
-              <FavoritePool address={addresses.stash} />
+              {currentCommission > 0 && (
+                <PoolCommission commission={`${currentCommission}%`} />
+              )}
               <PoolId id={id} />
               <Members members={memberCounter} />
+              <FavoritePool address={addresses.stash} />
               <button
                 type="button"
                 className="label"
@@ -139,8 +142,8 @@ export const Pool = (props: PoolProps) => {
         <Separator />
         <div className="row status">
           <PoolBonded pool={pool} batchIndex={batchIndex} batchKey={batchKey} />
-          {!poolsSyncing &&
-            state === PoolState.Open &&
+          {!isPoolSyncing &&
+            state === 'Open' &&
             !membership &&
             !isReadOnlyAccount(activeAccount) &&
             activeAccount && (
@@ -153,5 +156,3 @@ export const Pool = (props: PoolProps) => {
     </Wrapper>
   );
 };
-
-export default Pool;

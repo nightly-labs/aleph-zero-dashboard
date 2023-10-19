@@ -1,66 +1,50 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import BN from 'bn.js';
-import { AnyApi, MaybeAccount } from 'types';
-
-export interface UnlockChunk {
-  era: number;
-  value: BN;
-}
-
-export interface BalanceLedger {
-  address: MaybeAccount;
-  stash: string | null;
-  active: BN;
-  total: BN;
-  unlocking: Array<UnlockChunk>;
-}
-
-export interface BondedAccount {
-  address: string;
-  unsub: { (): void } | null;
-}
-
-export interface Lock {
-  id: string;
-  amount: BN;
-  reasons: string;
-}
-export interface Balance {
-  free: BN;
-  reserved: BN;
-  miscFrozen: BN;
-  feeFrozen: BN;
-  freeAfterReserve: BN;
-}
-
-export interface BalancesAccount {
-  address?: string;
-  balance?: Balance;
-  bonded?: string;
-  ledger?: BalanceLedger;
-  locks?: Array<Lock>;
-  nominations?: Nominations;
-}
-
-export interface Nominations {
-  targets: Targets;
-  submittedIn: string | number;
-}
-
-export type Targets = string[];
+import type BigNumber from 'bignumber.js';
+import type { MaybeAccount } from 'types';
 
 export interface BalancesContextInterface {
-  getAccount: (address: MaybeAccount) => BalancesAccount | null;
-  getAccountBalance: (address: MaybeAccount) => Balance;
-  getLedgerForStash: (address: MaybeAccount) => BalanceLedger;
-  getLedgerForController: (address: MaybeAccount) => BalanceLedger | null;
-  getAccountLocks: (address: MaybeAccount) => Array<Lock>;
-  getBondedAccount: (address: MaybeAccount) => string | null;
-  getAccountNominations: (address: MaybeAccount) => Targets;
-  isController: (address: MaybeAccount) => boolean;
-  accounts: Array<BalancesAccount>;
-  existentialAmount: BN;
-  ledgers: AnyApi;
+  ledgers: Ledger[];
+  balances: Balances[];
+  getStashLedger: (a: MaybeAccount) => Ledger;
+  getBalance: (address: MaybeAccount) => Balance;
+  getLocks: (address: MaybeAccount) => BalanceLock[];
+  getNonce: (address: MaybeAccount) => number;
+}
+
+export interface Balances {
+  address?: string;
+  nonce?: number;
+  balance?: Balance;
+  locks?: BalanceLock[];
+}
+
+export interface Balance {
+  free: BigNumber;
+  reserved: BigNumber;
+  frozen: BigNumber;
+}
+
+export interface UnlockChunkRaw {
+  era: string;
+  value: string;
+}
+export interface UnlockChunk {
+  era: number;
+  value: BigNumber;
+}
+
+export interface BalanceLock {
+  id: string;
+  amount: BigNumber;
+  reasons: string;
+}
+
+export interface Ledger {
+  address: MaybeAccount;
+  stash: string | null;
+  active: BigNumber;
+  total: BigNumber;
+  unlocking: UnlockChunk[];
 }

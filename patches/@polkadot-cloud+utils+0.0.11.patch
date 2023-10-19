@@ -1,0 +1,18 @@
+diff --git a/node_modules/@polkadot-cloud/utils/index.js b/node_modules/@polkadot-cloud/utils/index.js
+index 39b849d..dac9a30 100644
+--- a/node_modules/@polkadot-cloud/utils/index.js
++++ b/node_modules/@polkadot-cloud/utils/index.js
+@@ -68,11 +68,11 @@ var unitToPlanck = function (val, units) {
+         .integerValue();
+ };
+ var minDecimalPlaces = function (val, minDecimals) {
+-    var whole = new BigNumber(val.split(".")[0] || 0);
++    var whole = new BigNumber(val.replaceAll(',', '').split(".")[0] || 0);
+     var decimals = val.split(".")[1] || "";
+     var missingDecimals = new BigNumber(minDecimals).minus(decimals.length);
+     return missingDecimals.isGreaterThan(0)
+-        ? "".concat(whole.toString(), ".").concat(decimals.toString()).concat("0".repeat(missingDecimals.toNumber()))
++        ? "".concat(whole.toFormat(), ".").concat(decimals.toString()).concat("0".repeat(missingDecimals.toNumber()))
+         : val;
+ };
+ var rmCommas = function (val) { return val.replace(/,/g, ""); };

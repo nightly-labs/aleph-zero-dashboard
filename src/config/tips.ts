@@ -1,58 +1,53 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import * as helpCenterJson from 'img/json/help-center-outline.json';
-import * as infoJson from 'img/json/info-outline.json';
-
-export const TIPS_CONFIG = [
+export const TipsConfig = [
   {
-    id: 'connect_extensions',
+    id: 'connectExtensions',
     s: 1,
-    icon: infoJson,
   },
   {
-    id: 'recommended_nominator',
+    id: 'recommendedNominator',
     s: 2,
-    icon: infoJson,
+    page: 'nominate',
   },
   {
-    id: 'recommended_join_pool',
+    id: 'recommendedJoinPool',
     s: 3,
-    icon: infoJson,
+    page: 'pools',
   },
   {
-    id: 'how_to_stake',
+    id: 'howToStake',
     s: 4,
-    icon: helpCenterJson,
   },
   {
-    id: 'managing_nominations',
+    id: 'managingNominations',
     s: 5,
-    icon: infoJson,
+    page: 'nominate',
   },
   {
-    id: 'monitoring_pool',
+    id: 'monitoringPool',
     s: 6,
-    icon: infoJson,
+    page: 'pools',
   },
   {
-    id: 'join_another_pool',
+    id: 'joinAnotherPool',
     s: 6,
-    icon: infoJson,
+    page: 'pools',
   },
   {
-    id: 'keep_pool_nominating',
+    id: 'keepPoolNominating',
     s: 7,
-    icon: infoJson,
+    page: 'pools',
   },
   {
-    id: 'reviewing_payouts',
+    id: 'reviewingPayouts',
     s: 8,
-    icon: infoJson,
+    page: 'payouts',
   },
   {
-    id: 'understanding_validator_performance',
+    id: 'understandingValidatorPerformance',
     s: 8,
-    icon: infoJson,
+    page: 'validators',
   },
 ];

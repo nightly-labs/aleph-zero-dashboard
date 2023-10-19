@@ -1,48 +1,38 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
+import { planckToUnit } from '@polkadot-cloud/utils';
+import type { Context } from 'react';
+import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
-import { useTheme } from 'contexts/Themes';
-import { EstimatedFeeContext, TxFeesContext, useTxFees } from 'contexts/TxFees';
-import React, { Context, useEffect } from 'react';
-import { defaultThemes } from 'theme/default';
-import { humanNumber, planckBnToUnit } from 'Utils';
-import { EstimatedTxFeeProps } from './types';
+import { TxMetaContext, useTxMeta } from 'contexts/TxMeta';
+import type { TxMetaContextInterface } from 'contexts/TxMeta/types';
 import { Wrapper } from './Wrapper';
+import type { EstimatedTxFeeProps } from './types';
 
 export const EstimatedTxFeeInner = ({ format }: EstimatedTxFeeProps) => {
-  const {
-    network: { unit, units },
-  } = useApi();
-  const { mode } = useTheme();
-  const { txFees, resetTxFees, notEnoughFunds } = useTxFees();
+  const { t } = useTranslation('library');
+  const { unit, units } = useApi().network;
+  const { txFees, resetTxFees } = useTxMeta();
 
-  useEffect(() => {
-    return () => {
-      resetTxFees();
-    };
-  }, []);
+  useEffect(() => () => resetTxFees(), []);
 
-  const txFeesBase = humanNumber(planckBnToUnit(txFees, units));
+  const txFeesUnit = planckToUnit(txFees, units).toFormat();
 
   return (
     <>
       {format === 'table' ? (
         <>
-          <div>Estimated Tx Fee:</div>
-          <div>{txFees.isZero() ? '...' : `${txFeesBase} ${unit}`}</div>
+          <div>{t('estimatedFee')}:</div>
+          <div>{txFees.isZero() ? `...` : `${txFeesUnit} ${unit}`}</div>
         </>
       ) : (
         <Wrapper>
           <p>
-            Estimated Tx Fee:{' '}
-            {txFees.isZero() ? '...' : `${txFeesBase} ${unit}`}
+            <span>{t('estimatedFee')}:</span>
+            {txFees.isZero() ? `...` : `${txFeesUnit} ${unit}`}
           </p>
-          {notEnoughFunds === true && (
-            <p style={{ color: defaultThemes.text.danger[mode] }}>
-              The sender does not have enough {unit} to submit this transaction.
-            </p>
-          )}
         </Wrapper>
       )}
     </>
@@ -50,15 +40,15 @@ export const EstimatedTxFeeInner = ({ format }: EstimatedTxFeeProps) => {
 };
 
 export class EstimatedTxFee extends React.Component<EstimatedTxFeeProps> {
-  static contextType: Context<EstimatedFeeContext> = TxFeesContext;
+  static contextType: Context<TxMetaContextInterface> = TxMetaContext;
 
   componentDidMount(): void {
-    const { resetTxFees } = this.context as EstimatedFeeContext;
+    const { resetTxFees } = this.context as TxMetaContextInterface;
     resetTxFees();
   }
 
   componentWillUnmount(): void {
-    const { resetTxFees } = this.context as EstimatedFeeContext;
+    const { resetTxFees } = this.context as TxMetaContextInterface;
     resetTxFees();
   }
 

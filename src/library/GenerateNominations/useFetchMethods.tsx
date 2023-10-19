@@ -1,20 +1,16 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { useValidators } from 'contexts/Validators';
-import { Validator } from 'contexts/Validators/types';
+import { shuffle } from '@polkadot-cloud/utils';
+import { useFavoriteValidators } from 'contexts/Validators/FavoriteValidators';
+import { useValidators } from 'contexts/Validators/ValidatorEntries';
+import type { Validator } from 'contexts/Validators/types';
 import { useValidatorFilters } from 'library/Hooks/useValidatorFilters';
-import { shuffle } from 'Utils';
 
 export const useFetchMehods = () => {
   const { validators } = useValidators();
   const { applyFilter } = useValidatorFilters();
-  let { favoritesList } = useValidators();
-  if (favoritesList === null) {
-    favoritesList = [];
-  }
-
-  const rawBatchKey = 'validators_browse';
+  const { favoritesList } = useFavoriteValidators();
 
   const fetch = (method: string) => {
     let nominations: any[];
@@ -35,12 +31,12 @@ export const useFetchMehods = () => {
   };
 
   const fetchFavorites = () => {
-    let _favs: Array<Validator> = [];
+    let favs: Validator[] = [];
 
     if (favoritesList?.length) {
-      _favs = favoritesList;
+      favs = favoritesList;
     }
-    return _favs;
+    return favs;
   };
 
   const fetchAll = () => {
@@ -48,17 +44,16 @@ export const useFetchMehods = () => {
   };
 
   const addRandomValidator = () => {
-    let _nominations = Object.assign(validators);
+    let nominations = Object.assign(validators);
 
-    _nominations = applyFilter(
+    nominations = applyFilter(
       null,
-      ['all_commission', 'blocked_nominations', 'missing_identity'],
-      _nominations,
-      rawBatchKey
+      ['all_commission', 'blockedall', 'missing_identity'],
+      nominations
     );
 
     // take one validator
-    const validator = shuffle(_nominations).slice(0, 1)[0] || null;
+    const validator = shuffle(nominations).slice(0, 1)[0] || null;
 
     if (validator) {
       return [validator];

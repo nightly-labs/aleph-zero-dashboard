@@ -1,8 +1,7 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import styled from 'styled-components';
-import { networkColor, textSecondary } from 'theme';
 
 export const Wrapper = styled.div`
   width: 100%;
@@ -11,7 +10,7 @@ export const Wrapper = styled.div`
   align-items: center;
 
   > section {
-    color: ${textSecondary};
+    color: var(--text-color-secondary);
     display: flex;
     flex-flow: row wrap;
     align-items: center;
@@ -22,13 +21,13 @@ export const Wrapper = styled.div`
     justify-content: flex-end;
 
     .progress {
-      color: ${textSecondary};
+      color: var(--text-color-secondary);
       opacity: 0.5;
     }
 
     .complete {
       margin: 0;
-      color: ${networkColor};
+      color: var(--accent-color-primary);
     }
 
     span {
@@ -37,15 +36,9 @@ export const Wrapper = styled.div`
   }
 
   h2 {
-    margin: 0;
     padding: 0.3rem 0;
     display: flex;
     flex-flow: row wrap;
-    justify-content: flex-start;
     align-items: center;
-
-    .help-icon {
-      margin-left: 0.6rem;
-    }
   }
 `;

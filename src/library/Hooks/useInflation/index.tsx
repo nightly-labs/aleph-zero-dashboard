@@ -1,11 +1,14 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { BN_BILLION, BN_MILLION, BN_THOUSAND } from '@polkadot/util';
-import BN from 'bn.js';
+import BigNumber from 'bignumber.js';
 import { useApi } from 'contexts/Api';
 import { useNetworkMetrics } from 'contexts/Network';
 import { useStaking } from 'contexts/Staking';
+
+const BIGNUMBER_THOUSAND = new BigNumber(1_000);
+const BIGNUMBER_MILLION = new BigNumber(1_000_000);
+const BIGNUMBER_BILLION = new BigNumber(1_000_000_000);
 
 export const useInflation = () => {
   const { network } = useApi();
@@ -26,20 +29,26 @@ export const useInflation = () => {
   /* For Aleph Zero inflation is calculated based on yearlyInflationInTokens and totalIssuanceInTokens
    * We multiply stakedReturn by 0.9, as in case of Aleph Zero chain 10% of return goes to treasury
    */
-  const calculateInflation = (totalStaked: BN, numAuctions: BN) => {
+
+  const calculateInflation = (
+    totalStaked: BigNumber,
+    numAuctions: BigNumber
+  ) => {
     const stakedFraction =
       totalStaked.isZero() || totalIssuance.isZero()
         ? 0
-        : totalStaked.mul(BN_MILLION).div(totalIssuance).toNumber() /
-          BN_MILLION.toNumber();
+        : totalStaked
+            .multipliedBy(BIGNUMBER_MILLION)
+            .dividedBy(totalIssuance)
+            .toNumber() / BIGNUMBER_MILLION.toNumber();
     const idealStake =
       stakeTarget -
       Math.min(auctionMax, numAuctions.toNumber()) * auctionAdjust;
     const idealInterest = maxInflation / idealStake;
 
     const totalIssuanceInTokens = totalIssuance
-      .div(BN_BILLION)
-      .div(BN_THOUSAND);
+      .div(BIGNUMBER_BILLION)
+      .div(BIGNUMBER_THOUSAND);
 
     const inflation = totalIssuanceInTokens.isZero()
       ? 0
@@ -59,5 +68,3 @@ export const useInflation = () => {
 
   return calculateInflation(lastTotalStake, auctionCounter);
 };
-
-export default useInflation;

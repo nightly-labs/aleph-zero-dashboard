@@ -1,16 +1,15 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { ExtensionsContextInterface } from './types';
+import type { ExtensionsContextInterface } from './types';
 
 export const defaultExtensionsContext: ExtensionsContextInterface = {
   extensions: [],
   extensionsStatus: {},
   extensionsFetched: false,
-  // eslint-disable-next-line
+  checkingInjectedWeb3: false,
   setExtensionStatus: (id, s) => {},
-  // eslint-disable-next-line
   setExtensionsFetched: (s) => {},
-  // eslint-disable-next-line
   setExtensions: (s) => {},
 };

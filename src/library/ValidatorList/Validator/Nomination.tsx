@@ -1,7 +1,7 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { useValidators } from 'contexts/Validators';
+import { useValidators } from 'contexts/Validators/ValidatorEntries';
 import { ParaValidator } from 'library/ListItem/Labels/ParaValidator';
 import { Labels, Separator, Wrapper } from 'library/ListItem/Wrappers';
 import { useList } from '../../List/context';
@@ -14,43 +14,31 @@ import { Metrics } from '../../ListItem/Labels/Metrics';
 import { NominationStatus } from '../../ListItem/Labels/NominationStatus';
 import { Oversubscribed } from '../../ListItem/Labels/Oversubscribed';
 import { Select } from '../../ListItem/Labels/Select';
-import { NominationProps } from './types';
 import { getIdentityDisplay } from './Utils';
+import type { NominationProps } from './types';
 
-export const Nomination = (props: NominationProps) => {
-  const { meta } = useValidators();
+export const Nomination = ({
+  validator,
+  nominator,
+  toggleFavorites,
+  bondFor,
+  inModal,
+}: NominationProps) => {
   const { selectActive } = useList();
-
-  const {
-    validator,
-    nominator,
-    toggleFavorites,
-    batchIndex,
-    batchKey,
-    bondType,
-    inModal,
-  } = props;
-
-  const identities = meta[batchKey]?.identities ?? [];
-  const supers = meta[batchKey]?.supers ?? [];
+  const { validatorIdentities, validatorSupers } = useValidators();
 
   const { address, prefs } = validator;
   const commission = prefs?.commission ?? null;
 
   return (
-    <Wrapper format="nomination" inModal={inModal}>
+    <Wrapper $format="nomination" $inModal={inModal}>
       <div className="inner">
         <div className="row">
           {selectActive && <Select item={validator} />}
-          <Identity
-            meta={meta}
-            address={address}
-            batchIndex={batchIndex}
-            batchKey={batchKey}
-          />
+          <Identity address={address} />
           <div>
             <Labels>
-              <CopyAddress validator={validator} />
+              <CopyAddress address={address} />
               {toggleFavorites && <FavoriteValidator address={address} />}
             </Labels>
           </div>
@@ -59,11 +47,11 @@ export const Nomination = (props: NominationProps) => {
         <div className="row status">
           <NominationStatus
             address={address}
-            bondType={bondType}
+            bondFor={bondFor}
             nominator={nominator}
           />
           <Labels>
-            <Oversubscribed batchIndex={batchIndex} batchKey={batchKey} />
+            <Oversubscribed address={address} />
             <Blocked prefs={prefs} />
             <Commission commission={commission} />
             <ParaValidator address={address} />
@@ -73,8 +61,8 @@ export const Nomination = (props: NominationProps) => {
               <Metrics
                 address={address}
                 display={getIdentityDisplay(
-                  identities[batchIndex],
-                  supers[batchIndex]
+                  validatorIdentities[address],
+                  validatorSupers[address]
                 )}
               />
             )}
@@ -84,5 +72,3 @@ export const Nomination = (props: NominationProps) => {
     </Wrapper>
   );
 };
-
-export default Nomination;

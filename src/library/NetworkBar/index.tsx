@@ -1,95 +1,50 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
+import { capitalizeFirstLetter } from '@polkadot-cloud/utils';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
-import { useUi } from 'contexts/UI';
-import { useOutsideAlerter } from 'library/Hooks';
+import { usePlugins } from 'contexts/Plugins';
 import { usePrices } from 'library/Hooks/usePrices';
-import { useEffect, useRef, useState } from 'react';
 import { Status } from './Status';
-import { NetworkInfo, Separator, Summary, Wrapper } from './Wrappers';
+import { Summary, Wrapper } from './Wrappers';
 
 export const NetworkBar = () => {
-  const { services } = useUi();
+  const { t } = useTranslation('library');
+  const { plugins } = usePlugins();
   const { network, isLightClient } = useApi();
   const prices = usePrices();
 
-  // currently not in use
-  const [open, setOpen] = useState(false);
+  const ORGANISATION = import.meta.env.VITE_ORGANISATION;
+  const TERMS_OF_USE = import.meta.env.VITE_TERMS_OF_USE;
 
-  // handle expand transitions
-  const variants = {
-    minimised: {
-      height: '2.5rem',
-    },
-    maximised: {
-      height: '155px',
-    },
-  };
-
-  const animate = open ? 'maximised' : 'minimised';
-  const ref = useRef(null);
-
-  const PRIVACY_URL = process.env.REACT_APP_PRIVACY_URL;
-  const DISCLAIMER_URL = process.env.REACT_APP_DISCLAIMER_URL;
-  const ORGANISATION = process.env.REACT_APP_ORGANISATION;
-
-  const [networkName, setNetworkName] = useState<string>(network.name);
-
-  useOutsideAlerter(
-    ref,
-    () => {
-      setOpen(false);
-    },
-    ['igignore-network-info-toggle']
+  const [networkName, setNetworkName] = useState<string>(
+    capitalizeFirstLetter(network.name)
   );
 
   useEffect(() => {
     setNetworkName(
-      isLightClient ? network.name.concat(' Light') : network.name
+      `${capitalizeFirstLetter(network.name)}${isLightClient ? ` Light` : ``}`
     );
   }, [network.name, isLightClient]);
 
   return (
-    <Wrapper
-      ref={ref}
-      initial={false}
-      animate={animate}
-      transition={{
-        duration: 0.4,
-        type: 'spring',
-        bounce: 0.25,
-      }}
-      variants={variants}
-    >
+    <Wrapper>
+      <network.brand.icon className="network_icon" />
       <Summary>
         <section>
-          <network.brand.icon className="network_icon" />
           <p>{ORGANISATION === undefined ? networkName : ORGANISATION}</p>
-          <Separator />
-          {PRIVACY_URL !== undefined ? (
-            <p>
-              <a href={PRIVACY_URL} target="_blank" rel="noreferrer">
-                Privacy
-              </a>
-            </p>
-          ) : (
-            <Status />
-          )}
-          {DISCLAIMER_URL !== undefined && (
-            <>
-              <Separator />
-              <p>
-                <a href={DISCLAIMER_URL} target="_blank" rel="noreferrer">
-                  Disclaimer
-                </a>
-              </p>
-            </>
-          )}
+          <Status />
+          <p>
+            <a href={TERMS_OF_USE} target="_blank" rel="noreferrer">
+              {t('termsOfUse')}
+            </a>
+          </p>
         </section>
         <section>
           <div className="hide-small">
-            {services.includes('binance_spot') && (
+            {plugins.includes('binance_spot') && (
               <>
                 <div className="stat">
                   <span
@@ -113,10 +68,6 @@ export const NetworkBar = () => {
           </div>
         </section>
       </Summary>
-
-      <NetworkInfo />
     </Wrapper>
   );
 };
-
-export default NetworkBar;

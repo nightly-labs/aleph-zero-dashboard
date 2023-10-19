@@ -1,23 +1,24 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import BN from 'bn.js';
-import {
+import BigNumber from 'bignumber.js';
+import type {
   PoolAddresses,
   PoolsConfigContextState,
   PoolStats,
 } from 'contexts/Pools/types';
 
 export const stats: PoolStats = {
-  counterForPoolMembers: new BN(0),
-  counterForBondedPools: new BN(0),
-  counterForRewardPools: new BN(0),
-  lastPoolId: new BN(0),
-  maxPoolMembers: new BN(0),
-  maxPoolMembersPerPool: new BN(0),
-  maxPools: new BN(0),
-  minCreateBond: new BN(0),
-  minJoinBond: new BN(0),
+  counterForPoolMembers: new BigNumber(0),
+  counterForBondedPools: new BigNumber(0),
+  counterForRewardPools: new BigNumber(0),
+  lastPoolId: new BigNumber(0),
+  maxPoolMembers: null,
+  maxPoolMembersPerPool: null,
+  maxPools: null,
+  minCreateBond: new BigNumber(0),
+  minJoinBond: new BigNumber(0),
+  globalMaxCommission: 0,
 };
 
 export const defaultPoolsConfigContext: PoolsConfigContextState = {

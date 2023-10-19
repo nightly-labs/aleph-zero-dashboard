@@ -1,21 +1,20 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { PoolMemberContext } from '../types';
+import type { PoolMemberContext } from '../types';
 
 export const defaultPoolMembers: PoolMemberContext = {
-  // eslint-disable-next-line
   fetchPoolMembersMetaBatch: (k, v, r) => {},
-  // eslint-disable-next-line
   queryPoolMember: (w) => {},
-  // eslint-disable-next-line
-  getMembersOfPool: (p) => {},
-  // eslint-disable-next-line
+  getMembersOfPoolFromNode: (p) => {},
   addToPoolMembers: (m) => {},
-  // eslint-disable-next-line
-  getPoolMember: (w) => null,
-  // eslint-disable-next-line
   removePoolMember: (w) => {},
-  poolMembers: [],
+  getPoolMemberCount: (p) => 0,
+  poolMembersApi: [],
+  setPoolMembersApi: (p) => {},
+  poolMembersNode: [],
   meta: {},
+  fetchedPoolMembersApi: 'unsynced',
+  setFetchedPoolMembersApi: (s) => {},
 };

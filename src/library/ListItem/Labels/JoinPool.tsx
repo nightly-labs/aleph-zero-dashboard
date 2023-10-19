@@ -1,30 +1,37 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useModal } from 'contexts/Modal';
+import { useTranslation } from 'react-i18next';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 
-export const JoinPool = (props: { id: number; setActiveTab: any }) => {
-  const { id, setActiveTab } = props;
-  const { openModalWith } = useModal();
+export const JoinPool = ({
+  id,
+  setActiveTab,
+}: {
+  id: number;
+  setActiveTab: any;
+}) => {
+  const { t } = useTranslation('library');
+  const { openModal } = useOverlay().modal;
 
   return (
     <div className="label button-with-text">
       <button
         type="button"
         onClick={() => {
-          openModalWith(
-            'JoinPool',
-            {
+          openModal({
+            key: 'JoinPool',
+            options: {
               id,
               setActiveTab,
             },
-            'small'
-          );
+            size: 'sm',
+          });
         }}
       >
-        Join
+        {t('join')}
         <FontAwesomeIcon icon={faCaretRight} transform="shrink-2" />
       </button>
     </div>

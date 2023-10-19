@@ -1,19 +1,12 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
+import { motion } from 'framer-motion';
+import styled from 'styled-components';
 import {
   ShowAccountsButtonWidthThreshold,
   SideMenuStickyThreshold,
 } from 'consts';
-import { motion } from 'framer-motion';
-import styled from 'styled-components';
-import {
-  borderPrimary,
-  buttonSecondaryBackground,
-  networkColor,
-  textPrimary,
-  textSecondary,
-} from 'theme';
 
 export const Wrapper = styled.div`
   position: fixed;
@@ -25,7 +18,7 @@ export const Wrapper = styled.div`
   align-items: center;
   align-content: center;
   padding: 0 1.25rem;
-  transition: all 0.15s;
+  transition: all var(--transition-duration);
   margin: 0.5rem 0;
   height: 4rem;
   z-index: 6;
@@ -37,13 +30,30 @@ export const Wrapper = styled.div`
   .menu {
     display: none;
     @media (max-width: ${SideMenuStickyThreshold}px) {
-      color: ${textSecondary};
+      color: var(--text-color-secondary);
       display: flex;
       flex-flow: row wrap;
-      justify-content: flex-start;
       align-items: center;
       flex-grow: 1;
     }
+  }
+`;
+
+export const ConnectedAccount = styled(motion.div)`
+  background: var(--accent-color-primary);
+  border-radius: 1.5rem;
+  display: flex;
+  transition: transform var(--transition-duration);
+  padding: 0.1rem 0.75rem;
+
+  &:hover {
+    transform: scale(1.015);
+  }
+
+  > span {
+    border-right: 1px solid var(--text-color-invert);
+    opacity: 0.2;
+    margin: 0 0.4rem;
   }
 `;
 
@@ -54,23 +64,27 @@ export const HeadingWrapper = styled.div`
   margin-left: 0.9rem;
 `;
 
-export const Item = styled(motion.button)`
-  background: ${buttonSecondaryBackground};
-  border: 1px solid ${borderPrimary};
+export const Item = styled.button`
+  background: var(--button-tab-background);
+  border: 1px solid var(--border-primary-color);
   flex-grow: 1;
   padding: 0.05rem 1rem;
   border-radius: 1.5rem;
   box-shadow: none;
   display: flex;
-  flex-flow: row nowrap;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   font-size: 1.05rem;
+  transition: transform var(--transition-duration) ease-out;
+
+  &:hover {
+    transform: scale(1.03);
+  }
 
   .label {
-    color: ${networkColor};
-    border: 0.125rem solid ${networkColor};
+    color: var(--accent-color-primary);
+    border: 0.125rem solid var(--accent-color-primary);
     border-radius: 0.8rem;
     font-size: 0.85rem;
     margin-right: 0.6rem;
@@ -80,12 +94,16 @@ export const Item = styled(motion.button)`
   > span {
     color: white;
     line-height: 2.2rem;
+    .icon {
+      color: var(--text-color-secondary);
+      cursor: pointer;
+    }
   }
 
   &.connect {
-    background: ${networkColor};
+    background: var(--accent-color-primary);
     > span {
-      color: 'white';
+      color: white;
     }
     .icon {
       margin-right: 0.6rem;
@@ -97,10 +115,10 @@ export const Item = styled(motion.button)`
 `;
 
 export const ItemInactive = styled(motion.div)`
+  background: var(--button-secondary-background);
   flex-grow: 1;
   padding: 0 1rem;
   border-radius: 0.2rem;
-  background: ${buttonSecondaryBackground};
   display: flex;
   flex-flow: column nowrap;
   justify-content: center;
@@ -108,7 +126,7 @@ export const ItemInactive = styled(motion.div)`
   font-size: 1rem;
 
   > span {
-    color: ${textPrimary};
+    color: var(--text-color-primary);
     line-height: 2.2rem;
   }
 `;

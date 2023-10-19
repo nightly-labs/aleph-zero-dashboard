@@ -1,87 +1,94 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { BN } from 'bn.js';
+import { ButtonHelp, ModalPadding, PolkadotIcon } from '@polkadot-cloud/react';
+import { ellipsisFn, planckToUnit } from '@polkadot-cloud/utils';
+import BigNumber from 'bignumber.js';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
-import { useModal } from 'contexts/Modal';
+import { useHelp } from 'contexts/Help';
 import { useStaking } from 'contexts/Staking';
-import Identicon from 'library/Identicon';
 import { Title } from 'library/Modal/Title';
 import {
   StatWrapper,
   ValidatorMetricsStatsWrapper,
 } from 'library/Modal/Wrappers';
-import { OpenHelpIcon } from 'library/OpenHelpIcon';
-import { PaddingWrapper } from 'modals/Wrappers';
-import { clipAddress, humanNumber, planckBnToUnit, rmCommas } from 'Utils';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
+import { useTheme } from 'contexts/Themes';
 
 export const ValidatorMetrics = () => {
+  const { t } = useTranslation('modals');
   const {
     network: { units, unit },
   } = useApi();
-  const { config } = useModal();
-  const { address, identity } = config;
-  const { eraStakers } = useStaking();
-  const { stakers } = eraStakers;
+  const { options } = useOverlay().modal.config;
+  const { address, identity } = options;
+  const {
+    eraStakers: { stakers },
+  } = useStaking();
+  const { openHelp } = useHelp();
+  const { mode } = useTheme();
 
   // is the validator in the active era
-  const validatorInEra =
-    stakers.find((s: any) => s.address === address) || null;
+  const validatorInEra = stakers.find((s) => s.address === address) || null;
 
-  let ownStake = new BN(0);
-  let otherStake = new BN(0);
+  let validatorOwnStake = new BigNumber(0);
+  let otherStake = new BigNumber(0);
   if (validatorInEra) {
     const { others, own } = validatorInEra;
 
-    others.forEach((o: any) => {
-      otherStake = otherStake.add(new BN(rmCommas(o.value)));
+    others.forEach(({ value }) => {
+      otherStake = otherStake.plus(value);
     });
     if (own) {
-      ownStake = new BN(rmCommas(own));
+      validatorOwnStake = new BigNumber(own);
     }
   }
 
   const stats = [
     {
-      label: 'Self Stake',
-      value: `${humanNumber(planckBnToUnit(ownStake, units))} ${unit}`,
+      label: t('selfStake'),
+      value: `${planckToUnit(validatorOwnStake, units).toFormat()} ${unit}`,
       help: 'Self Stake',
     },
     {
-      label: 'Nominator Stake',
-      value: `${humanNumber(planckBnToUnit(otherStake, units))} ${unit}`,
+      label: t('nominatorStake'),
+      value: `${planckToUnit(otherStake, units).toFormat()} ${unit}`,
       help: 'Nominator Stake',
     },
   ];
+
   return (
     <>
-      <Title title="Validator Metrics" />
+      <Title title={t('validatorMetrics')} />
       <div className="header">
-        <Identicon value={address} size={33} />
+        <PolkadotIcon
+          dark={mode === 'dark'}
+          nocopy
+          address={address}
+          size={33}
+        />
         <h2>
           &nbsp;&nbsp;
-          {identity === null ? clipAddress(address) : identity}
+          {identity === null ? ellipsisFn(address) : identity}
         </h2>
       </div>
 
-      <PaddingWrapper horizontalOnly>
+      <ModalPadding horizontalOnly>
         <ValidatorMetricsStatsWrapper>
-          {stats.map(
-            (s: { label: string; value: string; help: string }, i: number) => (
-              <StatWrapper key={`metrics_stat_${i}`}>
-                <div className="inner">
-                  <h4>
-                    {s.label} <OpenHelpIcon helpKey={s.help} />
-                  </h4>
-                  <h2>{s.value}</h2>
-                </div>
-              </StatWrapper>
-            )
-          )}
+          {stats.map((s, i) => (
+            <StatWrapper key={`metrics_stat_${i}`}>
+              <div className="inner">
+                <h4>
+                  {s.label}{' '}
+                  <ButtonHelp marginLeft onClick={() => openHelp(s.help)} />
+                </h4>
+                <h2>{s.value}</h2>
+              </div>
+            </StatWrapper>
+          ))}
         </ValidatorMetricsStatsWrapper>
-      </PaddingWrapper>
+      </ModalPadding>
     </>
   );
 };
-
-export default ValidatorMetrics;

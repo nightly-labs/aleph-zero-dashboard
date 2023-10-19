@@ -1,33 +1,27 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import React, { useEffect, useState } from 'react';
-import { MaybeString } from 'types';
+import React, { useState } from 'react';
+import type { MaybeString } from 'types';
+import { useEffectIgnoreInitial } from '@polkadot-cloud/react/hooks';
 import * as defaults from './defaults';
-import {
-  HelpConfig,
+import type {
   HelpContextInterface,
   HelpContextProps,
   HelpContextState,
+  HelpStatus,
 } from './types';
 
-export const HelpContext = React.createContext<HelpContextInterface>(
-  defaults.defaultHelpContext
-);
-
-export const useHelp = () => React.useContext(HelpContext);
-
-export const HelpProvider = (props: HelpContextProps) => {
+export const HelpProvider = ({ children }: HelpContextProps) => {
   // help module state
   const [state, setState] = useState<HelpContextState>({
-    status: 0,
+    status: 'closed',
     definition: null,
-    config: {},
   });
 
   // when fade out completes, reset active definiton
-  useEffect(() => {
-    if (state.status === 0) {
+  useEffectIgnoreInitial(() => {
+    if (state.status === 'closed') {
       setState({
         ...state,
         definition: null,
@@ -36,41 +30,38 @@ export const HelpProvider = (props: HelpContextProps) => {
   }, [state.status]);
 
   const setDefinition = (definition: MaybeString) => {
-    const _state = {
-      ...state,
-      definition,
-    };
-    setState(_state);
-  };
-
-  const setStatus = (newStatus: number) => {
-    const _state = {
-      ...state,
-      status: newStatus,
-    };
-    setState(_state);
-  };
-
-  const openHelpWith = (definition: MaybeString, _config: HelpConfig = {}) => {
     setState({
       ...state,
       definition,
-      status: 1,
-      config: _config,
+    });
+  };
+
+  const setStatus = (newStatus: HelpStatus) => {
+    setState({
+      ...state,
+      status: newStatus,
+    });
+  };
+
+  const openHelp = (definition: MaybeString) => {
+    setState({
+      ...state,
+      definition,
+      status: 'open',
     });
   };
 
   const closeHelp = () => {
     setState({
       ...state,
-      status: 2,
+      status: 'closing',
     });
   };
 
   return (
     <HelpContext.Provider
       value={{
-        openHelpWith,
+        openHelp,
         closeHelp,
         setStatus,
         setDefinition,
@@ -78,7 +69,13 @@ export const HelpProvider = (props: HelpContextProps) => {
         definition: state.definition,
       }}
     >
-      {props.children}
+      {children}
     </HelpContext.Provider>
   );
 };
+
+export const HelpContext = React.createContext<HelpContextInterface>(
+  defaults.defaultHelpContext
+);
+
+export const useHelp = () => React.useContext(HelpContext);

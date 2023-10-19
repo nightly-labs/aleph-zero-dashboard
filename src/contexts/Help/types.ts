@@ -1,18 +1,18 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { ReactNode } from 'react';
-import { MaybeString } from 'types';
+import type { ReactNode } from 'react';
+import type { MaybeString } from 'types';
 
-export type HelpItems = Array<HelpItem>;
+export type HelpItems = HelpItem[];
 
 export interface HelpItem {
   key?: string;
-  definitions?: Array<string>;
+  definitions?: string[];
   external?: ExternalItems;
 }
 
-export type ExternalItems = Array<ExternalItem>;
+export type ExternalItems = ExternalItem[];
 export type ExternalItem = [string, string, string];
 
 export type DefinitionWithKeys = {
@@ -26,19 +26,20 @@ export interface ExternalWithKeys {
   website?: string;
 }
 
+export type HelpStatus = 'closed' | 'open' | 'closing';
+
 export interface HelpContextInterface {
-  openHelpWith: (d: MaybeString, c: HelpConfig) => void;
+  openHelp: (d: MaybeString) => void;
   closeHelp: () => void;
-  setStatus: (s: number) => void;
+  setStatus: (s: HelpStatus) => void;
   setDefinition: (d: MaybeString) => void;
-  status: number;
+  status: HelpStatus;
   definition: MaybeString;
 }
 
 export interface HelpContextState {
-  status: number;
+  status: HelpStatus;
   definition: MaybeString;
-  config: HelpConfig;
 }
 
 export interface HelpContextProps {

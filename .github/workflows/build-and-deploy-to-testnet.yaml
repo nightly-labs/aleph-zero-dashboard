@@ -13,7 +13,7 @@ jobs:
   build_and_push:
     name: Build and push
     runs-on: ubuntu-20.04
-    environment: 
+    environment:
       name: testnet
     steps:
       - name: GIT | Checkout
@@ -24,17 +24,17 @@ jobs:
         id: build_testnet
         with:
           environment: testnet
-          build_envs: "REACT_APP_DISABLE_MAINNET=1 REACT_APP_DISABLE_FIAT=1"
+          build_envs: 'VITE_DISABLE_MAINNET=1 VITE_DISABLE_FIAT=1'
           aws_mainnet_access_key_id: ${{ secrets.AWS_MAINNET_ACCESS_KEY_ID }}
           aws_mainnet_secret_access_key: ${{ secrets.AWS_MAINNET_SECRET_ACCESS_KEY }}
     outputs:
       image_tag: ${{ steps.build_testnet.outputs.image_tag }}
-  
+
   deploy_to_testnet:
     name: Deploy to testnet
     runs-on: ubuntu-20.04
     needs: [build_and_push]
-    environment: 
+    environment:
       name: testnet
     steps:
       - name: GIT | Checkout

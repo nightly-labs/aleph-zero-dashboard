@@ -1,9 +1,9 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { useNotifications } from 'contexts/Notifications';
 import { AnimatePresence, motion } from 'framer-motion';
-import Wrapper from './Wrapper';
+import { useNotifications } from 'contexts/Notifications';
+import { Wrapper } from './Wrapper';
 
 export const Notifications = () => {
   const { notifications, removeNotification } = useNotifications();
@@ -19,7 +19,7 @@ export const Notifications = () => {
               <motion.li
                 key={`notification_${item.index}`}
                 className={
-                  item.title === 'Failed'
+                  item.title === 'Failed' || item.title === 'Cancelled'
                     ? 'notification--error'
                     : 'notification--success'
                 }
@@ -45,5 +45,3 @@ export const Notifications = () => {
     </Wrapper>
   );
 };
-
-export default Notifications;

@@ -1,25 +1,24 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
+import { planckToUnit } from '@polkadot-cloud/utils';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
 import { usePoolsConfig } from 'contexts/Pools/PoolsConfig';
 import { Number } from 'library/StatBoxList/Number';
-import { useTranslation } from 'react-i18next';
-import { planckBnToUnit } from 'Utils';
 
-const MinCreateBondStatBox = () => {
+export const MinCreateBondStat = () => {
+  const { t } = useTranslation('pages');
   const { network } = useApi();
   const { units } = network;
   const { stats } = usePoolsConfig();
-  const { t } = useTranslation('pages');
 
   const params = {
-    label: t('pools.minimum_create_bond'),
-    value: planckBnToUnit(stats.minCreateBond, units),
+    label: t('pools.minimumToCreatePool'),
+    value: planckToUnit(stats.minCreateBond, units).toNumber(),
+    decimals: 3,
     unit: network.unit,
-    helpKey: 'Minimum Create Bond',
+    helpKey: 'Minimum To Create Pool',
   };
   return <Number {...params} />;
 };
-
-export default MinCreateBondStatBox;

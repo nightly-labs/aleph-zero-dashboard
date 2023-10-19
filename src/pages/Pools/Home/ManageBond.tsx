@@ -1,36 +1,48 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { faLockOpen } from '@fortawesome/free-solid-svg-icons';
-import { ButtonPrimary } from '@rossbulat/polkadot-dashboard-ui';
+import {
+  ButtonHelp,
+  ButtonPrimary,
+  ButtonRow,
+  Odometer,
+} from '@polkadot-cloud/react';
+import { minDecimalPlaces, planckToUnit } from '@polkadot-cloud/utils';
+import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
 import { useConnect } from 'contexts/Connect';
-import { useModal } from 'contexts/Modal';
+import { useHelp } from 'contexts/Help';
 import { useActivePools } from 'contexts/Pools/ActivePools';
-import { PoolState } from 'contexts/Pools/types';
 import { useTransferOptions } from 'contexts/TransferOptions';
 import { useUi } from 'contexts/UI';
-import BondedGraph from 'library/Graphs/Bonded';
-import { CardHeaderWrapper } from 'library/Graphs/Wrappers';
-import { OpenHelpIcon } from 'library/OpenHelpIcon';
-import { useTranslation } from 'react-i18next';
-import { humanNumber, planckBnToUnit } from 'Utils';
-import { ButtonRowWrapper } from 'Wrappers';
+import { BondedChart } from 'library/BarChart/BondedChart';
+import { CardHeaderWrapper } from 'library/Card/Wrappers';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 
 export const ManageBond = () => {
-  const { network } = useApi();
-  const { units } = network;
-  const { openModalWith } = useModal();
-  const { activeAccount } = useConnect();
-  const { poolsSyncing } = useUi();
-  const { isBonding, isMember, selectedActivePool } = useActivePools();
-  const { getTransferOptions } = useTransferOptions();
   const { t } = useTranslation('pages');
 
+  const { network } = useApi();
+  const { openHelp } = useHelp();
+  const { isPoolSyncing } = useUi();
+  const { openModal } = useOverlay().modal;
+  const { getTransferOptions } = useTransferOptions();
+  const { activeAccount, isReadOnlyAccount } = useConnect();
+  const { isBonding, isMember, selectedActivePool } = useActivePools();
+  const {
+    units,
+    brand: { token: Token },
+  } = network;
+
   const allTransferOptions = getTransferOptions(activeAccount);
-  const { freeBalance } = allTransferOptions;
-  const { active, totalUnlocking, totalUnlocked, totalUnlockChuncks } =
-    allTransferOptions.pool;
+  const {
+    active,
+    totalUnlocking,
+    totalUnlocked,
+    totalUnlockChuncks,
+    totalAdditionalBond,
+  } = allTransferOptions.pool;
 
   const { state } = selectedActivePool?.bondedPool || {};
 
@@ -38,68 +50,76 @@ export const ManageBond = () => {
     <>
       <CardHeaderWrapper>
         <h4>
-          {t('pools.bonded_funds')}
-          <OpenHelpIcon helpKey="Bonded in Pool" />
+          {t('pools.bondedFunds')}
+          <ButtonHelp marginLeft onClick={() => openHelp('Bonded in Pool')} />
         </h4>
         <h2>
-          {humanNumber(planckBnToUnit(active, units))}&nbsp;{network.unit}
+          <Token className="networkIcon" />
+          <Odometer
+            value={minDecimalPlaces(planckToUnit(active, units).toFormat(), 2)}
+            zeroDecimals={2}
+          />
         </h2>
-        <ButtonRowWrapper>
+        <ButtonRow>
           <ButtonPrimary
             disabled={
-              poolsSyncing ||
+              isPoolSyncing ||
               !isBonding() ||
               !isMember() ||
-              state === PoolState.Destroy
+              isReadOnlyAccount(activeAccount) ||
+              state === 'Destroying'
             }
             marginRight
             onClick={() =>
-              openModalWith(
-                'UpdateBond',
-                { fn: 'add', bondType: 'pool' },
-                'small'
-              )
+              openModal({
+                key: 'Bond',
+                options: { bondFor: 'pool' },
+                size: 'sm',
+              })
             }
             text="+"
           />
           <ButtonPrimary
             disabled={
-              poolsSyncing ||
+              isPoolSyncing ||
               !isBonding() ||
               !isMember() ||
-              state === PoolState.Destroy
+              isReadOnlyAccount(activeAccount) ||
+              state === 'Destroying'
             }
             marginRight
             onClick={() =>
-              openModalWith(
-                'UpdateBond',
-                { fn: 'remove', bondType: 'pool' },
-                'small'
-              )
+              openModal({
+                key: 'Unbond',
+                options: { bondFor: 'pool' },
+                size: 'sm',
+              })
             }
             text="-"
           />
           <ButtonPrimary
             disabled={
-              poolsSyncing || !isMember() || state === PoolState.Destroy
+              isPoolSyncing || !isMember() || isReadOnlyAccount(activeAccount)
             }
             iconLeft={faLockOpen}
             onClick={() =>
-              openModalWith('UnlockChunks', { bondType: 'pool' }, 'small')
+              openModal({
+                key: 'UnlockChunks',
+                options: { bondFor: 'pool', disableWindowResize: true },
+                size: 'sm',
+              })
             }
             text={String(totalUnlockChuncks ?? 0)}
           />
-        </ButtonRowWrapper>
+        </ButtonRow>
       </CardHeaderWrapper>
-      <BondedGraph
-        active={planckBnToUnit(active, units)}
-        unlocking={planckBnToUnit(totalUnlocking, units)}
-        unlocked={planckBnToUnit(totalUnlocked, units)}
-        free={planckBnToUnit(freeBalance, units)}
-        inactive={!isMember()}
+      <BondedChart
+        active={planckToUnit(active, units)}
+        unlocking={planckToUnit(totalUnlocking, units)}
+        unlocked={planckToUnit(totalUnlocked, units)}
+        free={planckToUnit(totalAdditionalBond, units)}
+        inactive={active.isZero()}
       />
     </>
   );
 };
-
-export default ManageBond;

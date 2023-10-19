@@ -1,30 +1,37 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { HelpItems } from 'contexts/Help/types';
+import type { HelpItems } from 'contexts/Help/types';
 
-export const HELP_CONFIG: HelpItems = [
+export const HelpConfig: HelpItems = [
+  {
+    key: 'vault',
+    definitions: ['Polkadot Vault'],
+  },
   {
     key: 'overview',
     definitions: [
-      'Dashboard Tips',
       'Total Nominators',
       'Active Nominators',
       'Your Balance',
       'Reserve Balance',
-      'Network Stats',
-      'Inflation',
+      'Locked Balance',
       'Historical Rewards Rate',
+      'Adjusted Rewards Rate',
+      'Inflation',
       'Supply Staked',
+      'Read Only Accounts',
+      'Proxy Accounts',
+      'Reserve Balance For Existential Deposit',
     ],
     external: [
       [
-        'dashboard_basics',
+        'dashboardBasics',
         'https://docs.alephzero.org/aleph-zero/dashboard/dashboard-basics',
         'docs.alephzero.org',
       ],
       [
-        'how_to_start',
+        'howToStart',
         'https://docs.alephzero.org/aleph-zero/stake/how-to-start-staking-with-the-aleph-zero-dashboard',
         'docs.alephzero.org',
       ],
@@ -37,8 +44,8 @@ export const HELP_CONFIG: HelpItems = [
       'Stash and Controller Accounts',
       'Controller Account Eligibility',
       'Bonding',
-      'Active Bond Threshold',
-      'Reward Destination',
+      'Active Stake Threshold',
+      'Payout Destination',
       'Nominating',
       'Nominations',
     ],
@@ -49,12 +56,15 @@ export const HELP_CONFIG: HelpItems = [
     definitions: [
       'Nomination Pools',
       'Active Pools',
-      'Minimum Join Bond',
-      'Minimum Create Bond',
+      'Minimum To Join Pool',
+      'Minimum To Create Pool',
       'Pool Membership',
       'Bonded in Pool',
       'Pool Rewards',
       'Pool Roles',
+      'Pool Commission Rate',
+      'Pool Max Commission',
+      'Pool Commission Change Rate',
     ],
     external: [],
   },
@@ -83,6 +93,17 @@ export const HELP_CONFIG: HelpItems = [
   {
     key: 'community',
     definitions: [],
+    external: [],
+  },
+  {
+    key: 'ledger',
+    definitions: [
+      'Ledger Hardware Wallets',
+      'Ledger Rejected Transaction',
+      'Ledger Request Timeout',
+      'Open App On Ledger',
+      'Wrong Transaction',
+    ],
     external: [],
   },
 ];

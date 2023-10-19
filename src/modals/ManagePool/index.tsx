@@ -1,44 +1,68 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { faCog } from '@fortawesome/free-solid-svg-icons';
-import { useModal } from 'contexts/Modal';
-import { Title } from 'library/Modal/Title';
+import {
+  ModalFixedTitle,
+  ModalMotionTwoSection,
+  ModalSection,
+} from '@polkadot-cloud/react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useActivePools } from 'contexts/Pools/ActivePools';
+import { Title } from 'library/Modal/Title';
+import { useTxMeta } from 'contexts/TxMeta';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 import { Forms } from './Forms';
 import { Tasks } from './Tasks';
-import { CardsWrapper, FixedContentWrapper, Wrapper } from './Wrappers';
 
 export const ManagePool = () => {
-  const { setModalHeight } = useModal();
+  const { t } = useTranslation('modals');
+  const { notEnoughFunds } = useTxMeta();
+  const { setModalHeight } = useOverlay().modal;
+  const { isOwner, selectedActivePool } = useActivePools();
+
   // modal task
-  const [task, setTask] = useState(null);
+  const [task, setTask] = useState<string>();
 
   // active modal section
-  const [section, setSection] = useState(0);
+  const [section, setSection] = useState<number>(0);
+
+  // counter to trigger modal height calculation
+  const [calculateHeight, setCalculateHeight] = useState<number>(0);
+  const incrementCalculateHeight = () =>
+    setCalculateHeight(calculateHeight + 1);
 
   // refs for wrappers
   const headerRef = useRef<HTMLDivElement>(null);
   const tasksRef = useRef<HTMLDivElement>(null);
   const formsRef = useRef<HTMLDivElement>(null);
 
-  // resize modal on state change
+  // Resize modal on state change.
   useEffect(() => {
-    let _height = headerRef.current?.clientHeight ?? 0;
+    let height = headerRef.current?.clientHeight || 0;
     if (section === 0) {
-      _height += tasksRef.current?.clientHeight ?? 0;
+      height += tasksRef.current?.clientHeight || 0;
     } else {
-      _height += formsRef.current?.clientHeight ?? 0;
+      height += formsRef.current?.clientHeight || 0;
     }
-    setModalHeight(_height);
-  }, [section, task]);
+    setModalHeight(height);
+  }, [
+    section,
+    task,
+    notEnoughFunds,
+    calculateHeight,
+    selectedActivePool?.bondedPool?.state,
+  ]);
 
   return (
-    <Wrapper>
-      <FixedContentWrapper ref={headerRef}>
-        <Title title="Manage Pool" icon={faCog} fixed />
-      </FixedContentWrapper>
-      <CardsWrapper
+    <ModalSection type="carousel">
+      <ModalFixedTitle ref={headerRef}>
+        <Title
+          title={`${t('managePool')}${!isOwner() ? ` Membership` : ``}`}
+          fixed
+        />
+      </ModalFixedTitle>
+      <ModalMotionTwoSection
         animate={section === 0 ? 'home' : 'next'}
         transition={{
           duration: 0.5,
@@ -60,8 +84,9 @@ export const ManagePool = () => {
           task={task}
           section={section}
           ref={formsRef}
+          incrementCalculateHeight={incrementCalculateHeight}
         />
-      </CardsWrapper>
-    </Wrapper>
+      </ModalMotionTwoSection>
+    </ModalSection>
   );
 };

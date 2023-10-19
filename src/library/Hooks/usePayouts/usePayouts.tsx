@@ -4,8 +4,8 @@
 import { useApi } from 'contexts/Api';
 import { useConnect } from 'contexts/Connect';
 import { useNetworkMetrics } from 'contexts/Network';
+import type { ReactElement } from 'react';
 import React, {
-  ReactElement,
   useContext,
   useEffect,
   useMemo,
@@ -16,7 +16,7 @@ import { round } from 'Utils';
 import asyncSequenceMap from './asyncSequenceMap';
 import calcPayoutForEra from './calcPayoutForEra';
 import fetchDataForEra from './fetchDataForEra';
-import { EraData } from './types';
+import type { EraData } from './types';
 
 type ValidatorsData = {
   [era: number]: EraData;
@@ -44,14 +44,13 @@ export default (lastNEras: number) => {
   const { api } = useApi();
 
   const {
-    metrics: {
-      activeEra: { index: activeEra },
-    },
+    activeEra: { index: activeEraBigNumber },
   } = useNetworkMetrics();
+  const activeEra = activeEraBigNumber.toNumber();
 
   const { selectedErasDataFromCache, erasMissingInCache } = useMemo(
     () =>
-      [...new Array(Math.min(lastNEras, activeEra || 0))]
+      [...new Array(Math.min(lastNEras, activeEra))]
         .map((_, i) => activeEra - i - 1)
         .reduce<{
           selectedErasDataFromCache: typeof validatorsDataCache;

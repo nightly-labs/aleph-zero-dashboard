@@ -1,40 +1,46 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import {
   faCheckCircle,
   faEdit,
   faTimesCircle,
 } from '@fortawesome/free-solid-svg-icons';
-import { ButtonPrimary } from '@rossbulat/polkadot-dashboard-ui';
-import { useAccount } from 'contexts/Account';
-import { useApi } from 'contexts/Api';
-import { useConnect } from 'contexts/Connect';
-import { useModal } from 'contexts/Modal';
-import { useActivePools } from 'contexts/Pools/ActivePools';
-import { useUi } from 'contexts/UI';
-import { CardHeaderWrapper } from 'library/Graphs/Wrappers';
-import { OpenHelpIcon } from 'library/OpenHelpIcon';
+import {
+  ButtonHelp,
+  ButtonPrimary,
+  ButtonPrimaryInvert,
+} from '@polkadot-cloud/react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useApi } from 'contexts/Api';
+import { useConnect } from 'contexts/Connect';
+import { useHelp } from 'contexts/Help';
+import { useIdentities } from 'contexts/Identities';
+import { useActivePools } from 'contexts/Pools/ActivePools';
+import { useUi } from 'contexts/UI';
+import { CardHeaderWrapper } from 'library/Card/Wrappers';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
 import { RolesWrapper } from '../Home/ManagePool/Wrappers';
 import { PoolAccount } from '../PoolAccount';
-import RoleEditInput from './RoleEditInput';
-import { RoleEditEntry, RolesProps } from './types';
+import { RoleEditInput } from './RoleEditInput';
+import type { RoleEditEntry, RolesProps } from './types';
 
-export const Roles = (props: RolesProps) => {
-  const { batchKey, defaultRoles } = props;
+export const Roles = ({
+  batchKey,
+  defaultRoles,
+  setters = [],
+  inline = false,
+  listenIsValid = () => {},
+}: RolesProps) => {
   const { t } = useTranslation('pages');
-
-  const listenIsValid = props.listenIsValid ?? (() => {});
-  const setters = props.setters ?? [];
-
+  const { openHelp } = useHelp();
+  const { isPoolSyncing } = useUi();
+  const { openModal } = useOverlay().modal;
   const { isReady, network } = useApi();
-  const { activeAccount, isReadOnlyAccount } = useConnect();
-  const { fetchAccountMetaBatch } = useAccount();
+  const { fetchIdentitiesMetaBatch } = useIdentities();
   const { isOwner, selectedActivePool } = useActivePools();
-  const { poolsSyncing } = useUi();
-  const { openModalWith } = useModal();
+  const { activeAccount, isReadOnlyAccount } = useConnect();
   const { id } = selectedActivePool || { id: 0 };
   const roles = defaultRoles;
 
@@ -75,7 +81,7 @@ export const Roles = (props: RolesProps) => {
   useEffect(() => {
     if (isReady && !fetched) {
       setFetched(true);
-      fetchAccountMetaBatch(batchKey, Object.values(roles), true);
+      fetchIdentitiesMetaBatch(batchKey, Object.values(roles), true);
     }
   }, [isReady, fetched]);
 
@@ -110,7 +116,11 @@ export const Roles = (props: RolesProps) => {
       }
     } else {
       // else, open modal with role edits data to update pool roles.
-      openModalWith('ChangePoolRoles', { id, roleEdits }, 'small');
+      openModal({
+        key: 'ChangePoolRoles',
+        options: { id, roleEdits },
+        size: 'sm',
+      });
     }
   };
 
@@ -135,35 +145,41 @@ export const Roles = (props: RolesProps) => {
     setRoleEdits(newEdit);
   };
 
+  const ButtonType = inline ? ButtonPrimaryInvert : ButtonPrimary;
+
   return (
     <>
-      <CardHeaderWrapper withAction>
-        <h3>
-          {t('pools.roles')} <OpenHelpIcon helpKey="Pool Roles" />
-        </h3>
+      <CardHeaderWrapper $withAction>
+        {!inline && (
+          <h3>
+            {t('pools.roles')}
+            <ButtonHelp marginLeft onClick={() => openHelp('Pool Roles')} />
+          </h3>
+        )}
+
         {!(isOwner() === true || setters.length) ? (
           <></>
         ) : (
           <>
             {isEditing && (
               <div>
-                <ButtonPrimary
+                <ButtonType
                   iconLeft={faTimesCircle}
                   iconTransform="grow-1"
                   text={t('pools.cancel')}
-                  disabled={poolsSyncing || isReadOnlyAccount(activeAccount)}
+                  disabled={isPoolSyncing || isReadOnlyAccount(activeAccount)}
                   onClick={() => cancelHandler()}
                 />
               </div>
             )}
             &nbsp;&nbsp;
             <div>
-              <ButtonPrimary
+              <ButtonType
                 iconLeft={isEditing ? faCheckCircle : faEdit}
                 iconTransform="grow-1"
                 text={isEditing ? t('pools.save') : t('pools.edit')}
                 disabled={
-                  poolsSyncing ||
+                  isPoolSyncing ||
                   isReadOnlyAccount(activeAccount) ||
                   !isRoleEditsValid()
                 }
@@ -222,19 +238,18 @@ export const Roles = (props: RolesProps) => {
         </section>
         <section>
           <div className="inner">
-            <h4>{t('pools.state_toggler')}</h4>
+            <h4>{t('pools.bouncer')}</h4>
             {isEditing ? (
               <RoleEditInput
-                roleKey="stateToggler"
-                roleEdit={roleEdits?.stateToggler}
+                roleKey="bouncer"
+                roleEdit={roleEdits?.bouncer}
                 setRoleEdit={setRoleEditHandler}
               />
             ) : (
               <PoolAccount
-                address={roles.stateToggler ?? null}
-                batchIndex={accounts.indexOf(roles.stateToggler ?? '-1')}
+                address={roles.bouncer ?? null}
+                batchIndex={accounts.indexOf(roles.bouncer ?? '-1')}
                 batchKey={batchKey}
-                last
               />
             )}
           </div>

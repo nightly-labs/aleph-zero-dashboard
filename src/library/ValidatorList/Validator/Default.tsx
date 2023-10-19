@@ -1,16 +1,16 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
-import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { faCopy } from '@fortawesome/free-regular-svg-icons';
 import { faBars, faChartLine } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ButtonPrimary } from '@rossbulat/polkadot-dashboard-ui';
+import { ButtonPrimary } from '@polkadot-cloud/react';
+import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMenu } from 'contexts/Menu';
-import { useModal } from 'contexts/Modal';
 import { useNotifications } from 'contexts/Notifications';
-import { NotificationText } from 'contexts/Notifications/types';
-import CopyAddress from 'library/ListItem/Labels/CopyAddress';
+import type { NotificationText } from 'contexts/Notifications/types';
+import { CopyAddress } from 'library/ListItem/Labels/CopyAddress';
 import { ParaValidator } from 'library/ListItem/Labels/ParaValidator';
 import {
   Labels,
@@ -18,8 +18,8 @@ import {
   Separator,
   Wrapper,
 } from 'library/ListItem/Wrappers';
-import { useRef } from 'react';
-import { useValidators } from '../../../contexts/Validators';
+import { useOverlay } from '@polkadot-cloud/react/hooks';
+import { useValidators } from '../../../contexts/Validators/ValidatorEntries';
 import { useList } from '../../List/context';
 import { Blocked } from '../../ListItem/Labels/Blocked';
 import { Commission } from '../../ListItem/Labels/Commission';
@@ -28,44 +28,38 @@ import { FavoriteValidator } from '../../ListItem/Labels/FavoriteValidator';
 import { Identity } from '../../ListItem/Labels/Identity';
 import { Oversubscribed } from '../../ListItem/Labels/Oversubscribed';
 import { SelectSingle } from '../../ListItem/Labels/Select';
-import { DefaultProps } from './types';
 import { getIdentityDisplay } from './Utils';
+import type { DefaultProps } from './types';
 
-export const Default = (props: DefaultProps) => {
-  const {
-    validator,
-    toggleFavorites,
-    batchIndex,
-    batchKey,
-    showMenu,
-    inModal,
-    validatorAction,
-    validatorOnSelectAction,
-  } = props;
-
-  const { openModalWith } = useModal();
+export const Default = ({
+  validator,
+  toggleFavorites,
+  showMenu,
+  inModal,
+  validatorAction,
+  validatorOnSelectAction,
+}: DefaultProps) => {
+  const { t } = useTranslation('library');
+  const { selectActive } = useList();
+  const { openModal } = useOverlay().modal;
   const { addNotification } = useNotifications();
   const { setMenuPosition, setMenuItems, open }: any = useMenu();
-  const { meta } = useValidators();
-  const { selectActive } = useList();
-
-  const identities = meta[batchKey]?.identities ?? [];
-  const supers = meta[batchKey]?.supers ?? [];
+  const { validatorIdentities, validatorSupers } = useValidators();
 
   const { address, prefs } = validator;
   const commission = prefs?.commission ?? null;
 
   const identity = getIdentityDisplay(
-    identities[batchIndex],
-    supers[batchIndex]
+    validatorIdentities[address],
+    validatorSupers[address]
   );
 
-  // copy address notification
+  // copy address notification.
   const notificationCopyAddress: NotificationText | null =
     address == null
       ? null
       : {
-          title: 'Address Copied to Clipboard',
+          title: t('addressCopiedToClipboard'),
           subtitle: address,
         };
 
@@ -73,24 +67,23 @@ export const Default = (props: DefaultProps) => {
   const posRef = useRef(null);
   const menuItems = [
     {
-      icon: <FontAwesomeIcon icon={faChartLine as IconProp} />,
+      icon: <FontAwesomeIcon icon={faChartLine} transform="shrink-3" />,
       wrap: null,
-      title: `View Metrics`,
+      title: `${t('viewMetrics')}`,
       cb: () => {
-        openModalWith(
-          'ValidatorMetrics',
-          {
+        openModal({
+          key: 'ValidatorMetrics',
+          options: {
             address,
             identity,
           },
-          'large'
-        );
+        });
       },
     },
     {
-      icon: <FontAwesomeIcon icon={faCopy as IconProp} />,
+      icon: <FontAwesomeIcon icon={faCopy} transform="shrink-3" />,
       wrap: null,
-      title: `Copy Address`,
+      title: `${t('copyAddress')}`,
       cb: () => {
         navigator.clipboard.writeText(address);
         if (notificationCopyAddress) {
@@ -108,7 +101,7 @@ export const Default = (props: DefaultProps) => {
   };
 
   return (
-    <Wrapper format="nomination" inModal={inModal}>
+    <Wrapper $format="nomination" $inModal={inModal}>
       <div className="inner">
         <MenuPosition ref={posRef} />
         <div className="row">
@@ -118,12 +111,7 @@ export const Default = (props: DefaultProps) => {
               onSelect={() => validatorOnSelectAction(validator)}
             />
           )}
-          <Identity
-            meta={meta}
-            address={address}
-            batchIndex={batchIndex}
-            batchKey={batchKey}
-          />
+          <Identity address={address} />
           {validatorAction && (
             <ButtonPrimary
               {...validatorAction}
@@ -132,7 +120,7 @@ export const Default = (props: DefaultProps) => {
           )}
           <div>
             <Labels>
-              <Oversubscribed batchIndex={batchIndex} batchKey={batchKey} />
+              <Oversubscribed address={address} />
               <Blocked prefs={prefs} />
               <Commission commission={commission} />
               <ParaValidator address={address} />
@@ -156,7 +144,7 @@ export const Default = (props: DefaultProps) => {
           {inModal && (
             <>
               <Labels>
-                <CopyAddress validator={validator} />
+                <CopyAddress address={address} />
               </Labels>
             </>
           )}
@@ -165,5 +153,3 @@ export const Default = (props: DefaultProps) => {
     </Wrapper>
   );
 };
-
-export default Default;

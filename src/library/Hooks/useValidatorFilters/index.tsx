@@ -1,55 +1,41 @@
-// Copyright 2022 @paritytech/polkadot-staking-dashboard authors & contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 import { u8aToString, u8aUnwrapBytes } from '@polkadot/util';
-import { useApi } from 'contexts/Api';
+import { useTranslation } from 'react-i18next';
+import { useValidators } from 'contexts/Validators/ValidatorEntries';
+import type { AnyFunction, AnyJson } from 'types';
 import { useStaking } from 'contexts/Staking';
-import { useValidators } from 'contexts/Validators';
-import { AnyFunction, AnyJson } from 'types';
 
 export const useValidatorFilters = () => {
-  const { consts } = useApi();
-  const { eraStakers, erasStakersSyncing } = useStaking();
-  const { stakers } = eraStakers;
-  const { meta, session, sessionParachain } = useValidators();
-  const { maxNominatorRewardedPerValidator } = consts;
+  const { t } = useTranslation('library');
+  const {
+    sessionValidators,
+    sessionParaValidators,
+    validatorIdentities,
+    validatorSupers,
+  } = useValidators();
+  const { erasStakersSyncing, getLowestRewardFromStaker } = useStaking();
 
   /*
-   * filterMissingIdentity
-   * Iterates through the supplied list and refers to the meta
-   * batch of the list to filter those list items with
-   * missing identities.
-   * Returns the updated filtered list.
+   * filterMissingIdentity: Iterates through the supplied list and filters those with missing
+   * identities. Returns the updated filtered list.
    */
-  const filterMissingIdentity = (list: any, batchKey: string) => {
-    if (meta[batchKey] === undefined) {
+  const filterMissingIdentity = (list: any) => {
+    // Return lsit early if identity sync has not completed.
+    if (
+      !Object.values(validatorIdentities).length ||
+      !Object.values(validatorSupers).length
+    ) {
       return list;
     }
     const filteredList: any = [];
     for (const validator of list) {
-      const addressBatchIndex =
-        meta[batchKey].addresses?.indexOf(validator.address) ?? -1;
+      const identityExists = validatorIdentities[validator.address] ?? false;
+      const superExists = validatorSupers[validator.address] ?? false;
 
-      // if we cannot derive data, fallback to include validator in filtered list
-      if (addressBatchIndex === -1) {
-        filteredList.push(validator);
-        continue;
-      }
-
-      const identities = meta[batchKey]?.identities ?? [];
-      const supers = meta[batchKey]?.supers ?? [];
-
-      // push validator if sync has not completed
-      if (!identities.length || !supers.length) {
-        filteredList.push(validator);
-        continue;
-      }
-
-      const identityExists = identities[addressBatchIndex] ?? null;
-      const superExists = supers[addressBatchIndex] ?? null;
-
-      // validator included if identity or super identity has been set
-      if (identityExists !== null || superExists !== null) {
+      // Validator included if identity or super identity has been set.
+      if (!!identityExists || !!superExists) {
         filteredList.push(validator);
         continue;
       }
@@ -58,29 +44,20 @@ export const useValidatorFilters = () => {
   };
 
   /*
-   * filterOverSubscribed
-   * Iterates through the supplied list and refers to the meta
-   * batch of the list to filter those list items that are
-   * over subscribed.
-   * Returns the updated filtered list.
+   * filterOverSubscribed: Iterates through the supplied list and filters those who are over
+   * subscribed. Returns the updated filtered list.
    */
-  const filterOverSubscribed = (list: any, batchKey: string) => {
-    if (meta[batchKey] === undefined) {
+  const filterOverSubscribed = (list: any) => {
+    // Return list early if eraStakers is still syncing.
+    if (erasStakersSyncing) {
       return list;
     }
+
     const filteredList: any = [];
     for (const validator of list) {
-      const addressBatchIndex =
-        meta[batchKey].addresses?.indexOf(validator.address) ?? -1;
-      const stake = meta[batchKey]?.stake ?? false;
+      const { oversubscribed } = getLowestRewardFromStaker(validator.address);
 
-      // if we cannot derive data, fallback to include validator in filtered list
-      if (addressBatchIndex === -1 || !stake) {
-        filteredList.push(validator);
-        continue;
-      }
-      const totalNominations = stake[addressBatchIndex].total_nominations ?? 0;
-      if (totalNominations < maxNominatorRewardedPerValidator) {
+      if (!oversubscribed) {
         filteredList.push(validator);
         continue;
       }
@@ -89,78 +66,67 @@ export const useValidatorFilters = () => {
   };
 
   /*
-   * filterAllCommission
-   * Filters the supplied list and removes items with 100% commission.
-   * Returns the updated filtered list.
+   * filterAllCommission: Filters the supplied list and removes items with 100% commission. Returns
+   * the updated filtered list.
    */
-  const filterAllCommission = (list: any) => {
-    list = list.filter(
-      (validator: any) => validator?.prefs?.commission !== 100
-    );
-    return list;
-  };
+  const filterAllCommission = (list: any) =>
+    list.filter((validator: any) => validator?.prefs?.commission !== 100);
 
   /*
-   * filterBlockedNominations
-   * Filters the supplied list and removes items that have blocked nominations.
-   * Returns the updated filtered list.
+   * filterBlockedNominations: Filters the supplied list and removes items that have blocked
+   * nominations. Returns the updated filtered list.
    */
-  const filterBlockedNominations = (list: any) => {
-    return list.filter((validator: any) => validator?.prefs?.blocked !== true);
-  };
+  const filterBlockedNominations = (list: any) =>
+    list.filter((validator: any) => validator?.prefs?.blocked !== true);
 
   /*
-   * filterActive
-   * Filters the supplied list and removes items that are inactive.
-   * Returns the updated filtered list.
+   * filterActive: Filters the supplied list and removes items that are inactive. Returns the
+   * updated filtered list.
    */
   const filterActive = (list: any) => {
     // if list has not yet been populated, return original list
-    if (erasStakersSyncing) return list;
-    return list.filter(
-      (validator: any) =>
-        stakers.find((s: any) => s.address === validator.address) !== undefined
+    if (sessionValidators.length === 0) return list;
+    return list.filter((validator: any) =>
+      sessionValidators.includes(validator.address)
     );
   };
 
   /*
-   * filterNonParachainValidator
-   * Filters the supplied list and removes items that are inactive.
+   * filterNonParachainValidator: Filters the supplied list and removes items that are inactive.
    * Returns the updated filtered list.
    */
   const filterNonParachainValidator = (list: any) => {
     // if list has not yet been populated, return original list
-    if ((sessionParachain?.length ?? 0) === 0) return list;
+    if ((sessionParaValidators?.length ?? 0) === 0) return list;
     return list.filter((validator: any) =>
-      sessionParachain.includes(validator.address)
+      sessionParaValidators.includes(validator.address)
     );
   };
 
   /*
-   * filterInSession
-   * Filters the supplied list and removes items that are in the current session.
+   * filterInSession: Filters the supplied list and removes items that are in the current session.
    * Returns the updated filtered list.
    */
   const filterInSession = (list: any) => {
     // if list has not yet been populated, return original list
-    if (session.list.length === 0) return list;
+    if (sessionValidators.length === 0) return list;
     return list.filter(
-      (validator: any) => !session.list.includes(validator.address)
+      (validator: any) => !sessionValidators.includes(validator.address)
     );
   };
 
-  const includesToLabels: { [key: string]: string } = {
-    active: 'Active Validators',
+  const includesToLabels: Record<string, string> = {
+    active: t('activeValidators'),
   };
 
-  const excludesToLabels: { [key: string]: string } = {
-    over_subscribed: 'Over Subscribed',
-    all_commission: '100% Commission',
-    blocked_nominations: 'Blocked Nominations',
-    missing_identity: 'Missing Identity',
+  const excludesToLabels: Record<string, string> = {
+    over_subscribed: t('overSubscribed'),
+    all_commission: t('100Commission'),
+    blocked_nominations: t('blockedNominations'),
+    missing_identity: t('missingIdentity'),
   };
 
-  const filterToFunction: { [key: string]: AnyFunction } = {
+  const filterToFunction: Record<string, AnyFunction> = {
     active: filterActive,
     missing_identity: filterMissingIdentity,
     over_subscribed: filterOverSubscribed,
@@ -170,7 +136,7 @@ export const useValidatorFilters = () => {
     in_session: filterInSession,
   };
 
-  const getFiltersToApply = (excludes: Array<string>) => {
+  const getFiltersToApply = (excludes: string[]) => {
     const fns = [];
     for (const exclude of excludes) {
       if (filterToFunction[exclude]) {
@@ -181,56 +147,47 @@ export const useValidatorFilters = () => {
   };
 
   const applyFilter = (
-    includes: Array<string> | null,
-    excludes: Array<string> | null,
-    list: AnyJson,
-    batchKey: string
+    includes: string[] | null,
+    excludes: string[] | null,
+    list: AnyJson
   ) => {
     if (!excludes && !includes) {
       return list;
     }
     if (includes) {
       for (const fn of getFiltersToApply(includes)) {
-        list = fn(list, batchKey);
+        list = fn(list);
       }
     }
     if (excludes) {
       for (const fn of getFiltersToApply(excludes)) {
-        list = fn(list, batchKey);
+        list = fn(list);
       }
     }
     return list;
   };
 
   /*
-   * orderLowestCommission
-   * Orders a list by commission, lowest first.
-   * Returns the updated ordered list.
+   * orderLowestCommission: Orders a list by commission, lowest first. Returns the updated ordered
+   * list.
    */
-  const orderLowestCommission = (list: any) => {
-    return [...list].sort(
-      (a: any, b: any) => a.prefs.commission - b.prefs.commission
-    );
-  };
+  const orderLowestCommission = (list: any) =>
+    [...list].sort((a: any, b: any) => a.prefs.commission - b.prefs.commission);
 
   /*
-   * orderHighestCommission
-   * Orders a list by commission, highest first.
-   * Returns the updated ordered list.
+   * orderHighestCommission: Orders a list by commission, highest first. Returns the updated ordered
+   * list.
    */
-  const orderHighestCommission = (list: any) => {
-    return [...list].sort(
-      (a: any, b: any) => b.prefs.commission - a.prefs.commission
-    );
+  const orderHighestCommission = (list: any) =>
+    [...list].sort((a: any, b: any) => b.prefs.commission - a.prefs.commission);
+
+  const ordersToLabels: Record<string, string> = {
+    default: t('unordered'),
+    low_commission: t('lowCommission'),
+    high_commission: t('highCommission'),
   };
 
-  const ordersToLabels: { [key: string]: string } = {
-    default: 'Unordered',
-    low_commission: 'Low Commission',
-    high_commission: 'High Commission',
-  };
-
-  const orderToFunction: { [key: string]: AnyFunction } = {
+  const orderToFunction: Record<string, AnyFunction> = {
     low_commission: orderLowestCommission,
     high_commission: orderHighestCommission,
   };
@@ -244,37 +201,29 @@ export const useValidatorFilters = () => {
   };
 
   /*
-   * applySearch
-   * Iterates through the supplied list and refers to the meta
-   * batch of the list to filter those list items that match
-   * the search term.
+   * applySearch Iterates through the supplied list and filters those that match the search term.
    * Returns the updated filtered list.
    */
-  const applySearch = (list: any, batchKey: string, searchTerm: string) => {
-    if (meta[batchKey] === undefined) return list;
+  const applySearch = (list: any, searchTerm: string) => {
+    // If we cannot derive data, fallback to include validator in filtered list.
+    if (
+      !searchTerm ||
+      !Object.values(validatorIdentities).length ||
+      !Object.values(validatorSupers).length
+    ) {
+      return list;
+    }
+
     const filteredList: any = [];
     for (const validator of list) {
-      const batchIndex =
-        meta[batchKey].addresses?.indexOf(validator.address) ?? -1;
-      const identities = meta[batchKey]?.identities ?? false;
-      const supers = meta[batchKey]?.supers ?? false;
-
-      // if we cannot derive data, fallback to include validator in filtered list
-      if (batchIndex === -1 || !identities || !supers) {
-        filteredList.push(validator);
-        continue;
-      }
-
-      const address = meta[batchKey].addresses[batchIndex];
-
-      const identity = identities[batchIndex] ?? '';
+      const identity = validatorIdentities[validator.address] ?? '';
       const identityRaw = identity?.info?.display?.Raw ?? '';
       const identityAsBytes = u8aToString(u8aUnwrapBytes(identityRaw));
       const identitySearch = (
         identityAsBytes === '' ? identityRaw : identityAsBytes
       ).toLowerCase();
 
-      const superIdentity = supers[batchIndex] ?? null;
+      const superIdentity = validatorSupers[validator.address] ?? null;
       const superIdentityRaw =
         superIdentity?.identity?.info?.display?.Raw ?? '';
       const superIdentityAsBytes = u8aToString(
@@ -284,7 +233,7 @@ export const useValidatorFilters = () => {
         superIdentityAsBytes === '' ? superIdentityRaw : superIdentityAsBytes
       ).toLowerCase();
 
-      if (address.toLowerCase().includes(searchTerm.toLowerCase()))
+      if (validator.address.toLowerCase().includes(searchTerm.toLowerCase()))
         filteredList.push(validator);
       if (
         identitySearch.includes(searchTerm.toLowerCase()) ||
