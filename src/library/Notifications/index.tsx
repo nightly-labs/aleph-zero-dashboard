@@ -19,7 +19,7 @@ export const Notifications = () => {
               <motion.li
                 key={`notification_${item.index}`}
                 className={
-                  item.title === 'Failed'
+                  item.title === 'Failed' || item.title === 'Cancelled'
                     ? 'notification--error'
                     : 'notification--success'
                 }
