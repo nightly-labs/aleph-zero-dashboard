@@ -6,14 +6,19 @@ import { ButtonPrimaryInvert, Separator } from '@polkadot-cloud/react';
 import { useTranslation } from 'react-i18next';
 import { useApi } from 'contexts/Api';
 import { useConnect } from 'contexts/Connect';
+import type { NetworkName } from 'types';
 import { NetworkNameEnum } from 'types';
 import { MoreWrapper } from './Wrappers';
+
+const networkToSubscan: Map<NetworkName, string | undefined> = new Map([
+  [NetworkNameEnum.AlephZero, 'https://alephzero.subscan.io'],
+]);
 
 export const BalanceLinks = () => {
   const { t } = useTranslation('pages');
   const { name } = useApi().network;
   const { activeAccount } = useConnect();
-  const networkNameDomainPart = name.toLocaleLowerCase().replaceAll(' ', '');
+  const subscanLink = networkToSubscan.get(name);
 
   return (
     <MoreWrapper>
@@ -22,12 +27,13 @@ export const BalanceLinks = () => {
       <section>
         <ButtonPrimaryInvert
           lg
-          onClick={() =>
-            window.open(
-              `https://${networkNameDomainPart}.subscan.io/account/${activeAccount}`,
-              '_blank'
-            )
-          }
+          onClick={() => {
+            if (!subscanLink) {
+              return;
+            }
+
+            window.open(`${subscanLink}/account/${activeAccount}`, '_blank');
+          }}
           iconRight={faExternalLinkAlt}
           iconTransform="shrink-2"
           text="Subscan"
