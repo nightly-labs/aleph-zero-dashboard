@@ -299,6 +299,9 @@ export const PayoutsProvider = ({
     if (!unclaimedPayouts) return;
     const newUnclaimedPayouts = { ...unclaimedPayouts };
     delete newUnclaimedPayouts[era][validator];
+    if (Object.keys(newUnclaimedPayouts[era]).length === 0) {
+      delete newUnclaimedPayouts[era];
+    }
     setUnclaimedPayouts(newUnclaimedPayouts);
   };
 
