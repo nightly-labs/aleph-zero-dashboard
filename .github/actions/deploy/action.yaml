@@ -53,4 +53,6 @@ runs:
         message: 'Updating aleph-zero-dashboard ${{ inputs.environment }} docker image tag: ${{ inputs.image_tag }}'
         add: '*.yaml'
         cwd: 'aleph-apps'
-        branch: ${{ inputs.environment }}
+        # TODO uncomment before merge
+        # branch: ${{ inputs.environment == 'devnet' && 'main' || inputs.environment }}
+        branch: A0-3351
