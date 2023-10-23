@@ -26,9 +26,7 @@ runs:
         repository: Cardinal-Cryptography/aleph-apps
         token: ${{ inputs.github_token }}
         path: "aleph-apps"
-        # TODO uncomment before merge
-        # ref: ${{ inputs.environment == 'devnet' && 'main' || inputs.environment }}
-        ref: A0-3351
+        ref: ${{ inputs.environment == 'devnet' && 'main' || inputs.environment }}
 
     - name: KUSTOMIZE | Init kustomize
       uses: imranismail/setup-kustomize@v2
@@ -53,6 +51,4 @@ runs:
         message: 'Updating aleph-zero-dashboard ${{ inputs.environment }} docker image tag: ${{ inputs.image_tag }}'
         add: '*.yaml'
         cwd: 'aleph-apps'
-        # TODO uncomment before merge
-        # branch: ${{ inputs.environment == 'devnet' && 'main' || inputs.environment }}
-        branch: A0-3351
+        branch: ${{ inputs.environment == 'devnet' && 'main' || inputs.environment }}

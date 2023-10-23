@@ -2,10 +2,9 @@ name: Build, push and deploy Aleph Zero Dashboard to devnet
 
 on:
   workflow_dispatch:
-    # remove before merge
   push:
     branches:
-      - A0-3351
+      - master
 
 jobs:
   build-and-push:
