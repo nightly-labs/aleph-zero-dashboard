@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - ".github/**"
+      - "*.md"
 
 jobs:
   build-and-push:
@@ -21,7 +24,7 @@ jobs:
         id: build-devnet
         with:
           environment: devnet
-          build_envs: 'VITE_DISABLE_MAINNET=1 VITE_DISABLE_TESTNET=1 VITE_DISABLE_FIAT=1'
+          build_envs: 'VITE_DISABLE_FIAT=1'
           aws_mainnet_access_key_id: ${{ secrets.AWS_MAINNET_ACCESS_KEY_ID }}
           aws_mainnet_secret_access_key: ${{ secrets.AWS_MAINNET_SECRET_ACCESS_KEY }}
     outputs:
