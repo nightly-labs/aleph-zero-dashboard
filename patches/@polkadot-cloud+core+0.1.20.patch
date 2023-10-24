@@ -109,7 +109,7 @@ index 93d847d..5eea5d2 100644
 \ No newline at end of file
 diff --git a/node_modules/@polkadot-cloud/core/theme/aleph-zero-relay/index.css b/node_modules/@polkadot-cloud/core/theme/aleph-zero-relay/index.css
 new file mode 100644
-index 0000000..83d7511
+index 0000000..dc85706
 --- /dev/null
 +++ b/node_modules/@polkadot-cloud/core/theme/aleph-zero-relay/index.css
 @@ -0,0 +1,28 @@
@@ -120,8 +120,8 @@ index 0000000..83d7511
 +.theme-aleph-zero-custom-relay {
 +  --accent-color-primary-light: #00ccab;
 +  --accent-color-primary-dark: #00ccab;
-+  --accent-color-secondary-light: #00ccab;
-+  --accent-color-secondary-dark: #00ccab;
++  --accent-color-secondary-light: #00ccabaa;
++  --accent-color-secondary-dark: #00ccabaa;
 +  --accent-color-stroke-light: #00ccab;
 +  --accent-color-stroke-dark: #00ccab;
 +  --accent-color-transparent-light: #00ccab0d;
