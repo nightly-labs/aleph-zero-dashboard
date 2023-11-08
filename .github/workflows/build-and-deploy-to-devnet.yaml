@@ -48,3 +48,21 @@ jobs:
           kustomize_version: ${{ vars.KUSTOMIZE_VERSION }}
           image_tag: ${{ needs.build-and-push.outputs.image_tag }}
           github_token: ${{ secrets.CI_GH_TOKEN }}
+
+  slack-notification:
+    name: Slack notification
+    runs-on: ubuntu-20.04
+    needs: [deploy-to-devnet]
+    if: >
+      !cancelled() &&
+      github.event_name != 'workflow_dispatch'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Send Slack message
+        uses: ./.github/actions/slack-notification
+        with:
+          notify-on: "failure"
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_DEV_ONDUTY }}
