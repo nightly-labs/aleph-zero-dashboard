@@ -1,11 +1,12 @@
 ---
-name: Automatic upstream merge 
+name: Automatic upstream merge
 
 on:
   # run on 1th and 15th day of any month, ie fortnightly
   schedule:
     - cron: '* * 1,15 * *'
   # for testing, remove before merge
+  workflow_dispatch:
   push:
     branches:
       - A0-3232
