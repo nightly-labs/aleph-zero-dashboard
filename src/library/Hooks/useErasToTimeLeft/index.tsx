@@ -7,7 +7,7 @@ import { useApi } from 'contexts/Api';
 
 export const useErasToTimeLeft = () => {
   const { consts } = useApi();
-  const { epochDuration, expectedBlockTime, sessionsPerEra } = consts;
+  const { expectedEraTime, expectedBlockTime } = consts;
 
   // converts a number of eras to timeleft in seconds.
   const erasToSeconds = (eras: BigNumber) => {
@@ -15,7 +15,7 @@ export const useErasToTimeLeft = () => {
       return 0;
     }
     // store the duration of an era in number of blocks.
-    const eraDurationBlocks = epochDuration.multipliedBy(sessionsPerEra);
+    const eraDurationBlocks = expectedEraTime.dividedBy(1000);
     // estimate the duration of the era in seconds.
     const eraDuration = eraDurationBlocks
       .multipliedBy(expectedBlockTime)
