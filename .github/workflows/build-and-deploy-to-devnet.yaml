@@ -5,9 +5,6 @@ on:
   push:
     branches:
       - master
-    paths-ignore:
-      - ".github/**"
-      - "*.md"
 
 jobs:
   build-and-push:
@@ -53,9 +50,7 @@ jobs:
     name: Slack notification
     runs-on: ubuntu-20.04
     needs: [deploy-to-devnet]
-    if: >
-      !cancelled() &&
-      github.event_name != 'workflow_dispatch'
+    if: always()
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
