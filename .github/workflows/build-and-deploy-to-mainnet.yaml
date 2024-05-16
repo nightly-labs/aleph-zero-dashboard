@@ -11,7 +11,7 @@ jobs:
       name: mainnet
     steps:
       - name: GIT | Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: DOCKER | Build and push mainnet image
         uses: ./.github/actions/build-and-push
@@ -32,7 +32,7 @@ jobs:
       name: mainnet
     steps:
       - name: GIT | Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: MAINNET | Deploy Aleph Zero Dashboard
         uses: ./.github/actions/deploy
