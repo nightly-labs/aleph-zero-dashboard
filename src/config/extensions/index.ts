@@ -7,6 +7,7 @@ import { ReactComponent as NovaWalletSVG } from './icons/nova_wallet.svg';
 import { ReactComponent as PolkadotJSSVG } from './icons/polkadot_js.svg';
 import { ReactComponent as SubwalletSVG } from './icons/subwallet_icon.svg';
 import { ReactComponent as TalismanSVG } from './icons/talisman_icon.svg';
+import { ReactComponent as NightlySvg } from './icons/nightly_icon.svg';
 
 export interface ExtensionConfig {
   id: string;
@@ -22,6 +23,12 @@ export const ExtensionsArray: ExtensionConfig[] = [
     title: 'Aleph Zero Signer',
     icon: SignerSvg,
     website: 'alephzero.org/signer',
+  },
+  {
+    id: 'Nightly',
+    title: 'Nightly',
+    icon: NightlySvg,
+    website: 'nightly.app/download',
   },
   {
     id: 'polkadot-js',
