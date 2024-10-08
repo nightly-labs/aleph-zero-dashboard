@@ -33,6 +33,7 @@ import type { AnyApi, NetworkName } from 'types';
 import { useEffectIgnoreInitial } from '@polkadot-cloud/react/hooks';
 import * as defaults from './defaults';
 import { defaultNetworkName } from './defaults';
+import typesBundle from './typesBundle';
 
 export const APIProvider = ({ children }: { children: React.ReactNode }) => {
   // Get the initial network and prepare meta tags if necessary.
@@ -182,7 +183,10 @@ export const APIProvider = ({ children }: { children: React.ReactNode }) => {
     if (!provider) return;
 
     // initiate new api and set connected.
-    const newApi = await ApiPromise.create({ provider });
+    const newApi = await ApiPromise.create({
+      provider,
+      typesBundle,
+    });
 
     // set connected here in case event listeners have not yet initialised.
     setApiStatus('connected');

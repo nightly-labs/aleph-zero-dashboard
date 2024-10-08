@@ -1,70 +1,65 @@
 // Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-import BigNumber from 'bignumber.js';
+import type BigNumber from 'bignumber.js';
 import { useApi } from 'contexts/Api';
 import { useNetworkMetrics } from 'contexts/Network';
 import { useStaking } from 'contexts/Staking';
+import { useEffect, useState } from 'react';
 
-const BIGNUMBER_THOUSAND = new BigNumber(1_000);
-const BIGNUMBER_MILLION = new BigNumber(1_000_000);
-const BIGNUMBER_BILLION = new BigNumber(1_000_000_000);
+const calculateInflation = (
+  totalStaked: BigNumber,
+  totalIssuance: BigNumber,
+  yearlyInflationInPercentage: number
+) => {
+  const stakedFraction =
+    totalStaked.isZero() || totalIssuance.isZero()
+      ? 0
+      : totalStaked.dividedBy(totalIssuance).toNumber();
 
-export const useInflation = () => {
-  const { network } = useApi();
-  const { metrics } = useNetworkMetrics();
-  const { staking } = useStaking();
-  const { params } = network;
-  const { lastTotalStake } = staking;
-  const { totalIssuance, auctionCounter } = metrics;
-
-  const {
-    auctionAdjust,
-    auctionMax,
-    maxInflation,
-    stakeTarget,
-    yearlyInflationInTokens,
-  } = params;
-
+  const baseStakedReturn =
+    stakedFraction !== 0 ? yearlyInflationInPercentage / stakedFraction : 0;
   /* For Aleph Zero inflation is calculated based on yearlyInflationInTokens and totalIssuanceInTokens
    * We multiply stakedReturn by 0.9, as in case of Aleph Zero chain 10% of return goes to treasury
    */
+  const stakedReturn = baseStakedReturn * 0.9;
 
-  const calculateInflation = (
-    totalStaked: BigNumber,
-    numAuctions: BigNumber
-  ) => {
-    const stakedFraction =
-      totalStaked.isZero() || totalIssuance.isZero()
-        ? 0
-        : totalStaked
-            .multipliedBy(BIGNUMBER_MILLION)
-            .dividedBy(totalIssuance)
-            .toNumber() / BIGNUMBER_MILLION.toNumber();
-    const idealStake =
-      stakeTarget -
-      Math.min(auctionMax, numAuctions.toNumber()) * auctionAdjust;
-    const idealInterest = maxInflation / idealStake;
-
-    const totalIssuanceInTokens = totalIssuance
-      .div(BIGNUMBER_BILLION)
-      .div(BIGNUMBER_THOUSAND);
-
-    const inflation = totalIssuanceInTokens.isZero()
-      ? 0
-      : 100 * (yearlyInflationInTokens / totalIssuanceInTokens.toNumber());
-
-    let stakedReturn = stakedFraction ? inflation / stakedFraction : 0;
-    stakedReturn *= 0.9;
-
-    return {
-      idealInterest,
-      idealStake,
-      inflation,
-      stakedFraction,
-      stakedReturn,
-    };
+  return {
+    inflation: yearlyInflationInPercentage,
+    stakedFraction,
+    stakedReturn,
   };
+};
 
-  return calculateInflation(lastTotalStake, auctionCounter);
+const useYearlyInflation = () => {
+  const { api } = useApi();
+  const [yearlyInflation, setYearlyInflation] = useState<number>();
+
+  const getYearlyInflation = api?.call?.alephSessionApi?.yearlyInflation;
+
+  useEffect(() => {
+    getYearlyInflation?.()
+      .then((val) => setYearlyInflation(val.toNumber() / 1_000_000_000))
+      // eslint-disable-next-line no-console
+      .catch(console.error);
+    // `api` object can change in case of network change which should trigger refetch.
+  }, [api]);
+
+  return yearlyInflation;
+};
+
+export const useInflation = () => {
+  const {
+    metrics: { totalIssuance },
+  } = useNetworkMetrics();
+  const {
+    staking: { lastTotalStake },
+  } = useStaking();
+  const yearlyInflation = useYearlyInflation();
+
+  return calculateInflation(
+    lastTotalStake,
+    totalIssuance,
+    (yearlyInflation ?? 0) * 100
+  );
 };
