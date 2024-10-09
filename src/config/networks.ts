@@ -1,7 +1,6 @@
 // Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { BN, BN_MILLION } from '@polkadot/util';
 import { DefaultParams } from 'consts';
 import { ReactComponent as AzeroIconSVG } from 'img/a0_icon.svg';
 import { ReactComponent as AzeroInlineSVG } from 'img/a0_inline.svg';
@@ -62,7 +61,6 @@ if (import.meta.env.VITE_DISABLE_MAINNET !== '1') {
     params: {
       ...DefaultParams,
       stakeTarget: 0.5,
-      yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
     defaultFeeReserve: 0.1,
   } as const;
@@ -122,7 +120,6 @@ if (import.meta.env.VITE_DISABLE_TESTNET !== '1') {
     params: {
       ...DefaultParams,
       stakeTarget: 0.5,
-      yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
     defaultFeeReserve: 0.1,
   } as const;
@@ -181,7 +178,6 @@ if (import.meta.env.VITE_ENABLE_CUSTOM_NETWORK === '1') {
     params: {
       ...DefaultParams,
       stakeTarget: 0.5,
-      yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
     defaultFeeReserve: 0.1,
   } as const;
@@ -241,7 +237,6 @@ if (import.meta.env.VITE_DISABLE_DEVNET !== '1') {
     params: {
       ...DefaultParams,
       stakeTarget: 0.5,
-      yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
     defaultFeeReserve: 0.1,
   } as const;
@@ -301,7 +296,6 @@ if (import.meta.env.MODE === 'development') {
     params: {
       ...DefaultParams,
       stakeTarget: 0.5,
-      yearlyInflationInTokens: BN_MILLION.mul(new BN(30)).toNumber(),
     },
     defaultFeeReserve: 0.1,
   } as const;

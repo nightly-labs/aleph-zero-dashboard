@@ -13,6 +13,7 @@ export interface NetworkState {
   meta: Network;
 }
 export interface APIConstants {
+  chainDecimals: number;
   bondDuration: BigNumber;
   maxNominations: BigNumber;
   sessionsPerEra: BigNumber;

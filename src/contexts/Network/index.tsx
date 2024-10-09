@@ -40,12 +40,14 @@ export const NetworkMetricsProvider = ({
       const subscribeToMetrics = async () => {
         const unsub = await api.queryMulti(
           [
+            api.query.aleph.azeroCap,
             api.query.balances.totalIssuance,
             api.query.staking.minimumActiveStake,
           ],
-          ([totalIssuance, minimumActiveStake]: AnyApi) => {
+          ([azeroCap, totalIssuance, minimumActiveStake]: AnyApi) => {
             setStateWithRef(
               {
+                azeroCap: new BigNumber(azeroCap.toString()),
                 totalIssuance: new BigNumber(totalIssuance.toString()),
                 auctionCounter: metrics.auctionCounter,
                 earliestStoredSession: metrics.earliestStoredSession,

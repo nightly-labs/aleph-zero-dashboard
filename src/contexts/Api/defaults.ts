@@ -38,6 +38,7 @@ if (!isValidConfiguredNetworkName(cachedNetworkName)) {
 }
 
 export const consts: APIConstants = {
+  chainDecimals: 12,
   bondDuration: new BigNumber(0),
   maxNominations: new BigNumber(0),
   sessionsPerEra: new BigNumber(0),

@@ -5,7 +5,12 @@ import { capitalizeFirstLetter, planckToUnit } from '@polkadot-cloud/utils';
 import { useApi } from 'contexts/Api';
 import { useNetworkMetrics } from 'contexts/Network';
 import { usePoolsConfig } from 'contexts/Pools/PoolsConfig';
-import type { AnyJson } from 'types';
+import type { AnyJson, NetworkName } from 'types';
+
+const networkToFirstYearInflation: Partial<Record<NetworkName, string>> = {
+  'Aleph Zero': '27M',
+  'Aleph Zero Testnet': '1000M',
+};
 
 export const useFillVariables = () => {
   const { network, consts } = useApi();
@@ -17,7 +22,7 @@ export const useFillVariables = () => {
   } = consts;
   const { minJoinBond, minCreateBond } = stats;
   const { metrics } = useNetworkMetrics();
-  const { minimumActiveStake } = metrics;
+  const { azeroCap, minimumActiveStake } = metrics;
 
   const fillVariables = (d: AnyJson, keys: string[]) => {
     const fields: AnyJson = Object.entries(d).filter(([k]: any) =>
@@ -26,6 +31,16 @@ export const useFillVariables = () => {
     const transformed = Object.entries(fields).map(
       ([, [key, val]]: AnyJson) => {
         const varsToValues = [
+          [
+            '{AZERO_CAP}',
+            azeroCap
+              .shiftedBy(-(consts.chainDecimals + 6))
+              .toFormat({ suffix: 'M' }),
+          ],
+          [
+            '{INFLATION_FIRST_YEAR}',
+            networkToFirstYearInflation[network.name] ?? '-M',
+          ],
           ['{NETWORK_UNIT}', network.unit],
           ['{NETWORK_NAME}', capitalizeFirstLetter(network.name)],
           [
