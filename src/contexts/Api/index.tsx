@@ -275,6 +275,7 @@ export const APIProvider = ({ children }: { children: React.ReactNode }) => {
     const expectedEraTime = FallbackExpectedEraTime;
 
     setConsts({
+      chainDecimals: newApi.registry.chainDecimals[0],
       bondDuration,
       maxNominations,
       sessionsPerEra,

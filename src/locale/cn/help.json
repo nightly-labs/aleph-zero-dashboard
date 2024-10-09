@@ -114,8 +114,8 @@
       "inflation": [
         "通货膨胀",
         [
-          "{NETWORK_UNIT} is inflationary. Inflation is exponentially decreasing, starting at 27M {NETWORK_UNIT} emission in the first year.",
-          "The max supply is 520M {NETWORK_UNIT}."
+          "{NETWORK_UNIT} is inflationary. Inflation is exponentially decreasing, starting at {INFLATION_FIRST_YEAR} {NETWORK_UNIT} emission in the first year.",
+          "The max supply is {AZERO_CAP} {NETWORK_UNIT}."
         ]
       ],
       "lastEraPayout": [

@@ -12,7 +12,9 @@ export const activeEra: ActiveEra = {
   index: new BigNumber(0),
   start: new BigNumber(0),
 };
+
 export const metrics: NetworkMetrics = {
+  azeroCap: new BigNumber(0),
   totalIssuance: new BigNumber(0),
   auctionCounter: new BigNumber(0),
   earliestStoredSession: new BigNumber(0),

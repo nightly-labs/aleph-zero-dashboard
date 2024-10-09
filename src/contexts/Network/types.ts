@@ -9,6 +9,7 @@ export interface NetworkMetricsContextInterface {
 }
 
 export interface NetworkMetrics {
+  azeroCap: BigNumber;
   totalIssuance: BigNumber;
   auctionCounter: BigNumber;
   earliestStoredSession: BigNumber;
