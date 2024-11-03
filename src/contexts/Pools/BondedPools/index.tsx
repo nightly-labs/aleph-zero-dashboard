@@ -72,13 +72,9 @@ export const BondedPoolsProvider = ({
 
   // fetch all bonded pool entries
   const fetchBondedPools = async () => {
-    if (!api) {
-      return;
-    }
+    if (!api) return;
 
     const ids: number[] = [];
-
-    // Fetch bonded pools entries.
     const bondedPoolsMulti =
       await api.query.nominationPools.bondedPools.entries();
     let exposures = bondedPoolsMulti.map(([keys, val]: AnyApi) => {
