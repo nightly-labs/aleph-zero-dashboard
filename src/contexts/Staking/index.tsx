@@ -6,6 +6,7 @@ import {
   greaterThanZero,
   isNotZero,
   localStorageOrDefault,
+  rmCommas,
   setStateWithRef,
 } from '@polkadot-cloud/utils';
 import BigNumber from 'bignumber.js';
@@ -16,6 +17,7 @@ import type { PayeeConfig, PayeeOptions } from 'contexts/Setup/types';
 import type {
   EraStakers,
   Exposure,
+  ExposureOther,
   StakingContextInterface,
   StakingMetrics,
   StakingTargets,
@@ -207,10 +209,7 @@ export const StakingProvider = ({
     if (localExposures) {
       exposures = localExposures;
     } else {
-      exposures = formatRawExposures(
-        await api.query.staking.erasStakersOverview.entries(era),
-        await api.query.staking.erasStakersPaged.entries(era)
-      );
+      exposures = await getPagedErasStakers(era);
     }
 
     // For resource limitation concerns, only store the current era in local storage.
@@ -329,6 +328,63 @@ export const StakingProvider = ({
   const inSetup = () =>
     !activeAccount ||
     (!hasController() && !isBonding() && !isNominating() && !isUnlocking());
+
+  // Fetch eras stakers from storage.
+  const getPagedErasStakers = async (era: string) => {
+    if (!api) {
+      return [];
+    }
+
+    const overview: AnyApi =
+      await api.query.staking.erasStakersOverview.entries(era);
+
+    const validators = overview.reduce(
+      (prev: Record<string, Exposure>, [keys, value]: AnyApi) => {
+        const validator = keys.toHuman()[1];
+        const { own, total } = value.toHuman();
+        return { ...prev, [validator]: { own, total } };
+      },
+      {}
+    );
+    const validatorKeys = Object.keys(validators);
+
+    const pagedResults = await Promise.all(
+      validatorKeys.map((v) =>
+        api.query.staking.erasStakersPaged.entries(era, v)
+      )
+    );
+
+    const result: Exposure[] = [];
+    let i = 0;
+    for (const pagedResult of pagedResults) {
+      const validator = validatorKeys[i];
+      const { own, total } = validators[validator];
+      const others = pagedResult.reduce(
+        (prev: ExposureOther[], [, v]: AnyApi) => {
+          const o = v.toHuman()?.others || [];
+          if (!o.length) {
+            return prev;
+          }
+          return prev.concat(o);
+        },
+        []
+      );
+
+      result.push({
+        keys: [rmCommas(era), validator],
+        val: {
+          total: rmCommas(total),
+          own: rmCommas(own),
+          others: others.map(({ who, value }) => ({
+            who,
+            value: rmCommas(value),
+          })),
+        },
+      });
+      i++;
+    }
+    return result;
+  };
 
   // Helper function to get the lowest reward from an active validator.
   const getLowestRewardFromStaker = (address: MaybeAccount) => {
