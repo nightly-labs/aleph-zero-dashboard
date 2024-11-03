@@ -208,7 +208,8 @@ export const StakingProvider = ({
       exposures = localExposures;
     } else {
       exposures = formatRawExposures(
-        await api.query.staking.erasStakers.entries(era)
+        await api.query.staking.erasStakersOverview.entries(era),
+        await api.query.staking.erasStakersPaged.entries(era)
       );
     }
 
