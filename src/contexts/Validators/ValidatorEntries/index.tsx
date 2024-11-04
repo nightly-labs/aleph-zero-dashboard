@@ -239,10 +239,11 @@ export const ValidatorsProvider = ({
   // Subscribe to active session validators.
   const subscribeSessionValidators = async () => {
     if (!api || !isReady) return;
-    const unsub: AnyApi = await api.query.session.validators((v: AnyApi) => {
-      setSessionValidators(v.toHuman());
-      sessionUnsub.current = unsub;
-    });
+    const sessionValidatorsRaw: AnyApi =
+      await api.query.staking.validators.entries();
+    setSessionValidators(
+      sessionValidatorsRaw.map(([keys]: AnyApi) => keys?.toHuman()?.toString())
+    );
   };
 
   // Subscribe to active parachain validators.
