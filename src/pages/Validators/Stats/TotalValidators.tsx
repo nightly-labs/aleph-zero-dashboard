@@ -10,7 +10,6 @@ import { Pie } from 'library/StatBoxList/Pie';
 export const TotalValidatorsStat = () => {
   const { t } = useTranslation('pages');
   const { staking } = useStaking();
-  //! @kry api.query.staking.maxValidatorsCount return null
   const { totalValidators, maxValidatorsCount } = staking;
 
   // total validators as percent
