@@ -11,7 +11,7 @@ import type {
   NominationStatuses,
 } from 'contexts/Pools/types';
 import { useStaking } from 'contexts/Staking';
-import type { AnyApi, AnyMetaBatch, Fn, MaybeAccount, Sync } from 'types';
+import type { AnyApi, AnyMetaBatch, Fn, MaybeAccount } from 'types';
 import { useEffectIgnoreInitial } from '@polkadot-cloud/react/hooks';
 import { useApi } from '../../Api';
 import { usePoolsConfig } from '../PoolsConfig';
@@ -36,8 +36,6 @@ export const BondedPoolsProvider = ({
 
   // store bonded pools
   const [bondedPools, setBondedPools] = useState<BondedPool[]>([]);
-
-  const bondedPoolsRef = useRef(bondedPools);
 
   // clear existing state for network refresh
   useEffectIgnoreInitial(() => {
@@ -74,17 +72,15 @@ export const BondedPoolsProvider = ({
   const fetchBondedPools = async () => {
     if (!api) return;
 
-    const ids: number[] = [];
-    const bondedPoolsMulti =
-      await api.query.nominationPools.bondedPools.entries();
-    let exposures = bondedPoolsMulti.map(([keys, val]: AnyApi) => {
-      const id = keys.toHuman()[0];
-      ids.push(id);
-      return getPoolWithAddresses(id, val.toHuman());
+    const result = await api.query.nominationPools.bondedPools.entries();
+    let exposures = result.map(([_keys, _val]: AnyApi) => {
+      const id = _keys.toHuman()[0];
+      const pool = _val.toHuman();
+      return getPoolWithAddresses(id, pool);
     });
 
     exposures = shuffle(exposures);
-    setStateWithRef(exposures, setBondedPools, bondedPoolsRef);
+    setBondedPools(exposures);
   };
 
   // queries a bonded pool and injects ID and addresses to a result.
