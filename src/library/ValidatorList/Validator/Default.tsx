@@ -120,7 +120,6 @@ export const Default = ({
           )}
           <div>
             <Labels>
-              <Oversubscribed address={address} />
               <Blocked prefs={prefs} />
               <Commission commission={commission} />
               <ParaValidator address={address} />

@@ -178,7 +178,7 @@ export const PayoutsProvider = ({
       const ledger = ledgerResult.unwrapOr(null)?.toHuman();
       if (ledger) {
         // get claimed eras within `erasToCheck`.
-        const erasClaimed = ledger.claimedRewards
+        const erasClaimed = ledger.legacyClaimedRewards
           .map((e: string) => rmCommas(e))
           .filter(
             (e: string) =>
