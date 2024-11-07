@@ -1,4 +1,6 @@
 import type { ApiPromise } from '@polkadot/api';
+import { rmCommas } from '@polkadot-cloud/utils';
+import { TypeRegistry, u128 } from '@polkadot/types';
 import BN from 'bn.js';
 import { DECIMALS } from './consts';
 import type { EraData } from './types';
@@ -6,8 +8,10 @@ import type { EraData } from './types';
 /**
  * Warning: Lots of "ts-ignore"s due to incorrect api library's types.
  */
-export default (api: ApiPromise, era: number) =>
-  Promise.all([
+export default (api: ApiPromise, era: number) => {
+  const registry = new TypeRegistry();
+
+  return Promise.all([
     api.query.staking
       .erasValidatorReward(era)
       .then((tRP) => new BN(tRP.toString())),
@@ -22,24 +26,48 @@ export default (api: ApiPromise, era: number) =>
         })
       ),
     })),
-    api.query.staking.erasStakers.entries(era).then((stakers) =>
-      stakers.map(
-        ([
-          {
-            args: [, rawValidatorId],
-          },
-          // @ts-expect-error TS2339: Contrary to the TS error, "others", "own" and "total" do exist
-          { others: nominators, own, total },
-        ]) => ({
-          validatorId: rawValidatorId.toString(),
-          // @ts-expect-error TS7031: Not fixing types in here since we cast in right after
-          nominatorsStakes: nominators.map(({ who, value }) => ({
-            nominatorId: who.toString(),
-            value: value.toBn(),
-          })),
-          ownStake: own.toBn(),
-          totalStake: total.toBn(),
+    api.query.staking.erasStakersOverview.entries(era).then(
+      (stakers) =>
+        stakers?.map(([args, data]) => {
+          // @ts-expect-error TS2339: Contrary to the TS error "own" and "total" do exist
+          const { total, own } = data.toHuman();
+          const validatorId =
+            (args?.toHuman() as string[] | undefined)?.[1] || '';
+
+          return {
+            validatorId,
+            ownStake: new u128(registry, rmCommas(own)),
+            total: new u128(registry, rmCommas(total)),
+          };
         })
+    ),
+    api.query.staking.erasStakersPaged.entries(era).then((stakers) =>
+      stakers.reduce(
+        (
+          acc,
+          [
+            {
+              args: [, rawValidatorId],
+            },
+            data,
+          ]
+        ) => {
+          const validatorId = rawValidatorId.toString();
+          // @ts-expect-error TS2339: Contrary to the TS error "others" do exist
+          const { others } = data.toHuman();
+          // @ts-expect-error TS2339: Contrary to the TS error "who" and "value" do exist
+          const nominatorsStakes = others.map(({ who, value }) => ({
+            nominatorId: rmCommas(who),
+            value: new u128(registry, rmCommas(value)),
+          }));
+
+          acc.set(validatorId, [
+            ...(acc.get(validatorId) || []),
+            ...nominatorsStakes,
+          ]);
+          return acc;
+        },
+        new Map<string, { nominatorId: string; value: u128 }[]>()
       )
     ),
     api.query.staking.erasValidatorPrefs.entries(era).then((commissions) =>
@@ -63,6 +91,7 @@ export default (api: ApiPromise, era: number) =>
     ([
       totalEraRewardPoints,
       allAwardedRewardPoints,
+      stakesOverview,
       allStakes,
       allCommissions,
     ]) => {
@@ -77,10 +106,12 @@ export default (api: ApiPromise, era: number) =>
         }
       );
 
-      allStakes.forEach(({ validatorId, ...stakes }) => {
+      stakesOverview.forEach(({ validatorId, ownStake, total }) => {
         perValidatorData[validatorId] = {
           ...perValidatorData[validatorId],
-          ...stakes,
+          ownStake,
+          totalStake: total,
+          nominatorsStakes: allStakes.get(validatorId) || [],
         };
       });
 
@@ -98,3 +129,4 @@ export default (api: ApiPromise, era: number) =>
       };
     }
   );
+};
