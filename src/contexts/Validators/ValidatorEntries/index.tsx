@@ -5,7 +5,7 @@ import { greaterThanZero, shuffle } from '@polkadot-cloud/utils';
 import BigNumber from 'bignumber.js';
 import React, { useEffect, useRef, useState } from 'react';
 import { ValidatorCommunity } from '@polkadot-cloud/assets/validators';
-import type { AnyApi, Fn, Sync } from 'types';
+import type { AnyApi, AnyJson, Fn, Sync } from 'types';
 import { useEffectIgnoreInitial } from '@polkadot-cloud/react/hooks';
 import { useApi } from 'contexts/Api';
 import { useBonded } from 'contexts/Bonded';
@@ -290,7 +290,7 @@ export const ValidatorsProvider = ({
 
     return Object.fromEntries(
       Object.entries(
-        Object.fromEntries(identities.map((k, i) => [addresses[i], k]))
+        Object.fromEntries(identities.map((k, i) => [addresses[i], k?.[0]]))
       ).filter(([, v]) => v !== null)
     );
   };
@@ -320,18 +320,17 @@ export const ValidatorsProvider = ({
       await api.query.identity.identityOf.multi(
         Object.values(supers).map(({ superOf }) => superOf[0])
       )
-    ).map((superIdentity) => superIdentity.toHuman());
+    ).map((superIdentity: AnyJson) => superIdentity.toHuman());
 
     const supersWithIdentity = Object.fromEntries(
       Object.entries(supers).map(([k, v]: AnyApi, i) => [
         k,
         {
           ...v,
-          identity: superIdentities[i],
+          identity: superIdentities[i]?.[0],
         },
       ])
     );
-
     return supersWithIdentity;
   };
 
