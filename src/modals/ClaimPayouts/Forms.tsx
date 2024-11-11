@@ -41,15 +41,25 @@ export const Forms = forwardRef(
         new BigNumber(0)
       ) || new BigNumber(0);
 
+    // Get the total number of validators to payout (the same validator can repeat for separate
+    // eras).
+    const totalPayoutValidators =
+      payouts?.reduce(
+        (prev, { paginatedValidators }) =>
+          prev + (paginatedValidators?.length || 0),
+        0
+      ) || 0;
+
     const getCalls = () => {
       if (!api) return [];
 
       const calls: AnyApi[] = [];
-      payouts?.forEach(({ era, validators }) => {
-        if (!validators) return [];
-
-        return validators.forEach((v) =>
-          calls.push(api.tx.staking.payoutStakers(v, era))
+      payouts?.forEach(({ era, paginatedValidators }) => {
+        if (!paginatedValidators) {
+          return [];
+        }
+        return paginatedValidators.forEach(([page, v]) =>
+          calls.push(api.tx.staking.payoutStakersByPage(v, era, page))
         );
       });
       return calls;
@@ -57,12 +67,12 @@ export const Forms = forwardRef(
 
     // Store whether form is valid to submit transaction.
     const [valid, setValid] = useState<boolean>(
-      totalPayout.isGreaterThan(0) && getCalls().length > 0
+      totalPayout.isGreaterThan(0) && totalPayoutValidators > 0
     );
 
     // Ensure payouts value is valid.
     useEffect(
-      () => setValid(totalPayout.isGreaterThan(0) && getCalls().length > 0),
+      () => setValid(totalPayout.isGreaterThan(0) && totalPayoutValidators > 0),
       [payouts]
     );
 
@@ -85,9 +95,9 @@ export const Forms = forwardRef(
       },
       callbackInBlock: () => {
         // Deduct from `unclaimedPayouts` in Payouts context.
-        payouts?.forEach(({ era, validators }) => {
-          for (const v of validators || []) {
-            removeEraPayout(era, v);
+        payouts?.forEach(({ era, paginatedValidators }) => {
+          for (const v of paginatedValidators || []) {
+            removeEraPayout(era, v[1]);
           }
         });
 

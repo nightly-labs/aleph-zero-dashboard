@@ -11,11 +11,12 @@ export type PayoutsContextInterface = {
 
 export type UnclaimedPayouts = Record<string, EraUnclaimedPayouts> | null;
 
-export type EraUnclaimedPayouts = Record<string, string>;
+export type EraUnclaimedPayouts = Record<string, [number, string]>;
 
 export interface LocalValidatorExposure {
   staked: string;
   total: string;
   share: string;
   isValidator: boolean;
+  exposedPage: number;
 }

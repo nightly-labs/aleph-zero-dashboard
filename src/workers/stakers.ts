@@ -58,6 +58,7 @@ const processEraForExposure = (data: AnyJson) => {
         total,
         share,
         isValidator,
+        exposedPage: 0,
       };
 
       exposed = true;
@@ -67,6 +68,9 @@ const processEraForExposure = (data: AnyJson) => {
     const inOthers = others.find((o: AnyJson) => o.who === who);
 
     if (inOthers) {
+      const index = others.findIndex((o: any) => o.who === who);
+      const exposedPage = Math.floor(index / Number(1024));
+
       const share = new BigNumber(inOthers.value).isZero()
         ? '0'
         : new BigNumber(inOthers.value).dividedBy(total).toString();
@@ -76,6 +80,7 @@ const processEraForExposure = (data: AnyJson) => {
         total,
         share,
         isValidator,
+        exposedPage,
       };
       exposed = true;
       if (exitOnExposed) return false;
