@@ -355,9 +355,8 @@ export const StakingProvider = ({
     );
 
     const result: Exposure[] = [];
-    let i = 0;
-    for (const pagedResult of pagedResults) {
-      const validator = validatorKeys[i];
+    pagedResults.forEach((pagedResult, index) => {
+      const validator = validatorKeys[index];
       const { own, total } = validators[validator];
       const others = pagedResult.reduce(
         (prev: ExposureOther[], [, v]: AnyApi) => {
@@ -381,8 +380,7 @@ export const StakingProvider = ({
           })),
         },
       });
-      i++;
-    }
+    });
     return result;
   };
 
