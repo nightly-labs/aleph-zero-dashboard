@@ -42,6 +42,7 @@ export const consts: APIConstants = {
   bondDuration: new BigNumber(0),
   maxNominations: new BigNumber(0),
   sessionsPerEra: new BigNumber(0),
+  maxExposurePageSize: new BigNumber(0),
   maxNominatorRewardedPerValidator: new BigNumber(0),
   historyDepth: new BigNumber(0),
   maxElectingVoters: new BigNumber(0),

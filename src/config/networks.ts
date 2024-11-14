@@ -6,6 +6,7 @@ import { ReactComponent as AzeroIconSVG } from 'img/a0_icon.svg';
 import { ReactComponent as AzeroInlineSVG } from 'img/a0_inline.svg';
 import { ReactComponent as AzeroLogoSVG } from 'img/a0_logo.svg';
 import type { Networks } from 'types';
+import BigNumber from 'bignumber.js';
 
 export const NetworkList: Networks = {};
 
@@ -63,6 +64,7 @@ if (import.meta.env.VITE_DISABLE_MAINNET !== '1') {
       stakeTarget: 0.5,
     },
     defaultFeeReserve: 0.1,
+    maxExposurePageSize: new BigNumber(1024),
   } as const;
 
   NetworkList[alephZero.name] = alephZero;
@@ -122,6 +124,7 @@ if (import.meta.env.VITE_DISABLE_TESTNET !== '1') {
       stakeTarget: 0.5,
     },
     defaultFeeReserve: 0.1,
+    maxExposurePageSize: new BigNumber(1024),
   } as const;
 
   NetworkList[alephZeroTestnet.name] = alephZeroTestnet;
@@ -180,6 +183,7 @@ if (import.meta.env.VITE_ENABLE_CUSTOM_NETWORK === '1') {
       stakeTarget: 0.5,
     },
     defaultFeeReserve: 0.1,
+    maxExposurePageSize: new BigNumber(1024),
   } as const;
 
   NetworkList[azeroCustom.name] = azeroCustom;
@@ -239,6 +243,7 @@ if (import.meta.env.VITE_DISABLE_DEVNET !== '1') {
       stakeTarget: 0.5,
     },
     defaultFeeReserve: 0.1,
+    maxExposurePageSize: new BigNumber(1024),
   } as const;
 
   NetworkList[azeroDevnet.name] = azeroDevnet;
@@ -298,6 +303,7 @@ if (import.meta.env.MODE === 'development') {
       stakeTarget: 0.5,
     },
     defaultFeeReserve: 0.1,
+    maxExposurePageSize: new BigNumber(1024),
   } as const;
 
   NetworkList[azeroLocal.name] = azeroLocal;

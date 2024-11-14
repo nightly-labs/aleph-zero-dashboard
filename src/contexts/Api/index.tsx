@@ -235,6 +235,7 @@ export const APIProvider = ({ children }: { children: React.ReactNode }) => {
       newApi.consts.staking.historyDepth,
       null, // newApi.consts.fastUnstake.deposit, // we don't use fastUnstake
       newApi.consts.nominationPools.palletId,
+      newApi.consts.staking.maxExposurePageSize,
     ]);
 
     // format constants.
@@ -274,6 +275,10 @@ export const APIProvider = ({ children }: { children: React.ReactNode }) => {
 
     const expectedEraTime = FallbackExpectedEraTime;
 
+    const maxExposurePageSize = result[11]
+      ? new BigNumber(result[11].toString())
+      : NetworkList[network.name].maxExposurePageSize;
+
     setConsts({
       chainDecimals: newApi.registry.chainDecimals[0],
       bondDuration,
@@ -288,6 +293,7 @@ export const APIProvider = ({ children }: { children: React.ReactNode }) => {
       poolsPalletId,
       existentialDeposit,
       fastUnstakeDeposit,
+      maxExposurePageSize,
     });
     setApi(newApi);
   };

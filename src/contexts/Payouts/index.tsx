@@ -30,10 +30,11 @@ export const PayoutsProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const { api, network } = useApi();
+  const { api, consts, network } = useApi();
   const { activeAccount } = useConnect();
   const { activeEra } = useNetworkMetrics();
   const { isNominating, fetchEraStakers } = useStaking();
+  const { maxExposurePageSize } = consts;
 
   // Store active accont's payout state.
   const [unclaimedPayouts, setUnclaimedPayouts] =
@@ -87,6 +88,7 @@ export const PayoutsProvider = ({
         era: String(era),
         who: activeAccount,
         networkName: network.name,
+        maxExposurePageSize: maxExposurePageSize.toString(),
         exposures,
       });
     }

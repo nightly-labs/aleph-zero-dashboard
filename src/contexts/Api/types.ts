@@ -17,6 +17,7 @@ export interface APIConstants {
   bondDuration: BigNumber;
   maxNominations: BigNumber;
   sessionsPerEra: BigNumber;
+  maxExposurePageSize: BigNumber;
   maxNominatorRewardedPerValidator: BigNumber;
   historyDepth: BigNumber;
   maxElectingVoters: BigNumber;

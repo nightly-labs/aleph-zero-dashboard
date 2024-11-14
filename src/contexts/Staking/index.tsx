@@ -17,7 +17,7 @@ import type { PayeeConfig, PayeeOptions } from 'contexts/Setup/types';
 import type {
   EraStakers,
   Exposure,
-  ExposureOther,
+  ExposureOtherWithPage,
   StakingContextInterface,
   StakingMetrics,
   StakingTargets,
@@ -358,16 +358,18 @@ export const StakingProvider = ({
     pagedResults.forEach((pagedResult, index) => {
       const validator = validatorKeys[index];
       const { own, total } = validators[validator];
-      const others = pagedResult.reduce(
-        (prev: ExposureOther[], [, v]: AnyApi) => {
+      const others = pagedResult
+        .reduce((prev: ExposureOtherWithPage[], [k, v]: AnyApi) => {
           const o = v.toHuman()?.others || [];
+          const page = k.toHuman()?.[2] || 0;
           if (!o.length) {
             return prev;
           }
-          return prev.concat(o);
-        },
-        []
-      );
+          return prev.concat(
+            o.map((item: ExposureOtherWithPage) => ({ ...item, page: page }))
+          );
+        }, [])
+        .sort((a, b) => a.page - b.page);
 
       result.push({
         keys: [rmCommas(era), validator],
