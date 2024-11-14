@@ -16,7 +16,7 @@
       [
         "There are multiple ways to stake on {NETWORK_NAME}.",
         "You can either become a nominator or become a member of a pool.",
-        "Directly nominating requires you to bond {NETWORK_UNIT} and choose validators.",
+        "Directly nominating requires you to bond {NETWORK_UNIT} and choose validator.",
         "Joining a pool is much cheaper, requiring a minimum deposit of {MIN_POOL_JOIN_BOND} {NETWORK_UNIT}. Nominating validators is done on your behalf, and you simply claim rewards from the pool.",
         "Creating a pool is also possible, requiring a minimum of {MIN_POOL_CREATE_BOND} {NETWORK_UNIT}."
       ]
