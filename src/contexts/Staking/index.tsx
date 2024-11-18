@@ -206,10 +206,13 @@ export const StakingProvider = ({
       activeEra.index.toString()
     );
 
-    if (localExposures) {
-      exposures = localExposures;
-    } else {
-      exposures = await getPagedErasStakers(era);
+    {
+      const oldExposures = formatRawExposures(
+        await api.query.staking.erasStakers.entries(era)
+      );
+      const newExposures = await getPagedErasStakers(era);
+
+      exposures = [...oldExposures, ...newExposures];
     }
 
     // For resource limitation concerns, only store the current era in local storage.
@@ -383,6 +386,7 @@ export const StakingProvider = ({
         },
       });
     });
+
     return result;
   };
 

@@ -40,42 +40,23 @@ export const setLocalEraExposures = (
 };
 
 // Humanise and remove commas from fetched exposures.
-export const formatRawExposures = (
-  erasStakersOverview: AnyApi,
-  erasStakersPaged: AnyApi
-) => {
-  const exposures = erasStakersOverview.map(([k, v]: AnyApi) => {
+export const formatRawExposures = (exposures: AnyApi) =>
+  exposures.map(([k, v]: AnyApi) => {
     const keys = k.toHuman();
-    const { own, total } = v.toHuman();
+    const { own, total, others } = v.toHuman();
 
     return {
       keys: [rmCommas(keys[0]), keys[1]],
       val: {
-        others: [],
+        others: others.map(({ who, value }: AnyApi) => ({
+          who,
+          value: rmCommas(value),
+        })),
         own: rmCommas(own),
         total: rmCommas(total),
       },
     };
   });
-
-  erasStakersPaged.map(([k, v]: AnyApi) => {
-    const keys = k.toHuman();
-    const { others } = v.toHuman();
-
-    const foundItem = exposures.find((item: any) => item.keys[1] === keys[1]);
-
-    if (foundItem) {
-      foundItem.val.others.push(
-        ...others.map(({ who, value }: AnyApi) => ({
-          who,
-          value: rmCommas(value),
-        }))
-      );
-    }
-  });
-
-  return exposures;
-};
 
 // Minify exposures data structure for local storage.
 const minifyExposures = (exposures: Exposure[]) =>

@@ -240,9 +240,13 @@ export const ValidatorsProvider = ({
   const subscribeSessionValidators = async () => {
     if (!api || !isReady) return;
     const sessionValidatorsRaw: AnyApi =
-      await api.query.staking.validators.entries();
+      await api.query.staking.erasStakersOverview.entries(
+        activeEra.index.toString()
+      );
     setSessionValidators(
-      sessionValidatorsRaw.map(([keys]: AnyApi) => keys?.toHuman()?.toString())
+      sessionValidatorsRaw.map(
+        ([keys]: AnyApi) => keys?.toHuman()?.[1]?.toString()
+      )
     );
   };
 
