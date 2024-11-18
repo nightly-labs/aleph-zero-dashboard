@@ -26,6 +26,26 @@ export default (api: ApiPromise, era: number) => {
         })
       ),
     })),
+    api.query.staking.erasStakers.entries(era).then((stakers) =>
+      stakers.map(
+        ([
+          {
+            args: [, rawValidatorId],
+          },
+          // @ts-expect-error TS2339: Contrary to the TS error, "others", "own" and "total" do exist
+          { others: nominators, own, total },
+        ]) => ({
+          validatorId: rawValidatorId.toString(),
+          // @ts-expect-error TS7031: Not fixing types in here since we cast in right after
+          nominatorsStakes: nominators.map(({ who, value }) => ({
+            nominatorId: who.toString(),
+            value: value.toBn(),
+          })),
+          ownStake: own.toBn(),
+          totalStake: total.toBn(),
+        })
+      )
+    ),
     api.query.staking.erasStakersOverview.entries(era).then(
       (stakers) =>
         stakers?.map(([args, data]) => {
@@ -91,6 +111,7 @@ export default (api: ApiPromise, era: number) => {
     ([
       totalEraRewardPoints,
       allAwardedRewardPoints,
+      oldAllStakes,
       stakesOverview,
       allStakes,
       allCommissions,
@@ -105,6 +126,13 @@ export default (api: ApiPromise, era: number) => {
           };
         }
       );
+
+      oldAllStakes.forEach(({ validatorId, ...stakes }) => {
+        perValidatorData[validatorId] = {
+          ...perValidatorData[validatorId],
+          ...stakes,
+        };
+      });
 
       stakesOverview.forEach(({ validatorId, ownStake, total }) => {
         perValidatorData[validatorId] = {
