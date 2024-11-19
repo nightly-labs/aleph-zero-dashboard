@@ -176,12 +176,13 @@ export const PayoutsProvider = ({
     const ledgerResults = await api.query.staking.ledger.multi<AnyApi>(
       Object.values(validatorControllers)
     );
-    const oldUnclaimedRewards: Record<string, string[]> = {};
+
+    const oldClaimedRewards: Record<string, string[]> = {};
     for (const ledgerResult of ledgerResults) {
       const ledger = ledgerResult.unwrapOr(null)?.toHuman();
-      if (ledger && ledger.claimedRewards > 0) {
+      if (ledger && ledger.legacyClaimedRewards > 0) {
         // get claimed eras within `erasToCheck`.
-        const erasClaimed = ledger.claimedRewards
+        const erasClaimed = ledger.legacyClaimedRewards
           .map((e: string) => rmCommas(e))
           .filter(
             (e: string) =>
@@ -189,41 +190,24 @@ export const PayoutsProvider = ({
               new BigNumber(e).isGreaterThanOrEqualTo(endEra)
           );
 
-        // filter eras yet to be claimed
-        oldUnclaimedRewards[ledger.stash] = erasToCheck
+        oldClaimedRewards[ledger.stash] = erasToCheck
           .map((e) => e.toString())
           .filter((r: string) => validatorExposedEras(ledger.stash).includes(r))
-          .filter((r: string) => !erasClaimed.includes(r));
+          .filter((r: string) => erasClaimed.includes(r));
       }
     }
 
     // Reformat old unclaimed rewards to match new format.
-    const oldUnclaimedByEra: Record<string, string[]> = {};
+    const oldClaimedByEra: Record<string, string[]> = {};
     erasToCheck.forEach((era) => {
       const eraValidators: string[] = [];
-      Object.entries(oldUnclaimedRewards).forEach(([validator, eras]) => {
+      Object.entries(oldClaimedRewards).forEach(([validator, eras]) => {
         if (eras.includes(era)) {
           eraValidators.push(validator);
         }
       });
       if (eraValidators.length > 0) {
-        oldUnclaimedByEra[era] = eraValidators;
-      }
-    });
-
-    // Accumulate calls needed to fetch data to calculate rewards.
-    const oldCalls: AnyApi[] = [];
-    Object.entries(oldUnclaimedByEra).forEach(([era, validators]) => {
-      if (validators.length > 0) {
-        calls.push(
-          Promise.all([
-            api.query.staking.erasValidatorReward<AnyApi>(era),
-            api.query.staking.erasRewardPoints<AnyApi>(era),
-            ...validators.map((validator: AnyJson) =>
-              api.query.staking.erasValidatorPrefs<AnyApi>(era, validator)
-            ),
-          ])
-        );
+        oldClaimedByEra[era] = eraValidators;
       }
     });
 
@@ -248,7 +232,7 @@ export const PayoutsProvider = ({
       const exposedPage =
         exposure?.[validator]?.exposedPage !== undefined
           ? String(exposure[validator].exposedPage)
-          : undefined;
+          : '0';
 
       // Add to `unclaimedRewards` if payout page has not yet been claimed.
       if (!pages.includes(exposedPage)) {
@@ -261,7 +245,7 @@ export const PayoutsProvider = ({
     }
 
     // Reformat unclaimed rewards to be { era: validators[] }.
-    const unclaimedByEra: Record<string, string[]> = {};
+    let unclaimedByEra: Record<string, string[]> = {};
     erasToCheck.forEach((era) => {
       const eraValidators: string[] = [];
       Object.entries(unclaimedRewards).forEach(([validator, eras]) => {
@@ -274,8 +258,30 @@ export const PayoutsProvider = ({
       }
     });
 
+    function mergeClaimedData(
+      unclaimedByEra: Record<string, string[]>,
+      claimedByEra: Record<string, string[]>
+    ): Record<string, string[]> {
+      const result = { ...unclaimedByEra };
+
+      for (const era in claimedByEra) {
+        if (claimedByEra.hasOwnProperty(era) && result.hasOwnProperty(era)) {
+          result[era] = result[era].filter(
+            (user) => !claimedByEra[era].includes(user)
+          );
+
+          if (result[era].length === 0) {
+            delete result[era];
+          }
+        }
+      }
+
+      return result;
+    }
+    unclaimedByEra = mergeClaimedData(unclaimedByEra, oldClaimedByEra);
+
     // Accumulate calls needed to fetch data to calculate rewards.
-    let calls: AnyApi[] = [];
+    const calls: AnyApi[] = [];
     Object.entries(unclaimedByEra).forEach(([era, validators]) => {
       if (validators.length > 0) {
         calls.push(
@@ -290,17 +296,14 @@ export const PayoutsProvider = ({
       }
     });
 
-    calls = [...oldCalls, ...calls];
-
     // Iterate calls and determine unclaimed payouts.
     const unclaimed: UnclaimedPayouts = {};
     let i = 0;
     for (const [reward, points, ...prefs] of await Promise.all(calls)) {
-      const era =
-        Object.keys(unclaimedByEra)[i] || Object.keys(oldUnclaimedByEra)[i];
+      const era = Object.keys(unclaimedByEra)[i];
       const eraTotalPayout = new BigNumber(rmCommas(reward.toHuman()));
       const eraRewardPoints = points.toHuman();
-      const unclaimedValidators = unclaimedByEra[era] || oldUnclaimedByEra[era];
+      const unclaimedValidators = unclaimedByEra[era];
 
       let j = 0;
       for (const pref of prefs) {
