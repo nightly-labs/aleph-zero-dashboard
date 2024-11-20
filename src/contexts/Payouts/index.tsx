@@ -153,8 +153,8 @@ export const PayoutsProvider = ({
       const exposedEras: string[] = [];
       for (const era of erasToCheck)
         if (
-          Object.values(
-            Object.keys(getLocalEraExposure(network.name, era, activeAccount))
+          Object.keys(
+            getLocalEraExposure(network.name, era, activeAccount)
           )?.[0] === validator
         )
           exposedEras.push(era);
@@ -180,7 +180,7 @@ export const PayoutsProvider = ({
     const oldClaimedRewards: Record<string, string[]> = {};
     for (const ledgerResult of ledgerResults) {
       const ledger = ledgerResult.unwrapOr(null)?.toHuman();
-      if (ledger && ledger.legacyClaimedRewards > 0) {
+      if (ledger && ledger.legacyClaimedRewards.length > 0) {
         // get claimed eras within `erasToCheck`.
         const erasClaimed = ledger.legacyClaimedRewards
           .map((e: string) => rmCommas(e))
@@ -265,9 +265,9 @@ export const PayoutsProvider = ({
       const result = { ...unclaimedByEra };
 
       for (const era in claimedByEra) {
-        if (claimedByEra.hasOwnProperty(era) && result.hasOwnProperty(era)) {
+        if (era in result) {
           result[era] = result[era].filter(
-            (user) => !claimedByEra[era].includes(user)
+            (validator) => !claimedByEra[era].includes(validator)
           );
 
           if (result[era].length === 0) {
