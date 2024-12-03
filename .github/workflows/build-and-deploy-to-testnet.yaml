@@ -40,6 +40,10 @@ jobs:
         with:
           environment: testnet
           kustomize_version: ${{ vars.KUSTOMIZE_VERSION }}
+          autocommit-author: ${{ secrets.AUTOCOMMIT_AUTHOR }}
+          autocommit-email: ${{ secrets.AUTOCOMMIT_EMAIL }}
+          autocommit-gpg-key-b64: ${{ secrets.AUTOCOMMIT_GPG_KEY_B64 }}
+          autocommit-gpg-key-fingerprint: ${{ secrets.AUTOCOMMIT_GPG_KEY_FINGERPRINT }}
           image_tag: ${{ needs.build-and-push.outputs.image_tag }}
           github_token: ${{ secrets.CI_GH_TOKEN }}
 
