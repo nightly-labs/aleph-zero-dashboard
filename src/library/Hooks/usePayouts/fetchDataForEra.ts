@@ -56,7 +56,9 @@ export default (api: ApiPromise, era: number) => {
 
           return {
             validatorId,
+            // eslint-disable-next-line new-cap
             ownStake: new u128(registry, rmCommas(own)),
+            // eslint-disable-next-line new-cap
             total: new u128(registry, rmCommas(total)),
           };
         })
@@ -78,6 +80,7 @@ export default (api: ApiPromise, era: number) => {
           // @ts-expect-error TS2339: Contrary to the TS error "who" and "value" do exist
           const nominatorsStakes = others.map(({ who, value }) => ({
             nominatorId: rmCommas(who),
+            // eslint-disable-next-line new-cap
             value: new u128(registry, rmCommas(value)),
           }));
 

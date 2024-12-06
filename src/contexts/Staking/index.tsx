@@ -206,7 +206,9 @@ export const StakingProvider = ({
       activeEra.index.toString()
     );
 
-    {
+    if (localExposures) {
+      exposures = localExposures;
+    } else {
       const oldExposures = formatRawExposures(
         await api.query.staking.erasStakers.entries(era)
       );

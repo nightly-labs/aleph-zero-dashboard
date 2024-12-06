@@ -245,7 +245,7 @@ export const PayoutsProvider = ({
     }
 
     // Reformat unclaimed rewards to be { era: validators[] }.
-    let unclaimedByEra: Record<string, string[]> = {};
+    let unclaimedRewardsByEra: Record<string, string[]> = {};
     erasToCheck.forEach((era) => {
       const eraValidators: string[] = [];
       Object.entries(unclaimedRewards).forEach(([validator, eras]) => {
@@ -254,7 +254,7 @@ export const PayoutsProvider = ({
         }
       });
       if (eraValidators.length > 0) {
-        unclaimedByEra[era] = eraValidators;
+        unclaimedRewardsByEra[era] = eraValidators;
       }
     });
 
@@ -278,11 +278,14 @@ export const PayoutsProvider = ({
 
       return result;
     }
-    unclaimedByEra = mergeClaimedData(unclaimedByEra, oldClaimedByEra);
+    unclaimedRewardsByEra = mergeClaimedData(
+      unclaimedRewardsByEra,
+      oldClaimedByEra
+    );
 
     // Accumulate calls needed to fetch data to calculate rewards.
     const calls: AnyApi[] = [];
-    Object.entries(unclaimedByEra).forEach(([era, validators]) => {
+    Object.entries(unclaimedRewardsByEra).forEach(([era, validators]) => {
       if (validators.length > 0) {
         calls.push(
           Promise.all([
@@ -300,10 +303,10 @@ export const PayoutsProvider = ({
     const unclaimed: UnclaimedPayouts = {};
     let i = 0;
     for (const [reward, points, ...prefs] of await Promise.all(calls)) {
-      const era = Object.keys(unclaimedByEra)[i];
+      const era = Object.keys(unclaimedRewardsByEra)[i];
       const eraTotalPayout = new BigNumber(rmCommas(reward.toHuman()));
       const eraRewardPoints = points.toHuman();
-      const unclaimedValidators = unclaimedByEra[era];
+      const unclaimedValidators = unclaimedRewardsByEra[era];
 
       let j = 0;
       for (const pref of prefs) {
