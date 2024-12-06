@@ -39,7 +39,6 @@ export const Active = () => {
       <PageTitle title={t('nominate.nominate')} />
       <StatBoxList>
         <MinimumNominatorBondStat />
-        <MinimumActiveStakeStat />
       </StatBoxList>
       <UnstakePrompts />
       <PageRow>

@@ -4,6 +4,7 @@
 import type React from 'react';
 import type { FunctionComponent, SVGProps } from 'react';
 import type { Theme } from 'contexts/Themes/types';
+import BigNumber from 'bignumber.js';
 
 export enum NetworkNameEnum {
   AlephZero = 'Aleph Zero',
@@ -76,6 +77,7 @@ export interface Network {
   };
   params: Record<string, number>;
   defaultFeeReserve: number;
+  maxExposurePageSize: BigNumber;
 }
 
 export interface PageCategory {

@@ -209,7 +209,7 @@ export const useValidatorFilters = () => {
     if (
       !searchTerm ||
       !Object.values(validatorIdentities).length ||
-      !Object.values(validatorSupers).length
+      !validatorSupers
     ) {
       return list;
     }

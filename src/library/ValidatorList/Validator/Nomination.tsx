@@ -51,7 +51,6 @@ export const Nomination = ({
             nominator={nominator}
           />
           <Labels>
-            <Oversubscribed address={address} />
             <Blocked prefs={prefs} />
             <Commission commission={commission} />
             <ParaValidator address={address} />

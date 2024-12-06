@@ -64,6 +64,10 @@ export interface ExposureOther {
   value: string;
 }
 
+export type ExposureOtherWithPage = ExposureOther & {
+  page: number;
+};
+
 interface LowestReward {
   lowest: BigNumber;
   oversubscribed: boolean;

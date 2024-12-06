@@ -38,7 +38,7 @@ export const FastUnstakeProvider = ({
   const { metrics, activeEra } = useNetworkMetrics();
   const { getNominationStatus } = useNominationStatus();
   const { fastUnstakeErasToCheckPerBlock } = metrics;
-  const { bondDuration } = consts;
+  const { bondDuration, maxExposurePageSize } = consts;
   const { nominees } = getNominationStatus(activeAccount, 'nominator');
 
   // store whether a fast unstake check is in progress.
@@ -242,6 +242,7 @@ export const FastUnstakeProvider = ({
       who: activeAccount,
       networkName: network.name,
       exitOnExposed: true,
+      maxExposurePageSize: maxExposurePageSize.toString(),
       exposures,
     });
   };

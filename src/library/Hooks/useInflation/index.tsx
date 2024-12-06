@@ -39,7 +39,7 @@ const useYearlyInflation = () => {
 
   useEffect(() => {
     getYearlyInflation?.()
-      .then((val) => setYearlyInflation(val.toNumber() / 1_000_000_000))
+      .then((val) => setYearlyInflation(Number(val) / 1_000_000_000))
       // eslint-disable-next-line no-console
       .catch(console.error);
     // `api` object can change in case of network change which should trigger refetch.

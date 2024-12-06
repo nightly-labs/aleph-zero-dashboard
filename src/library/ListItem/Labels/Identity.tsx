@@ -18,12 +18,6 @@ export const Identity = ({ address }: IdentityProps) => {
     getIdentityDisplay(validatorIdentities[address], validatorSupers[address])
   );
 
-  // aggregate synced status
-  const identitiesSynced =
-    Object.values(validatorIdentities).length > 0 ?? false;
-
-  const supersSynced = Object.values(validatorSupers).length > 0 ?? false;
-
   useEffect(() => {
     setDisplay(
       getIdentityDisplay(validatorIdentities[address], validatorSupers[address])
@@ -39,7 +33,7 @@ export const Identity = ({ address }: IdentityProps) => {
     >
       <PolkadotIcon dark={mode === 'dark'} nocopy address={address} size={24} />
       <div className="inner">
-        {identitiesSynced && supersSynced && display !== null ? (
+        {display !== null ? (
           <h4>{display}</h4>
         ) : (
           <h4>{ellipsisFn(address, 6)}</h4>

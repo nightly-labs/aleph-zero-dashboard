@@ -30,10 +30,11 @@ export const PayoutsProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const { api, network } = useApi();
+  const { api, consts, network } = useApi();
   const { activeAccount } = useConnect();
   const { activeEra } = useNetworkMetrics();
   const { isNominating, fetchEraStakers } = useStaking();
+  const { maxExposurePageSize } = consts;
 
   // Store active accont's payout state.
   const [unclaimedPayouts, setUnclaimedPayouts] =
@@ -87,6 +88,7 @@ export const PayoutsProvider = ({
         era: String(era),
         who: activeAccount,
         networkName: network.name,
+        maxExposurePageSize: maxExposurePageSize.toString(),
         exposures,
       });
     }
@@ -151,8 +153,8 @@ export const PayoutsProvider = ({
       const exposedEras: string[] = [];
       for (const era of erasToCheck)
         if (
-          Object.values(
-            Object.keys(getLocalEraExposure(network.name, era, activeAccount))
+          Object.keys(
+            getLocalEraExposure(network.name, era, activeAccount)
           )?.[0] === validator
         )
           exposedEras.push(era);
@@ -165,20 +167,22 @@ export const PayoutsProvider = ({
     const validatorControllers: Record<string, string> = {};
     for (let i = 0; i < bondedResults.length; i++) {
       const ctlr = bondedResults[i].unwrapOr(null);
-      if (ctlr) validatorControllers[uniqueValidators[i]] = ctlr;
+      if (ctlr) {
+        validatorControllers[uniqueValidators[i]] = ctlr;
+      }
     }
 
-    // Fetch ledgers to determine which eras have not yet been claimed per validator. Only includes
-    // eras that are in `erasToCheck`.
+    // Start old unclaimed payouts logic
     const ledgerResults = await api.query.staking.ledger.multi<AnyApi>(
       Object.values(validatorControllers)
     );
-    const unclaimedRewards: Record<string, string[]> = {};
+
+    const oldClaimedRewards: Record<string, string[]> = {};
     for (const ledgerResult of ledgerResults) {
       const ledger = ledgerResult.unwrapOr(null)?.toHuman();
-      if (ledger) {
+      if (ledger && ledger.legacyClaimedRewards.length > 0) {
         // get claimed eras within `erasToCheck`.
-        const erasClaimed = ledger.claimedRewards
+        const erasClaimed = ledger.legacyClaimedRewards
           .map((e: string) => rmCommas(e))
           .filter(
             (e: string) =>
@@ -186,28 +190,103 @@ export const PayoutsProvider = ({
               new BigNumber(e).isGreaterThanOrEqualTo(endEra)
           );
 
-        // filter eras yet to be claimed
-        unclaimedRewards[ledger.stash] = erasToCheck
+        oldClaimedRewards[ledger.stash] = erasToCheck
           .map((e) => e.toString())
           .filter((r: string) => validatorExposedEras(ledger.stash).includes(r))
-          .filter((r: string) => !erasClaimed.includes(r));
+          .filter((r: string) => erasClaimed.includes(r));
+      }
+    }
+
+    // Reformat old unclaimed rewards to match new format.
+    const oldClaimedByEra: Record<string, string[]> = {};
+    erasToCheck.forEach((era) => {
+      const eraValidators: string[] = [];
+      Object.entries(oldClaimedRewards).forEach(([validator, eras]) => {
+        if (eras.includes(era)) {
+          eraValidators.push(validator);
+        }
+      });
+      if (eraValidators.length > 0) {
+        oldClaimedByEra[era] = eraValidators;
+      }
+    });
+
+    const unclaimedRewards: Record<string, string[]> = {};
+
+    // Accumulate calls to fetch unclaimed rewards for each era for all validators.
+    const unclaimedRewardsEntries = erasToCheck
+      .map((era) => uniqueValidators.map((v) => [era, v]))
+      .flat();
+
+    const results = await Promise.all(
+      unclaimedRewardsEntries.map(([era, v]) =>
+        api.query.staking.claimedRewards<AnyApi>(era, v)
+      )
+    );
+
+    for (let i = 0; i < results.length; i++) {
+      const pages = results[i].toHuman() || [];
+      const era = unclaimedRewardsEntries[i][0];
+      const validator = unclaimedRewardsEntries[i][1];
+      const exposure = getLocalEraExposure(network.name, era, activeAccount);
+      const exposedPage =
+        exposure?.[validator]?.exposedPage !== undefined
+          ? String(exposure[validator].exposedPage)
+          : '0';
+
+      // Add to `unclaimedRewards` if payout page has not yet been claimed.
+      if (!pages.includes(exposedPage)) {
+        if (unclaimedRewards?.[validator]) {
+          unclaimedRewards[validator].push(era);
+        } else {
+          unclaimedRewards[validator] = [era];
+        }
       }
     }
 
     // Reformat unclaimed rewards to be { era: validators[] }.
-    const unclaimedByEra: Record<string, string[]> = {};
+    let unclaimedRewardsByEra: Record<string, string[]> = {};
     erasToCheck.forEach((era) => {
       const eraValidators: string[] = [];
       Object.entries(unclaimedRewards).forEach(([validator, eras]) => {
-        if (eras.includes(era)) eraValidators.push(validator);
+        if (eras.includes(era)) {
+          eraValidators.push(validator);
+        }
       });
-      if (eraValidators.length > 0) unclaimedByEra[era] = eraValidators;
+      if (eraValidators.length > 0) {
+        unclaimedRewardsByEra[era] = eraValidators;
+      }
     });
+
+    function mergeClaimedData(
+      unclaimedByEra: Record<string, string[]>,
+      claimedByEra: Record<string, string[]>
+    ): Record<string, string[]> {
+      const result = { ...unclaimedByEra };
+
+      for (const era in claimedByEra) {
+        if (era in result) {
+          result[era] = result[era].filter(
+            (validator) => !claimedByEra[era].includes(validator)
+          );
+
+          if (result[era].length === 0) {
+            delete result[era];
+          }
+        }
+      }
+
+      return result;
+    }
+    unclaimedRewardsByEra = mergeClaimedData(
+      unclaimedRewardsByEra,
+      oldClaimedByEra
+    );
 
     // Accumulate calls needed to fetch data to calculate rewards.
     const calls: AnyApi[] = [];
-    Object.entries(unclaimedByEra).forEach(([era, validators]) => {
-      if (validators.length > 0)
+    Object.entries(unclaimedRewardsByEra).forEach(([era, validators]) => {
+      if (validators.length > 0) {
         calls.push(
           Promise.all([
             api.query.staking.erasValidatorReward<AnyApi>(era),
@@ -217,16 +296,17 @@ export const PayoutsProvider = ({
             ),
           ])
         );
+      }
     });
 
     // Iterate calls and determine unclaimed payouts.
     const unclaimed: UnclaimedPayouts = {};
     let i = 0;
     for (const [reward, points, ...prefs] of await Promise.all(calls)) {
-      const era = Object.keys(unclaimedByEra)[i];
+      const era = Object.keys(unclaimedRewardsByEra)[i];
       const eraTotalPayout = new BigNumber(rmCommas(reward.toHuman()));
       const eraRewardPoints = points.toHuman();
-      const unclaimedValidators = unclaimedByEra[era];
+      const unclaimedValidators = unclaimedRewardsByEra[era];
 
       let j = 0;
       for (const pref of prefs) {
@@ -247,6 +327,7 @@ export const PayoutsProvider = ({
         const staked = new BigNumber(localExposed?.staked || '0');
         const total = new BigNumber(localExposed?.total || '0');
         const isValidator = localExposed?.isValidator || false;
+        const exposedPage = localExposed?.exposedPage || 0;
 
         // Calculate the validator's share of total era payout.
         const totalRewardPoints = new BigNumber(
@@ -269,11 +350,13 @@ export const PayoutsProvider = ({
               .dividedBy(total)
               .plus(isValidator ? valCut : 0);
 
-        unclaimed[era] = {
-          ...unclaimed[era],
-          [validator]: unclaimedPayout.toString(),
-        };
-        j++;
+        if (!unclaimedPayout.isZero()) {
+          unclaimed[era] = {
+            ...unclaimed[era],
+            [validator]: [exposedPage, unclaimedPayout.toString()],
+          };
+          j++;
+        }
       }
 
       // This is not currently useful for preventing re-syncing. Need to know the eras that have
