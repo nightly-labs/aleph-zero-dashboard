@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "license": "GPL-3.0-only",
+  "private": false,
   "scripts": {
     "build": "tsc && vite build --base '/'",
     "build:pages": "tsc && vite build --base '/polkadot-staking-dashboard/'",
