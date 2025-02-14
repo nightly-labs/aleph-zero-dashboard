@@ -1,21 +1,20 @@
 // Copyright 2023 @paritytech/polkadot-staking-dashboard authors & contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-import { NightlyConnectAdapter } from '@nightlylabs/wallet-selector-polkadot';
+import { type NightlyConnectAdapter } from '@nightlylabs/wallet-selector-polkadot';
 import { ModalCustomHeader, ModalPadding } from '@polkadot-cloud/react';
 import { useOverlay } from '@polkadot-cloud/react/hooks';
 import { useConnect } from 'contexts/Connect';
-import { ImportedAccount } from 'contexts/Connect/types';
+import { type ImportedAccount } from 'contexts/Connect/types';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SelectorButton } from './SelectorButton';
 import { ReactComponent as NightlySvg } from 'config/extensions/icons/nightly_icon.svg';
 import { ReactComponent as AlephZeroSVG } from 'img/a0_icon.svg';
 
-import { SelectorButtonSeparator, SelectorMarginTop } from './Wrappers';
-import { useHelp } from 'contexts/Help';
 import { getNCAdapter } from 'contexts/Connect/NCAdapter';
 import { useNotifications } from 'contexts/Notifications';
+import { SelectorButtonSeparator, SelectorMarginTop } from './Wrappers';
+import { SelectorButton } from './SelectorButton';
 
 export const ChooseSelector = () => {
   const { t } = useTranslation('modals');
@@ -27,8 +26,8 @@ export const ChooseSelector = () => {
 
   useEffect(() => {
     const initAdapter = async () => {
-      const adapter = await getNCAdapter();
-      setAdapter(adapter);
+      const a = await getNCAdapter();
+      setAdapter(a);
     };
 
     initAdapter();
@@ -42,16 +41,16 @@ export const ChooseSelector = () => {
         </div>
       </ModalCustomHeader>
       <SelectorMarginTop />
-      <React.Fragment>
+      <>
         <SelectorButtonSeparator />
         <SelectorButton
           label="Nightly Connect"
           Icon={NightlySvg}
           onClick={() => {
             adapter?.connect().then(async () => {
-              const accounts = await adapter.accounts.get();
-              addToAccounts(accounts as ImportedAccount[]);
-              connectToAccount(accounts[0] as ImportedAccount);
+              const acc = await adapter.accounts.get();
+              addToAccounts(acc as ImportedAccount[]);
+              connectToAccount(acc[0] as ImportedAccount);
               setSelector('nightlyConnect');
               setModalStatus('closing');
               addNotification({
@@ -63,17 +62,18 @@ export const ChooseSelector = () => {
             });
           }}
         />
-      </React.Fragment>
-      <React.Fragment>
+      </>
+      <>
         <SelectorButtonSeparator />
         <SelectorButton
           label="Native"
           Icon={AlephZeroSVG}
           onClick={() => {
             replaceModal({ key: accounts.length ? 'Accounts' : 'Connect' });
+            setSelector('native');
           }}
         />
-      </React.Fragment>
+      </>
     </ModalPadding>
   );
 };

@@ -6,11 +6,11 @@ import { ButtonText } from '@polkadot-cloud/react';
 import { useTranslation } from 'react-i18next';
 import { useConnect } from 'contexts/Connect';
 import { useOverlay } from '@polkadot-cloud/react/hooks';
-import { ConnectedAccount, HeadingWrapper } from './Wrappers';
 import { useEffect, useState } from 'react';
 import { getNCAdapter } from 'contexts/Connect/NCAdapter';
-import { NightlyConnectAdapter } from '@nightlylabs/wallet-selector-polkadot';
-import { ImportedAccount } from 'contexts/Connect/types';
+import { type NightlyConnectAdapter } from '@nightlylabs/wallet-selector-polkadot';
+import { type ImportedAccount } from 'contexts/Connect/types';
+import { ConnectedAccount, HeadingWrapper } from './Wrappers';
 
 export const Connect = () => {
   const { t } = useTranslation('library');
@@ -20,8 +20,8 @@ export const Connect = () => {
 
   useEffect(() => {
     const initAdapter = async () => {
-      const adapter = await getNCAdapter();
-      setAdapter(adapter);
+      const a = await getNCAdapter();
+      setAdapter(a);
     };
 
     initAdapter();
